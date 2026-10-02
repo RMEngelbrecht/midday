@@ -1,6 +1,5 @@
 "use client";
 
-import { getInboxEmail } from "@midday/inbox";
 import {
   Accordion,
   AccordionContent,
@@ -15,11 +14,12 @@ import { ConnectOutlook } from "@/components/inbox/connect-outlook";
 import { ConnectSlack } from "@/components/inbox/connect-slack";
 import { ConnectTelegram } from "@/components/inbox/connect-telegram";
 import { ConnectWhatsApp } from "@/components/inbox/connect-whatsapp";
+import { useInboxEmail } from "@/hooks/use-inbox-email";
 import { useUserQuery } from "@/hooks/use-user";
 
 export function ConnectInboxStep() {
   const { data: user } = useUserQuery();
-  const inboxEmail = getInboxEmail(user?.team?.inboxId ?? "");
+  const inboxEmail = useInboxEmail(user?.team?.inboxId);
 
   return (
     <div className="space-y-4">

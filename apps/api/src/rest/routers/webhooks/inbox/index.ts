@@ -1,24 +1,14 @@
 import { ENV } from "@api/env";
 import type { Context } from "@api/rest/types";
-import { resend } from "@api/services/resend";
 import { createAdminClient } from "@api/services/supabase";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { getTeamByInboxId } from "@midday/db/queries";
-import { getAllowedAttachments } from "@midday/documents";
 import { getInboxIdFromEmail, inboxWebhookPostSchema } from "@midday/inbox";
+import { processInboundEmail } from "@midday/inbox/ingest";
 import { logger } from "@midday/logger";
+import { getDefaultFromAddress } from "@midday/mailer";
 import { basicAuth } from "hono/basic-auth";
 import { HTTPException } from "hono/http-exception";
-import { nanoid } from "nanoid";
-import {
-  ALLOWED_FORWARDING_EMAILS,
-  FORWARD_FROM_EMAIL,
-  filterAttachments,
-  POSTMARK_IP_RANGE,
-  triggerProcessingJobs,
-  type UploadResult,
-  uploadAttachment,
-} from "./utils";
+import { POSTMARK_IP_RANGE } from "./utils";
 
 const app = new OpenAPIHono<Context>();
 
@@ -183,184 +173,41 @@ app.openapi(
       attachmentCount: Attachments?.length ?? 0,
     });
 
-    // Ignore emails from our own domain to fix infinite loop
-    if (FromFull.Email === FORWARD_FROM_EMAIL) {
-      logger.info("Ignoring email from own domain", {
-        messageId: MessageID,
-        inboxId,
-      });
-      return c.json({ success: true });
-    }
-
-    const db = c.get("db");
-    const supabase = await createAdminClient();
-
     try {
-      const teamData = await getTeamByInboxId(db, inboxId);
-
-      if (!teamData) {
-        logger.warn("Team not found for inbox", {
-          inboxId,
+      const result = await processInboundEmail(
+        c.get("db"),
+        {
           messageId: MessageID,
-        });
+          inboxId,
+          from: { name: FromFull.Name, email: FromFull.Email },
+          subject: Subject,
+          text: TextBody,
+          html: HtmlBody,
+          attachments: Attachments ?? [],
+        },
+        {
+          storage: await createAdminClient(),
+          ownAddress: getDefaultFromAddress(),
+        },
+      );
+
+      if (result.status === "unknown-inbox") {
         throw new HTTPException(404, {
           message: `Team not found for inbox_id: ${inboxId}`,
         });
       }
 
-      const teamId = teamData.id;
-
-      logger.info("Team found for inbox", {
-        teamId,
-        inboxId,
-        messageId: MessageID,
-      });
-
-      // If the email is forwarded from a Google Workspace account, we need to send a reply to the team email
-      if (
-        teamData.email &&
-        ALLOWED_FORWARDING_EMAILS.includes(FromFull.Email as any)
-      ) {
-        logger.info("Processing Google Workspace forwarded email", {
-          teamId,
-          inboxId,
-          messageId: MessageID,
-        });
-
-        await resend.emails.send({
-          from: `${FromFull?.Name} <${FORWARD_FROM_EMAIL}>`,
-          to: teamData.email,
-          subject: Subject ?? FromFull?.Name,
-          text: TextBody,
-          html: HtmlBody,
-          react: null,
-          headers: {
-            "X-Entity-Ref-ID": nanoid(),
-          },
-        });
-
-        return c.json({ success: true });
-      }
-
-      const allowedAttachments = getAllowedAttachments(Attachments);
-
-      if (!allowedAttachments?.length) {
-        logger.info("No allowed attachments", {
-          teamId,
-          inboxId,
-          messageId: MessageID,
-          totalAttachments: Attachments?.length ?? 0,
-        });
-        return c.json({ success: true });
-      }
-
-      logger.info("Processing attachments", {
-        teamId,
-        inboxId,
-        messageId: MessageID,
-        allowedCount: allowedAttachments.length,
-        totalAttachments: Attachments?.length ?? 0,
-      });
-
-      // Filter attachments by size (exclude small images except PDFs)
-      const filteredAttachments = filterAttachments(allowedAttachments);
-
-      if (!filteredAttachments.length) {
-        logger.info("No attachments after filtering", {
-          teamId,
-          inboxId,
-          messageId: MessageID,
-          filteredCount: 0,
-          allowedCount: allowedAttachments.length,
-        });
-        return c.json({ success: true });
-      }
-
-      logger.info("Filtered attachments", {
-        teamId,
-        inboxId,
-        messageId: MessageID,
-        filteredCount: filteredAttachments.length,
-        allowedCount: allowedAttachments.length,
-      });
-
-      // Upload all attachments in parallel
-      const uploadPromises = filteredAttachments.map((attachment) =>
-        uploadAttachment(
-          supabase,
-          teamId,
-          attachment,
-          FromFull?.Email || null,
-          Subject,
-          MessageID,
-        ),
-      );
-
-      const uploadResults = await Promise.all(uploadPromises);
-
-      // Filter out failed uploads
-      const successfulUploads = uploadResults.filter(
-        (result): result is UploadResult => result !== null,
-      );
-
-      const failedUploads = uploadResults.length - successfulUploads.length;
-
-      if (failedUploads > 0) {
-        logger.warn("Some attachments failed to upload", {
-          teamId,
-          inboxId,
-          messageId: MessageID,
-          successful: successfulUploads.length,
-          failed: failedUploads,
-          total: uploadResults.length,
-        });
-      }
-
-      if (!successfulUploads.length) {
-        logger.warn("No successful uploads", {
-          teamId,
-          inboxId,
-          messageId: MessageID,
-          attempted: uploadResults.length,
-        });
-        return c.json({ success: true });
-      }
-
-      logger.info("Successfully uploaded attachments", {
-        teamId,
-        inboxId,
-        messageId: MessageID,
-        uploadCount: successfulUploads.length,
-        failedCount: failedUploads,
-      });
-
-      // Trigger processing jobs
-      await triggerProcessingJobs(teamId, successfulUploads);
-
-      logger.info("Inbox webhook processed successfully", {
-        teamId,
-        inboxId,
-        messageId: MessageID,
-        attachmentsProcessed: successfulUploads.length,
-      });
-
       return c.json({ success: true });
     } catch (error) {
-      // Re-throw HTTPException as-is
       if (error instanceof HTTPException) {
         throw error;
       }
 
-      // Log and wrap other errors
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      const errorStack = error instanceof Error ? error.stack : undefined;
-
       logger.error("Inbox webhook processing failed", {
         inboxId,
         messageId: MessageID,
-        error: errorMessage,
-        stack: errorStack,
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
       });
 
       throw new HTTPException(500, {

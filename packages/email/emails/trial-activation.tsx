@@ -1,3 +1,4 @@
+import { getAppUrl } from "@midday/utils/envs";
 import {
   Body,
   Container,
@@ -72,7 +73,7 @@ export const TrialActivationEmail = ({ fullName = "" }: Props) => {
             reports update automatically. No spreadsheets, no manual entry.
           </Text>
           <Section className="text-center mt-[50px] mb-[50px]">
-            <Button href="https://app.midday.ai">Connect your bank</Button>
+            <Button href={getAppUrl()}>Connect your bank</Button>
           </Section>
           <Text
             className={`text-[14px] ${themeClasses.text}`}

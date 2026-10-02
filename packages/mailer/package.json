@@ -1,0 +1,29 @@
+{
+  "name": "@midday/mailer",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test --exit src"
+  },
+  "dependencies": {
+    "@midday/logger": "workspace:*",
+    "@react-email/render": "2.0.4",
+    "nodemailer": "^10.0.13",
+    "varlock": "catalog:"
+  },
+  "devDependencies": {
+    "@midday/email": "workspace:*",
+    "@types/bun": "latest",
+    "@types/nodemailer": "^8.0.2",
+    "@types/react": "^19.2.14",
+    "typescript": "catalog:"
+  }
+}

@@ -8,18 +8,12 @@ import InvoiceReminderEmail from "@midday/email/emails/invoice-reminder";
 import TransactionsEmail from "@midday/email/emails/transactions";
 import TransactionsExportedEmail from "@midday/email/emails/transactions-exported";
 import UpcomingInvoicesEmail from "@midday/email/emails/upcoming-invoices";
-import { render } from "@midday/email/render";
+import { type MailMessage, sendMany } from "@midday/mailer";
 import { nanoid } from "nanoid";
-import { type CreateEmailOptions, Resend } from "resend";
 import type { EmailInput } from "../base";
-import { ENV } from "../env";
 
 export class EmailService {
-  private client: Resend;
-
-  constructor(private db: Database) {
-    this.client = new Resend(ENV.RESEND_API_KEY!);
-  }
+  constructor(private db: Database) {}
 
   async sendBulk(emails: EmailInput[], notificationType: string) {
     if (emails.length === 0) {
@@ -48,40 +42,7 @@ export class EmailService {
         eligibleEmails.map((email) => this.#buildEmailPayload(email)),
       );
 
-      // Check if any emails have attachments - batch send doesn't support attachments
-      const hasAttachments = emailPayloads.some(
-        (payload) => payload.attachments && payload.attachments.length > 0,
-      );
-      let sent = 0;
-      let failed = 0;
-
-      if (hasAttachments) {
-        // Send emails individually when attachments are present
-        for (const payload of emailPayloads) {
-          try {
-            const response = await this.client.emails.send(payload);
-            if (response.error) {
-              console.error("Failed to send email:", response.error);
-              failed++;
-            } else {
-              sent++;
-            }
-          } catch (error) {
-            console.error("Failed to send email:", error);
-            failed++;
-          }
-        }
-      } else {
-        // Use batch send when no attachments
-        const response = await this.client.batch.send(emailPayloads);
-
-        if (response.error) {
-          console.error("Failed to send emails:", response.error);
-          failed = eligibleEmails.length;
-        } else {
-          sent = eligibleEmails.length;
-        }
-      }
+      const { sent, failed } = await sendMany(emailPayloads);
 
       return {
         sent,
@@ -122,12 +83,8 @@ export class EmailService {
     return eligibleEmails.filter(Boolean) as EmailInput[];
   }
 
-  async #buildEmailPayload(email: EmailInput): Promise<CreateEmailOptions> {
-    let html: string;
-    if (email.template) {
-      const template = this.#getTemplate(email.template as string);
-      html = await render(template(email.data as any));
-    } else {
+  async #buildEmailPayload(email: EmailInput): Promise<MailMessage> {
+    if (!email.template) {
       throw new Error(`No template found for email: ${email.template}`);
     }
 
@@ -135,29 +92,25 @@ export class EmailService {
       throw new Error(`No subject found for email: ${email.template}`);
     }
 
-    // Use explicit 'to' field if provided, otherwise default to user email
-    const recipients = email.to || [email.user.email];
+    const template = this.#getTemplate(email.template as string);
 
-    const payload: CreateEmailOptions = {
-      from: email.from || "Midday <middaybot@midday.ai>",
-      to: recipients,
+    return {
+      from: email.from,
+      fromName: email.fromName,
+      // Explicit 'to' wins, otherwise default to the user's email
+      to: email.to || [email.user.email],
+      cc: email.cc,
+      bcc: email.bcc,
+      replyTo: email.replyTo,
       subject: email.subject,
-      html,
+      text: email.text,
+      react: template(email.data as any),
+      attachments: email.attachments,
       headers: {
         "X-Entity-Ref-ID": nanoid(),
         ...email.headers,
       },
     };
-
-    // Add optional fields if present
-    if (email.replyTo) payload.replyTo = email.replyTo;
-    if (email.cc) payload.cc = email.cc;
-    if (email.bcc) payload.bcc = email.bcc;
-    if (email.attachments) payload.attachments = email.attachments;
-    if (email.tags) payload.tags = email.tags;
-    if (email.text) payload.text = email.text;
-
-    return payload;
   }
 
   #getTemplate(templateName: string) {

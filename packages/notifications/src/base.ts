@@ -1,8 +1,23 @@
 import type { Database } from "@midday/db/client";
 import type { Activity } from "@midday/db/queries";
-import type { CreateEmailOptions } from "resend";
+import type { MailAttachment } from "@midday/mailer";
 import { z } from "zod";
 import type { CreateActivityInput } from "./schemas";
+
+/** Email fields a notification can set; mirrors the mailer's message. */
+export type EmailOptions = {
+  from?: string;
+  /** Display name used with the default From address. */
+  fromName?: string;
+  to?: string[];
+  cc?: string[];
+  bcc?: string[];
+  replyTo?: string;
+  subject?: string;
+  text?: string;
+  headers?: Record<string, string>;
+  attachments?: MailAttachment[];
+};
 
 export interface TeamContext {
   id: string;
@@ -23,7 +38,7 @@ export interface NotificationHandler<T = any> {
     data: T,
     user: UserData,
     team: TeamContext,
-  ) => Partial<Omit<CreateEmailOptions, "template">> & {
+  ) => EmailOptions & {
     data: Record<string, any>;
     template?: string;
     emailType: "customer" | "team" | "owners"; // Explicit: customer emails go to external recipients, team emails go to all team members, owners emails go to team owners only
@@ -64,18 +79,17 @@ export interface UserData {
   role?: "owner" | "member";
 }
 
-// Combine template data with all Resend options using intersection type
+// Combine template data with the email options
 export type EmailInput = {
   template?: string;
   user: UserData;
   data: Record<string, any>;
-} & Partial<Omit<CreateEmailOptions, "template">>;
+} & EmailOptions;
 
-// Use intersection type to combine our options with Resend's CreateEmailOptions
 export type NotificationOptions = {
   priority?: number;
   sendEmail?: boolean;
-} & Partial<CreateEmailOptions>;
+} & EmailOptions;
 
 export interface NotificationResult {
   type: string;

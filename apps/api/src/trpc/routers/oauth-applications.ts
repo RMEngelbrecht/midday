@@ -9,7 +9,6 @@ import {
   updateOAuthApplicationSchema,
 } from "@api/schemas/oauth-applications";
 import { revokeUserApplicationAccessSchema } from "@api/schemas/oauth-flow";
-import { resend } from "@api/services/resend";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 import {
   claimDCRApplication,
@@ -31,6 +30,7 @@ import { AppInstalledEmail } from "@midday/email/emails/app-installed";
 import { AppReviewRequestEmail } from "@midday/email/emails/app-review-request";
 import { render } from "@midday/email/render";
 import { createLoggerWithContext } from "@midday/logger";
+import { send } from "@midday/mailer";
 
 const logger = createLoggerWithContext("trpc:oauth-applications");
 
@@ -196,8 +196,7 @@ export const oauthApplicationsRouter = createTRPCRouter({
               }),
             );
 
-            await resend.emails.send({
-              from: "Midday <middaybot@midday.ai>",
+            await send({
               to: session.user.email,
               subject: "An app has been added to your team",
               html,
@@ -346,38 +345,6 @@ export const oauthApplicationsRouter = createTRPCRouter({
 
       if (!result) {
         throw new Error("OAuth application not found");
-      }
-
-      // Send email notification when status changes to "pending"
-      if (input.status === "pending") {
-        try {
-          // Get team information
-          const userTeams = await getTeamsByUserId(db, session.user.id);
-          const currentTeam = userTeams?.find((team) => team.id === teamId);
-
-          if (currentTeam && session.user.email) {
-            const html = await render(
-              AppReviewRequestEmail({
-                applicationName: application.name,
-                developerName: application.developerName || undefined,
-                teamName: currentTeam.name!,
-                userEmail: session.user.email,
-              }),
-            );
-
-            await resend.emails.send({
-              from: "Midday <middaybot@midday.ai>",
-              to: "pontus@midday.ai",
-              subject: `Application Review Request - ${application.name}`,
-              html,
-            });
-          }
-        } catch (error) {
-          // Log error but don't fail the mutation
-          logger.error("Failed to send application review request", {
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
       }
 
       return result;

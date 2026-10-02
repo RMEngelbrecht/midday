@@ -53,24 +53,30 @@ describe("deriveFeatures", () => {
     expect(deriveFeatures({ GOOGLE_GENERATIVE_AI_API_KEY: "g" }).ai).toBe(true);
   });
 
-  it("prefers SMTP over Resend and falls back to console", () => {
-    expect(
-      deriveFeatures({ SMTP_URL: "smtp://x", RESEND_API_KEY: "re" }).mail,
-    ).toBe("smtp");
-    expect(deriveFeatures({ RESEND_API_KEY: "re" }).mail).toBe("resend");
+  it("uses SMTP when configured and falls back to console", () => {
+    expect(deriveFeatures({ SMTP_URL: "smtp://x" }).mail).toBe("smtp");
     expect(deriveFeatures({}).mail).toBe("console");
   });
 
-  it("enables inbound email only with both webhook credentials", () => {
-    expect(deriveFeatures({ INBOX_WEBHOOK_USERNAME: "u" }).inboundEmail).toBe(
+  it("derives the inbound email driver", () => {
+    const domain = { INBOX_EMAIL_DOMAIN: "inbox.example.com" };
+    expect(deriveFeatures({}).inboundEmail).toBe(false);
+    expect(deriveFeatures({ IMAP_URL: "imaps://u:p@h" }).inboundEmail).toBe(
       false,
     );
     expect(
+      deriveFeatures({ ...domain, INBOX_WEBHOOK_USERNAME: "u" }).inboundEmail,
+    ).toBe(false);
+    expect(
       deriveFeatures({
+        ...domain,
         INBOX_WEBHOOK_USERNAME: "u",
         INBOX_WEBHOOK_PASSWORD: "p",
       }).inboundEmail,
-    ).toBe(true);
+    ).toBe("postmark");
+    expect(
+      deriveFeatures({ ...domain, IMAP_URL: "imaps://u:p@h" }).inboundEmail,
+    ).toBe("imap");
   });
 
   it("enables each integration from its own keys", () => {

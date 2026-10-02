@@ -77,7 +77,6 @@
     "react-plaid-link": "^4.1.1",
     "react-zoom-pan-pinch": "^3.7.0",
     "recharts": "^3.6.0",
-    "resend": "catalog:",
     "server-only": "^0.0.1",
     "streamdown": "^2.5.0",
     "tippy.js": "^6.3.7",

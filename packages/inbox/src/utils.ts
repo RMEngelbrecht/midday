@@ -1,8 +1,12 @@
 import { decrypt, encrypt } from "@midday/encryption";
+import { formatInboxAddress, parseInboxId } from "./address";
 import { ENV } from "./env";
 
+/** Inbox id from a recipient address (`<id>@domain` or `x+<id>@domain`). */
 export function getInboxIdFromEmail(email: string) {
-  return email.split("@").at(0);
+  return parseInboxId(email, {
+    domain: ENV.INBOX_EMAIL_DOMAIN,
+  });
 }
 
 // OAuth state types
@@ -47,12 +51,12 @@ export function decryptOAuthState(
   }
 }
 
+/** Forwarding address for a team, or null when inbound email is not configured. */
 export function getInboxEmail(inboxId: string) {
-  if (ENV.APP_ENV !== "production") {
-    return `${inboxId}@inbox.staging.midday.ai`;
-  }
-
-  return `${inboxId}@inbox.midday.ai`;
+  return formatInboxAddress(inboxId, {
+    domain: ENV.INBOX_EMAIL_DOMAIN,
+    localPart: ENV.INBOX_EMAIL_LOCAL_PART,
+  });
 }
 
 /**

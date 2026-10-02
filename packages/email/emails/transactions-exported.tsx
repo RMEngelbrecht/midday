@@ -23,7 +23,7 @@ interface Props {
 export const TransactionsExportedEmail = ({
   teamName = "Midday",
   transactionCount = 100,
-  downloadLink = "https://app.midday.ai/s/abc123",
+  downloadLink = "http://localhost:3001/s/abc123",
 }: Props) => {
   const preview = `${transactionCount} transaction${transactionCount !== 1 ? "s" : ""} ready to download`;
   const themeClasses = getEmailThemeClasses();

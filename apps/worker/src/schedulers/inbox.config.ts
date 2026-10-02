@@ -1,3 +1,4 @@
+import { ENV } from "../env";
 import type {
   DynamicSchedulerTemplate,
   StaticSchedulerConfig,
@@ -19,6 +20,21 @@ export const inboxStaticSchedulers: StaticSchedulerConfig[] = [
       tz: "UTC",
     },
   },
+  // Optional: poll an IMAP mailbox for inbound email.
+  ...(ENV.IMAP_URL
+    ? [
+        {
+          name: "imap-poll",
+          queue: "inbox",
+          cron: `*/${Math.max(1, Math.floor(ENV.IMAP_POLL_INTERVAL ?? 5))} * * * *`,
+          jobName: "imap-poll",
+          payload: {},
+          options: {
+            tz: "UTC",
+          },
+        },
+      ]
+    : []),
 ];
 
 /**

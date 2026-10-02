@@ -1,6 +1,5 @@
 "use client";
 
-import { getInboxEmail } from "@midday/inbox";
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +16,7 @@ import { ConnectOutlook } from "@/components/inbox/connect-outlook";
 import { ConnectSlack } from "@/components/inbox/connect-slack";
 import { ConnectTelegram } from "@/components/inbox/connect-telegram";
 import { ConnectWhatsApp } from "@/components/inbox/connect-whatsapp";
+import { useInboxEmail } from "@/hooks/use-inbox-email";
 import { useInboxParams } from "@/hooks/use-inbox-params";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useUserQuery } from "@/hooks/use-user";
@@ -26,6 +26,7 @@ import { UploadZone } from "./inbox-upload-zone";
 
 export function InboxGetStarted() {
   const { data: user } = useUserQuery();
+  const inboxEmail = useInboxEmail(user?.team?.inboxId);
   const { setParams } = useInboxParams();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
@@ -110,9 +111,7 @@ export function InboxGetStarted() {
                       <ConnectTelegram />
                       <ConnectWhatsApp />
                       <ConnectIMessage />
-                      {user?.team?.inboxId && (
-                        <CopyInput value={getInboxEmail(user.team.inboxId)} />
-                      )}
+                      {inboxEmail && <CopyInput value={inboxEmail} />}
                     </div>
                   </AccordionContent>
                 </AccordionItem>

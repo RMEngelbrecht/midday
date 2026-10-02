@@ -1,12 +1,8 @@
 import { PaymentIssueEmail } from "@midday/email/emails/payment-issue";
-import { render } from "@midday/email/render";
+import { send } from "@midday/mailer";
 import type { Job } from "bullmq";
-import { Resend } from "resend";
-import { ENV } from "../../env";
 import type { PaymentIssuePayload } from "../../schemas/teams";
 import { BaseProcessor } from "../base";
-
-const resend = new Resend(ENV.RESEND_API_KEY!);
 
 export class PaymentIssueProcessor extends BaseProcessor<PaymentIssuePayload> {
   async process(job: Job<PaymentIssuePayload>): Promise<void> {
@@ -18,14 +14,10 @@ export class PaymentIssueProcessor extends BaseProcessor<PaymentIssuePayload> {
       email,
     });
 
-    const html = await render(PaymentIssueEmail({ fullName, teamName }));
-
-    await resend.emails.send({
-      from: "Middaybot <middaybot@midday.ai>",
-      replyTo: "pontus@midday.ai",
+    await send({
       to: email,
       subject: "Your payment didn't go through",
-      html,
+      react: PaymentIssueEmail({ fullName, teamName }),
     });
 
     this.logger.info("Payment issue email sent", {

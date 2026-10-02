@@ -13,6 +13,8 @@ export type PublicConfig = {
   appUrl: string;
   apiUrl: string;
   features: Features;
+  /** Where inbound email is received; null when forwarding is not configured. */
+  inboxEmail: { domain: string; localPart: string | null } | null;
   desktopScheme: string;
   /** Supabase auth/storage (until S1/S2 replace it). */
   supabase: { url: string; publishableKey: string } | null;

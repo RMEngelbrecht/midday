@@ -64,7 +64,7 @@
     "lru-cache": "^11.2.7",
     "nanoid": "catalog:",
     "parse-duration": "^2.1.5",
-    "resend": "catalog:",
+    "@midday/mailer": "workspace:*",
     "stripe": "^20.4.1",
     "superjson": "^2.2.6",
     "toolpick": "0.4.0",

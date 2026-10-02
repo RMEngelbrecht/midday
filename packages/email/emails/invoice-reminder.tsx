@@ -30,7 +30,7 @@ export const InvoiceReminderEmail = ({
   companyName = "Customer",
   teamName = "Midday",
   invoiceNumber = "INV-0001",
-  link = "https://app.midday.ai/i/1234567890",
+  link = "http://localhost:3001/i/1234567890",
   amount,
   currency,
   dueDate,

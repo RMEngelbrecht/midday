@@ -1,4 +1,5 @@
 import { BatchProcessMatchingProcessor } from "./batch-process-matching";
+import { ImapPollProcessor } from "./imap-poll";
 import { InitialSetupProcessor } from "./initial-setup";
 import { MatchTransactionsBidirectionalProcessor } from "./match-transactions-bidirectional";
 import { NoMatchSchedulerProcessor } from "./no-match-scheduler";
@@ -10,6 +11,7 @@ import { SyncSchedulerProcessor } from "./sync-scheduler";
  * Export all inbox processors (for type imports)
  */
 export { BatchProcessMatchingProcessor } from "./batch-process-matching";
+export { ImapPollProcessor } from "./imap-poll";
 export { InitialSetupProcessor } from "./initial-setup";
 export { MatchTransactionsBidirectionalProcessor } from "./match-transactions-bidirectional";
 export { NoMatchSchedulerProcessor } from "./no-match-scheduler";
@@ -27,6 +29,7 @@ export const inboxProcessors = {
     new MatchTransactionsBidirectionalProcessor(),
   "process-attachment": new ProcessAttachmentProcessor(),
   "slack-upload": new SlackUploadProcessor(),
+  "imap-poll": new ImapPollProcessor(),
   "no-match-scheduler": new NoMatchSchedulerProcessor(),
   "sync-scheduler": new SyncSchedulerProcessor(),
   "initial-setup": new InitialSetupProcessor(),

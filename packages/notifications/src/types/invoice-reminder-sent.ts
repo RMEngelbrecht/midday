@@ -34,7 +34,7 @@ export const invoiceReminderSent: NotificationHandler = {
       subject: t("invoice.reminder.subject", {
         invoiceNumber: data.invoiceNumber,
       }),
-      from: `${team.name} <middaybot@midday.ai>`,
+      fromName: team.name,
       data: {
         companyName: data.customerName,
         teamName: team.name,

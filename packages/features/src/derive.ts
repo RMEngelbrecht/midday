@@ -4,7 +4,8 @@
  * tested without loading env; `getFeatures()` in ./index applies it to ENV.
  */
 
-export type MailDriver = "smtp" | "resend" | "console";
+export type MailDriver = "smtp" | "console";
+export type InboundEmailDriver = "postmark" | "imap";
 export type StorageDriver = "supabase";
 
 export type BankingFeatures = {
@@ -40,7 +41,8 @@ export type Features = {
   banking: BankingFeatures;
   mail: MailDriver;
   storage: StorageDriver;
-  inboundEmail: boolean;
+  /** How inbound email arrives; false hides the forwarding address UI. */
+  inboundEmail: InboundEmailDriver | false;
   integrations: IntegrationFeatures;
   analytics: boolean;
   sentry: boolean;
@@ -59,7 +61,8 @@ export const FEATURE_ENV_KEYS = [
   "ENABLEBANKING_APPLICATION_ID",
   "ENABLE_BANKING_KEY_CONTENT",
   "SMTP_URL",
-  "RESEND_API_KEY",
+  "IMAP_URL",
+  "INBOX_EMAIL_DOMAIN",
   "INBOX_WEBHOOK_USERNAME",
   "INBOX_WEBHOOK_PASSWORD",
   "SLACK_CLIENT_ID",
@@ -110,13 +113,17 @@ export function deriveFeatures(env: FeatureEnv): Features {
         "ENABLE_BANKING_KEY_CONTENT",
       ),
     },
-    mail: all("SMTP_URL")
-      ? "smtp"
-      : all("RESEND_API_KEY")
-        ? "resend"
-        : "console",
+    mail: all("SMTP_URL") ? "smtp" : "console",
     storage: "supabase",
-    inboundEmail: all("INBOX_WEBHOOK_USERNAME", "INBOX_WEBHOOK_PASSWORD"),
+    inboundEmail: all("INBOX_EMAIL_DOMAIN", "IMAP_URL")
+      ? "imap"
+      : all(
+            "INBOX_EMAIL_DOMAIN",
+            "INBOX_WEBHOOK_USERNAME",
+            "INBOX_WEBHOOK_PASSWORD",
+          )
+        ? "postmark"
+        : false,
     integrations: {
       slack: all(
         "SLACK_CLIENT_ID",

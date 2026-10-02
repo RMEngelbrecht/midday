@@ -195,25 +195,6 @@ export function stripeProbe(): Dependency {
   };
 }
 
-/** Resend: GET /emails (lightweight API check) */
-export function resendProbe(): Dependency {
-  return {
-    name: "resend",
-    tier: 2,
-    cacheTtlMs: 60_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      const key = ENV.RESEND_API_KEY;
-      if (!key) return false;
-      const res = await fetch("https://api.resend.com/domains", {
-        headers: { Authorization: `Bearer ${key}` },
-        signal: AbortSignal.timeout(5_000),
-      });
-      return res.ok;
-    },
-  };
-}
-
 /** Trigger.dev: API reachability check */
 export function triggerDevProbe(): Dependency {
   return {
@@ -376,7 +357,6 @@ export function optionalProbes(
     [banking.enablebanking, enableBankingProbe],
     [banking.teller, tellerProbe],
     [integrations.stripe, stripeProbe],
-    [features.mail === "resend", resendProbe],
     [Boolean(env.OPENAI_API_KEY), openaiProbe],
     [integrations.slack, slackProbe],
     [integrations.xero, xeroProbe],

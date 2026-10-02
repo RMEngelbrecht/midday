@@ -11,6 +11,13 @@ export function getPublicConfig(): PublicConfig {
     appUrl: ENV.APP_URL,
     apiUrl: ENV.API_URL,
     features,
+    inboxEmail:
+      features.inboundEmail && ENV.INBOX_EMAIL_DOMAIN
+        ? {
+            domain: ENV.INBOX_EMAIL_DOMAIN,
+            localPart: ENV.INBOX_EMAIL_LOCAL_PART || null,
+          }
+        : null,
     desktopScheme: ENV.DESKTOP_SCHEME,
     supabase:
       ENV.SUPABASE_URL && ENV.SUPABASE_PUBLISHABLE_KEY

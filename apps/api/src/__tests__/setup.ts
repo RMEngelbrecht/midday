@@ -303,7 +303,7 @@ export const mocks = {
   supabaseAdminDeleteUser: mock(() =>
     Promise.resolve({ data: {}, error: null }),
   ) as MockFn,
-  resendEmailsSend: mock(() => Promise.resolve()) as MockFn,
+  mailerSend: mock(() => Promise.resolve()) as MockFn,
 
   // Tracker queries
   getTrackerRecordsByDate: mock(() => ({
@@ -1240,12 +1240,10 @@ mock.module("@api/services/supabase", () => ({
   })),
 }));
 
-mock.module("@api/services/resend", () => ({
-  resend: {
-    emails: {
-      send: (...args: unknown[]) => mocks.resendEmailsSend(...args),
-    },
-  },
+mock.module("@midday/mailer", () => ({
+  send: (...args: unknown[]) => mocks.mailerSend(...args),
+  sendMany: mock(() => Promise.resolve({ sent: 0, failed: 0, results: [] })),
+  getDefaultFromAddress: () => "noreply@localhost",
 }));
 
 // Mock @api/utils/auth - needed by tRPC init

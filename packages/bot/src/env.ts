@@ -309,25 +309,34 @@ export type CoercedEnvSchema = {
   
   /**
    * **SMTP_URL** 🔐 _sensitive_  
-   * SMTP connection string, e.g. smtps://user:pass@smtp.example.com:465.  
-   * Consumed by the mailer introduced in S5; without any mail provider, emails  
-   * are logged to the console.  
+   * SMTP connection string, see examples above.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
    */
   SMTP_URL?: string;
   
   /**
-   * **RESEND_API_KEY** 🔐 _sensitive_  
-   * Resend API key.  
-   * deprecated: removed by S5 (SMTP mailer)  
+   * **INBOX_EMAIL_DOMAIN**  
+   * Inbound email (forward receipts and invoices to a per-team address).  
+   * Addresses look like <inboxId>@INBOX_EMAIL_DOMAIN, or  
+   * INBOX_EMAIL_LOCAL_PART+<inboxId>@INBOX_EMAIL_DOMAIN when a local part is set  
+   * (plus-addressing, for a single shared mailbox).  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
-  RESEND_API_KEY?: string;
+  INBOX_EMAIL_DOMAIN?: string;
+  
+  /**
+   * **IMAP_URL** 🔐 _sensitive_  
+   * Inbound via IMAP polling (worker). Any IMAP mailbox works, e.g.  
+   * imaps://user:pass@imap.example.com:993. Messages are matched to a team by  
+   * recipient (To, Delivered-To, X-Original-To).  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  IMAP_URL?: string;
   
   /**
    * **INBOX_WEBHOOK_USERNAME**  
-   * Basic-auth credentials for the inbound email (Postmark) webhook. Both must be  
-   * set to enable inbound email.  
+   * Basic-auth credentials for the optional inbound email (Postmark) webhook at  
+   * /webhooks/inbox. Both must be set to enable it.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   INBOX_WEBHOOK_USERNAME?: string;
@@ -537,7 +546,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_39acfeab = CoercedEnvSchema;
+type _CoercedEnvSchema_0e5e21cd = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -545,9 +554,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_39acfeab = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_0e5e21cd = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'WHATSAPP_PHONE_NUMBER_ID' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'APP_URL' | 'API_URL' | 'R2_ENDPOINT' | 'R2_BUCKET_NAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'GOCARDLESS_SECRET_ID' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'SUPABASE_URL' | 'SUPABASE_PUBLISHABLE_KEY'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'WHATSAPP_PHONE_NUMBER_ID' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'APP_URL' | 'API_URL' | 'R2_ENDPOINT' | 'R2_BUCKET_NAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'GOCARDLESS_SECRET_ID' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'SUPABASE_URL' | 'SUPABASE_PUBLISHABLE_KEY'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

@@ -36,7 +36,7 @@ describe("tRPC: apiKeys.get", () => {
 describe("tRPC: apiKeys.upsert", () => {
   beforeEach(() => {
     mocks.upsertApiKey.mockReset();
-    mocks.resendEmailsSend.mockReset();
+    mocks.mailerSend.mockReset();
     mocks.upsertApiKey.mockImplementation(() =>
       Promise.resolve({
         key: "md_test_key_plaintext",
@@ -47,7 +47,7 @@ describe("tRPC: apiKeys.upsert", () => {
         },
       }),
     );
-    mocks.resendEmailsSend.mockImplementation(() => Promise.resolve());
+    mocks.mailerSend.mockImplementation(() => Promise.resolve());
   });
 
   test("creates key and returns plaintext key plus row data", async () => {

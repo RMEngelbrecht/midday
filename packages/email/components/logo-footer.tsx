@@ -1,5 +1,5 @@
 import { getEmailUrl } from "@midday/utils/envs";
-import { Img, Link, Section } from "@react-email/components";
+import { Img, Section } from "@react-email/components";
 
 const baseUrl = getEmailUrl();
 
@@ -32,14 +32,12 @@ export function LogoFooter() {
           }
         `}</style>
 
-      <Link href="https://go.midday.ai/FZwOHud">
-        <Img
-          src={`${baseUrl}/email/logo-footer.png`}
-          width="80"
-          alt="Midday"
-          className="block logo-blend"
-        />
-      </Link>
+      <Img
+        src={`${baseUrl}/email/logo-footer.png`}
+        width="80"
+        alt="Midday"
+        className="block logo-blend"
+      />
     </Section>
   );
 }

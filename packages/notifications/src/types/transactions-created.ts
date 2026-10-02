@@ -45,7 +45,7 @@ export const transactionsCreated: NotificationHandler = {
       emailType: "owners",
       subject: t("transactions.subject"),
       user,
-      replyTo: getInboxEmail(team.inboxId),
+      replyTo: getInboxEmail(team.inboxId) ?? undefined,
       data: {
         transactions: data.transactions,
         teamName: team.name,
