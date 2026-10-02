@@ -4,7 +4,7 @@ import { useConnectParams } from "@/hooks/use-connect-params";
 import { useTRPC } from "@/trpc/client";
 import { BankConnectButton } from "./bank-connect-button";
 import { EnableBankingConnect } from "./enablebanking-connect";
-import { GoCardLessConnect } from "./gocardless-connect";
+import { SimplefinConnect } from "./simplefin-connect";
 import { TellerConnect } from "./teller-connect";
 
 type Props = {
@@ -52,19 +52,6 @@ export function ConnectBankProvider({
           }}
         />
       );
-    case "gocardless": {
-      return (
-        <GoCardLessConnect
-          id={id}
-          availableHistory={availableHistory}
-          onSelect={() => {
-            updateUsage();
-          }}
-          redirectPath={redirectPath}
-          connectRef={connectRef}
-        />
-      );
-    }
     case "enablebanking": {
       return (
         <EnableBankingConnect
@@ -78,6 +65,14 @@ export function ConnectBankProvider({
         />
       );
     }
+    case "simplefin":
+      return (
+        <SimplefinConnect
+          id={id}
+          onSelect={updateUsage}
+          connectRef={connectRef}
+        />
+      );
     case "plaid":
       return (
         <BankConnectButton

@@ -48,8 +48,8 @@ function formatProvider(provider: string) {
   switch (provider) {
     case "enablebanking":
       return "Enable Banking";
-    case "gocardless":
-      return "GoCardLess";
+    case "simplefin":
+      return "SimpleFIN";
     case "plaid":
       return "Plaid";
     case "teller":

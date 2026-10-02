@@ -28,7 +28,7 @@ const bankingQueueOptions: QueueOptions = {
 };
 
 /**
- * Concurrency 10 keeps provider calls modest (Plaid/GoCardless rate limits).
+ * Concurrency 10 keeps provider calls modest (Plaid/EnableBanking rate limits).
  * Manual syncs run every account of a connection inline, so the lock is long.
  */
 const bankingWorkerOptions: WorkerOptions = {

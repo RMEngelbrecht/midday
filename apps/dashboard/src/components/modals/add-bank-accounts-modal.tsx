@@ -51,7 +51,7 @@ type ExistingAccount = NonNullable<
 
 type Props = {
   connectionId: string;
-  provider: "gocardless" | "plaid" | "teller" | "enablebanking";
+  provider: "plaid" | "teller" | "enablebanking" | "simplefin";
   accessToken: string | null;
   referenceId: string | null;
   enrollmentId: string | null;

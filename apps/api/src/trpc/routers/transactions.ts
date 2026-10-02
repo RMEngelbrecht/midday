@@ -8,6 +8,7 @@ import {
   getSimilarTransactionsSchema,
   getTransactionByIdSchema,
   getTransactionsSchema,
+  importStatementSchema,
   importTransactionsSchema,
   moveToReviewSchema,
   searchTransactionMatchSchema,
@@ -227,6 +228,37 @@ export const transactionsRouter = createTRPCRouter({
           mappings: input.mappings,
           teamId,
           inverted: input.inverted,
+        },
+        "transactions",
+      );
+    }),
+
+  importStatement: protectedProcedure
+    .input(importStatementSchema)
+    .mutation(async ({ input, ctx: { db, teamId } }) => {
+      if (!teamId) {
+        throw new Error("Team not found");
+      }
+
+      const account = await getBankAccountById(db, {
+        id: input.bankAccountId,
+        teamId,
+      });
+
+      if (!account) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bank account not found",
+        });
+      }
+
+      return triggerJob(
+        "import-statement",
+        {
+          filePath: input.filePath,
+          bankAccountId: input.bankAccountId,
+          currency: input.currency,
+          teamId,
         },
         "transactions",
       );

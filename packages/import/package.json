@@ -17,6 +17,8 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./statement": "./src/statement/index.ts",
+    "./statement/to-transactions": "./src/statement/to-transactions.ts",
     "./mappings": "./src/mappings.ts",
     "./transform": "./src/transform.ts",
     "./validate": "./src/validate.ts"

@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const providerSchema = z.enum([
-  "gocardless",
   "teller",
   "plaid",
   "enablebanking",
+  "simplefin",
 ]);
 
 export const accountTypeSchema = z.enum([
@@ -27,16 +27,8 @@ export const plaidExchangeSchema = z.object({
   token: z.string(),
 });
 
-export const gocardlessLinkSchema = z.object({
-  institutionId: z.string(),
-  agreement: z.string(),
-  redirect: z.string(),
-  reference: z.string().optional(),
-});
-
-export const gocardlessAgreementSchema = z.object({
-  institutionId: z.string(),
-  transactionTotalDays: z.number(),
+export const simplefinClaimSchema = z.object({
+  setupToken: z.string().min(10),
 });
 
 export const enablebankingLinkSchema = z.object({
@@ -60,10 +52,6 @@ export const deleteConnectionSchema = z.object({
   id: z.string(),
   provider: providerSchema,
   accessToken: z.string().optional(),
-});
-
-export const connectionByReferenceSchema = z.object({
-  reference: z.string(),
 });
 
 // Account schemas

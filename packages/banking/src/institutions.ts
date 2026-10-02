@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { enabledBankProviders, getFeatures } from "@midday/features";
 import { ENV } from "./env";
 import { EnableBankingApi } from "./providers/enablebanking/enablebanking-api";
-import { GoCardLessApi } from "./providers/gocardless/gocardless-api";
 import { PlaidApi } from "./providers/plaid/plaid-api";
 import type { Providers } from "./types";
 import { getFileExtension, getLogoURL } from "./utils/logo";
@@ -52,30 +51,6 @@ async function fetchEnableBankingInstitutions(): Promise<InstitutionRecord[]> {
       popularity: 10000,
       type: psuType,
     }));
-  });
-}
-
-async function fetchGoCardLessInstitutions(): Promise<InstitutionRecord[]> {
-  const api = new GoCardLessApi();
-  const data = await api.getInstitutions();
-
-  return data.map((institution) => {
-    const ext = getFileExtension(institution.logo);
-
-    return {
-      id: institution.id,
-      name: institution.name,
-      logo: getLogoURL(institution.id, ext),
-      sourceLogo: institution.logo ?? null,
-      provider: "gocardless" as const,
-      countries: institution.countries,
-      availableHistory: institution.transaction_total_days
-        ? Number(institution.transaction_total_days)
-        : null,
-      maximumConsentValidity: null,
-      popularity: 0,
-      type: null,
-    };
   });
 }
 
@@ -158,6 +133,24 @@ async function fetchTellerInstitutions(): Promise<InstitutionRecord[]> {
   }));
 }
 
+/** SimpleFIN has no institution list: expose one pseudo-institution when enabled. */
+function fetchSimplefinInstitutions(): InstitutionRecord[] {
+  return [
+    {
+      id: "simplefin",
+      name: "SimpleFIN",
+      logo: null,
+      sourceLogo: null,
+      provider: "simplefin" as const,
+      countries: ["US", "CA"],
+      availableHistory: 90,
+      maximumConsentValidity: null,
+      popularity: 100,
+      type: null,
+    },
+  ];
+}
+
 /**
  * Fetch institutions from the banking providers that are configured.
  * Each provider resolves its own env vars internally; unconfigured providers
@@ -169,7 +162,7 @@ export async function fetchAllInstitutions(
 ): Promise<FetchInstitutionsResult> {
   const fetchers: Record<Providers, () => Promise<InstitutionRecord[]>> = {
     enablebanking: fetchEnableBankingInstitutions,
-    gocardless: fetchGoCardLessInstitutions,
+    simplefin: async () => fetchSimplefinInstitutions(),
     plaid: fetchPlaidInstitutions,
     teller: fetchTellerInstitutions,
   };

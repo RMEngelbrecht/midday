@@ -55,7 +55,7 @@ const formSchema = z.object({
   referenceId: z.string().nullable().optional(),
   accessToken: z.string().nullable().optional(),
   enrollmentId: z.string().nullable().optional(),
-  provider: z.enum(["gocardless", "plaid", "teller", "enablebanking"]),
+  provider: z.enum(["plaid", "teller", "enablebanking", "simplefin"]),
   accounts: z
     .array(
       z.object({
@@ -141,10 +141,10 @@ export function SelectBankAccountsContent({
         accessToken: token ?? undefined,
         institutionId: institution_id ?? undefined,
         provider: provider as
-          | "gocardless"
           | "plaid"
           | "teller"
-          | "enablebanking",
+          | "enablebanking"
+          | "simplefin",
       },
       {
         enabled: enabled && !!provider,
@@ -207,14 +207,14 @@ export function SelectBankAccountsContent({
       accessToken: token ?? undefined,
       enrollmentId: enrollment_id ?? undefined,
       referenceId: ref ?? undefined,
-      provider: provider as "gocardless" | "plaid" | "teller" | "enablebanking",
+      provider: provider as "plaid" | "teller" | "enablebanking" | "simplefin",
       accounts: [],
     },
   });
 
   useEffect(() => {
     form.reset({
-      provider: provider as "gocardless" | "plaid" | "teller" | "enablebanking",
+      provider: provider as "plaid" | "teller" | "enablebanking" | "simplefin",
       accessToken: token ?? undefined,
       enrollmentId: enrollment_id ?? undefined,
       referenceId: ref ?? undefined,

@@ -8,8 +8,8 @@ describe("deriveFeatures", () => {
       banking: {
         plaid: false,
         teller: false,
-        gocardless: false,
         enablebanking: false,
+        simplefin: false,
       },
       mail: "console",
       storage: "local",
@@ -116,5 +116,15 @@ describe("enabledBankProviders", () => {
         }).banking,
       ),
     ).toEqual(["plaid", "enablebanking"]);
+  });
+
+  it("enables simplefin only when SIMPLEFIN_ENABLED is true (string or boolean)", () => {
+    const f = (v: unknown) =>
+      deriveFeatures({ SIMPLEFIN_ENABLED: v as string }).banking.simplefin;
+    expect(f("true")).toBe(true);
+    expect(f(true)).toBe(true);
+    expect(f("false")).toBe(false);
+    expect(f(false)).toBe(false);
+    expect(f(undefined)).toBe(false);
   });
 });

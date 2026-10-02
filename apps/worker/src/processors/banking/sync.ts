@@ -257,7 +257,7 @@ export async function syncConnection(
       connectionId,
       accountId: account.accountId,
       accessToken: connection.accessToken ?? undefined,
-      provider: connection.provider,
+      provider: connection.provider as SyncAccountPayload["provider"],
       accountType: account.type ?? "depository",
       currency: account.currency,
       errorRetries: account.errorRetries,

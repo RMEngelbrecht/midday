@@ -13,10 +13,10 @@ tRPC Router (apps/api/src/trpc/routers/banking.ts)
     ▼
 Provider Facade (packages/banking/src/index.ts)
     │
-    ├── GoCardLessProvider  (EU/UK — xior HTTP client, OAuth2 tokens)
     ├── PlaidProvider        (US/CA — official Plaid SDK)
     ├── TellerProvider       (US — native fetch with mTLS)
-    └── EnableBankingProvider (EU — xior HTTP client, RSA-signed JWT)
+    ├── EnableBankingProvider (EU — xior HTTP client, RSA-signed JWT)
+    └── SimplefinProvider    (US/CA — native fetch, user-pasted setup token)
     │
     ▼
 Redis Cache (packages/cache/src/banking-cache.ts)
@@ -28,8 +28,8 @@ BullMQ worker jobs (apps/worker/src/processors/banking/)
 ### Provider Facade (Strategy Pattern)
 
 The `Provider` class in `index.ts` dispatches to the correct provider based on a
-`provider` string param (`"gocardless" | "plaid" | "teller" | "enablebanking"`).
-All four providers implement a common interface:
+`provider` string param (`"plaid" | "teller" | "enablebanking" | "simplefin"`).
+All providers implement a common interface:
 
 - `getAccounts()` — list accounts with balances for the account selection screen
 - `getAccountBalance()` — fetch current balance for a single account
@@ -43,48 +43,18 @@ All four providers implement a common interface:
 
 ## Providers
 
-### GoCardless (EU/UK)
+### SimpleFIN Bridge (US/CA)
 
-- **Auth**: OAuth2 — secret_id/secret_key → access_token + refresh_token, both cached in Redis
-- **HTTP client**: xior (axios-like), instance cached per token
-- **Coverage**: All EEA countries under PSD2 regulation
-- **Rate limits**: Bank-imposed, as low as **4 API calls per day per account**. Each endpoint
-  (details, balances, transactions) counts separately. Provides rate limit headers:
-  - `HTTP_X_RATELIMIT_REMAINING` — remaining requests in window
-  - `HTTP_X_RATELIMIT_ACCOUNT_SUCCESS_RESET` — seconds until reset
-- **Connection identifier**: Requisition ID (`reference_id`)
-- **Account identifier**: GoCardless account UUID
-- **Transaction history**: Institution-dependent, reported via `transaction_total_days` field
-  in the institutions list (e.g., 540 days for ABN AMRO, 730 for Revolut)
-- **Access duration**: `createEndUserAgreement()` tries 180 days first (EEA standard
-  under Article 10a RTS). If the bank rejects it, automatically falls back to 90 days.
-  UK banks are limited to 90 days by FCA regulation. The actual `access_valid_for_days`
-  accepted by the bank is read from the agreement response and used for `expires_at`.
-
-**Transaction history strategy:**
-
-The maximum history is determined per-institution via the end user agreement:
-
-1. The `/institutions/` endpoint returns `transaction_total_days` for each bank
-2. `createEndUserAgreement()` requests `max_historical_days` set to that value
-3. Some banks only provide extended history once and require separate consent for
-   continuous access. `getMaxHistoricalDays()` checks the GoCardless
-   `separate_continuous_history_consent` flag and a hardcoded fallback list, capping to 90 days.
-4. Initial sync fetches ALL available transactions (no `date_from` filter)
-5. Daily sync fetches last 5 days only (`date_from` = 5 days ago)
-6. No fallback strategy is needed — the bank controls what it returns based on the
-   agreed `max_historical_days`. If the call fails, it's an auth/rate issue, not a
-   data volume issue. `withRateLimitRetry` handles rate limits.
-
-**Key implementation details:**
-
-- `getAccounts()` pre-resolves the access token once and passes it to all sub-methods
-  to avoid repeated Redis lookups (~8 → 1 per call)
-- Institution is fetched once per requisition (all accounts share the same institution)
-- Account details, balances, and institutions are cached in Redis
-  to bridge the gap between account selection and initial sync
-- Requisitions are **not** cached — they hold connection status that must be fresh
-  on every sync to avoid stale state after reconnect
+- **Auth**: the user creates a setup token (base64 claim URL) at bridge.simplefin.org and pastes
+  it in the dashboard. `banking.simplefinClaim` POSTs to the claim URL and receives an *access URL*
+  with embedded basic-auth credentials. It is stored **encrypted** (`@midday/encryption`) in
+  `bank_connections.access_token`; the plaintext never reaches the client.
+- **Enable**: `SIMPLEFIN_ENABLED=true` (no server keys). Costs the user about $15-25/year.
+- **Institutions**: none; a single pseudo-institution `simplefin` is added when enabled.
+- **History**: bridges serve at most 90 days per request; syncs ask for the last 14 days.
+- **Limits**: no webhooks; bridges expect roughly 24 requests/day per token.
+- **Disconnect**: 401/403 means the user revoked the token (status `disconnected`); deleting a
+  connection only removes the stored token.
 
 ### Plaid (US/CA)
 
@@ -157,8 +127,6 @@ Redis (Upstash) with the `"banking"` key prefix.
 
 | Data | TTL | Rationale |
 |------|-----|-----------|
-| GoCardless access token | Dynamic (expires - 1h) | OAuth token lifecycle |
-| GoCardless refresh token | Dynamic (expires - 1h) | OAuth token lifecycle |
 | Account details | 30 minutes | Static within a flow, rarely changes |
 | Account balance | 30 minutes | DB is source of truth; prevents redundant API calls |
 | Individual institution | 24 hours | Institution data is static |
@@ -230,7 +198,7 @@ return bankingCache.getOrSet(key, CacheTTL.THIRTY_MINUTES, () => fetchFromApi())
 2. "reconnect-connection" job:
    a. Fetches fresh accounts from provider
    b. Matches old account IDs to new ones:
-      - GoCardless/Teller/EnableBanking: uses account_reference matching
+      - Teller/EnableBanking: uses account_reference matching
       - Plaid: IDs preserved via update mode (no remapping needed)
    c. Updates account_id mappings in DB
    d. Triggers syncConnection (manualSync: true)
@@ -252,7 +220,6 @@ All providers are wrapped with `withRateLimitRetry` which:
 
 1. Detects HTTP 429 responses (status code or Plaid's `RATE_LIMIT_EXCEEDED` error type)
 2. Reads provider-specific headers for delay:
-   - GoCardless: `HTTP_X_RATELIMIT_ACCOUNT_SUCCESS_RESET` (seconds until reset)
    - Standard: `Retry-After` header
 3. Falls back to exponential backoff with jitter (1s, 2s, 4s, max 8s)
 4. Retries up to 3 times before propagating the error
@@ -260,54 +227,19 @@ All providers are wrapped with `withRateLimitRetry` which:
 Additionally:
 - Accounts are synced **sequentially** with delays (30s manual, 60s background) to avoid
   overwhelming provider rate limits
-- GoCardless bank-level rate limits (4/day/account) are addressed by caching
-  (details, balances, institution) so each piece of data is fetched at most once per flow
 
 ---
 
 ## Edge Cases
 
-### GoCardless: Bank-imposed rate limits
-
-Some banks limit to 4 API calls per day per account per endpoint. Our caching strategy
-ensures account details, balances, and institution data are fetched once during account
-selection and reused during the initial sync, staying within even the strictest limits.
-
-### GoCardless: Requisition expiry and EUA fallback
-
-Requisitions can have status `"EX"` (expired) or `"RJ"` (rejected). The connection status
-check detects both and marks the connection as disconnected.
-
-`createEndUserAgreement()` uses a **try-180, fall-back-to-90** strategy for
-`access_valid_for_days`. Per the EC Article 10a RTS (effective July 2023), EEA banks
-should accept 180 days, but compliance varies. If a bank rejects 180 days, the method
-automatically retries with 90. The actual value the bank accepted is read from the
-agreement response and threaded through to `transformAccount` for an accurate `expires_at`.
-On reconnect, the value is passed via the redirect URL so `updateBankConnection` also
-stores the correct expiry.
-
-### GoCardless: Institution-specific history restrictions
-
-Some banks only provide extended (>90 day) transaction history once and require separate
-consent for continuous access. `getMaxHistoricalDays()` uses two signals to detect these:
-
-1. **API flag**: GoCardless exposes `separate_continuous_history_consent` on the
-   `/institutions/` endpoint. When `true`, history is capped to 90 days.
-2. **Hardcoded fallback**: A small Set of known restricted institution IDs (BRED, Swedbank,
-   BBVA, etc.) catches banks where the flag may not yet be populated.
-
-When neither signal matches, the full `transaction_total_days` from the institution is used.
-
-See: https://bankaccountdata.zendesk.com/hc/en-gb/articles/11529718632476
-
-### GoCardless / EnableBanking: Primary balance selection for multi-currency accounts
+### EnableBanking: Primary balance selection for multi-currency accounts
 
 PSD2 banks return an array of balances from the `/balances` endpoint, each with its own
 `balanceType` and `currency`. For single-currency accounts this array typically has one or
 two entries. For multi-currency accounts (common with Nordic/European banks), it can have
 entries in multiple currencies — e.g., both DKK and EUR.
 
-The `selectPrimaryBalance` utility (`gocardless/utils.ts`, `enablebanking/utils.ts`) picks
+The `selectPrimaryBalance` utility (`enablebanking/utils.ts`) picks
 the balance to use as the account's displayed balance using a **booked-first** strategy
 (settled amounts are more appropriate for accounting):
 
@@ -329,16 +261,16 @@ The `available_balance` field is populated separately by scanning the full balan
 for an "available" type entry (`interimAvailable`, `ITAV`, `closingAvailable`, `CLAV`,
 `OPAV`), regardless of which balance was selected as primary.
 
-### GoCardless / EnableBanking: ISO 4217 "XXX" currency code
+### EnableBanking: ISO 4217 "XXX" currency code
 
 Some PSD2 banks return `"XXX"` (ISO 4217 for "no currency") as the account-level currency
 in the account details endpoint, while individual transactions correctly report the real
-currency (e.g., `EUR`). This affects both GoCardless and EnableBanking since they connect
+currency (e.g., `EUR`). This affects EnableBanking since it connects
 to the same underlying European banks.
 
 The system handles this at three levels:
 
-1. **Transform layer** (`gocardless/transform.ts`, `enablebanking/transform.ts`): When
+1. **Transform layer** (`enablebanking/transform.ts`): When
    `account.currency` is `"XXX"`, falls back to the balance currency, then to currencies
    from the balances array. If all sources are `"XXX"`, the raw value is preserved (no
    hardcoded fallback — these could be GBP, SEK, DKK, etc.).
@@ -376,7 +308,7 @@ to 0. A fallback to the paid `/balances` endpoint could be added if needed.
 
 ### Reconnect: Account ID remapping
 
-When a user reconnects a GoCardless, Teller, or EnableBanking connection, the provider
+When a user reconnects a Teller or EnableBanking connection, the provider
 issues new account identifiers. The `reconnect-connection` job
 (`apps/worker/src/processors/banking/reconnect-connection.ts`) handles this by:
 
@@ -428,18 +360,11 @@ Requirements:
 Add `count: 500` to `transactionsSync` calls to reduce the likelihood of
 `TRANSACTIONS_SYNC_MUTATION_DURING_PAGINATION` errors during initial sync pagination.
 
-### GoCardless: Proactive rate limit checking
-
-**Impact**: Medium — prevents hitting bank-imposed limits
-
-Read `HTTP_X_RATELIMIT_REMAINING` from successful responses (not just 429 errors).
-If remaining calls are low, proactively delay or skip non-essential requests.
-
 ### Connection-level xior instance reuse
 
 **Impact**: Low — saves HTTP client allocations
 
-GoCardless and EnableBanking both cache their xior instances already. A further optimization
+EnableBanking caches their xior instances already. A further optimization
 would be to share instances across Provider class instantiations (currently each `new Provider()`
 creates a new API class with its own cache). This would require a singleton or module-level
 cache for HTTP clients.

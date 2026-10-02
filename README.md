@@ -63,7 +63,7 @@ We are working on the documentation to get started with Midday for local develop
 - Trigger.dev (background jobs)
 - Resend (Transactional email)
 - Github Actions (CI/CD)
-- GoCardLess (Bank connection EU)
+- SimpleFIN (Bank connection US/CA, optional)
 - Plaid (Bank connection in Canada and US)
 - Teller (Bank connection in the US)
 - OpenPanel (Events and Analytics)

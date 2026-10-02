@@ -372,7 +372,7 @@ export async function getNetPosition(
   // Calculate credit debt total
   // Note: Different providers store credit balances differently:
   // - Plaid stores as positive (amount owed)
-  // - GoCardless stores as negative (debt)
+  // - EnableBanking stores as negative (debt)
   // We use Math.abs() to normalize both conventions
   let creditDebt = 0;
   for (const account of creditAccounts) {

@@ -37,6 +37,7 @@ export type CoercedEnvSchema = {
   
   /**
    * **PLAID_CLIENT_ID**  
+   * Plaid: the free Trial plan includes 10 production Items.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    *   
    * 📚 {@link https://dashboard.plaid.com/developers/keys}  
@@ -58,19 +59,18 @@ export type CoercedEnvSchema = {
   PLAID_ENVIRONMENT: "sandbox" | "development" | "production";
   
   /**
-   * **GOCARDLESS_SECRET_ID**  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   * **SIMPLEFIN_ENABLED**  
+   * Enable SimpleFIN Bridge (US/CA, https://www.simplefin.org). Users paste a  
+   * setup token from their bridge account (about $15-25/year, billed by SimpleFIN);  
+   * no server-side keys are needed.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M23%2023a7%207%200%201%201%207-7a7.01%207.01%200%200%201-7%207m0-12a5%205%200%201%200%205%205a5.006%205.006%200%200%200-5-5%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23808080%22%2F%3E%3C%2Fsvg%3E)   
    */
-  GOCARDLESS_SECRET_ID?: string;
-  
-  /**
-   * **GOCARDLESS_SECRET_KEY** 🔐 _sensitive_  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  GOCARDLESS_SECRET_KEY?: string;
+  SIMPLEFIN_ENABLED: boolean;
   
   /**
    * **ENABLEBANKING_APPLICATION_ID**  
+   * Enable Banking (EU/UK). Create an app at https://enablebanking.com/cp/applications  
+   * and use restricted production mode to link your own accounts for free.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   ENABLEBANKING_APPLICATION_ID?: string;
@@ -136,6 +136,21 @@ export type CoercedEnvSchema = {
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M23%2023a7%207%200%201%201%207-7a7.01%207.01%200%200%201-7%207m0-12a5%205%200%201%200%205%205a5.006%205.006%200%200%200-5-5%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23808080%22%2F%3E%3C%2Fsvg%3E)   
    */
   LOG_PRETTY: boolean;
+  
+  /**
+   * **MIDDAY_ENCRYPTION_KEY** 🔐 _sensitive_  
+   * 32-byte hex key (64 chars) used to encrypt OAuth tokens and other secrets at  
+   * rest. Generate with `openssl rand -hex 32`.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  MIDDAY_ENCRYPTION_KEY: string;
+  
+  /**
+   * **FILE_KEY_SECRET** 🔐 _sensitive_  
+   * Secret used to sign file access keys. Generate with `openssl rand -hex 32`.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  FILE_KEY_SECRET: string;
   
   /**
    * **STORAGE_DRIVER**  
@@ -383,13 +398,6 @@ export type CoercedEnvSchema = {
   DEFAULT_TIMEZONE?: string;
   
   /**
-   * **FILE_KEY_SECRET** 🔐 _sensitive_  
-   * Secret used to sign file access keys. Generate with `openssl rand -hex 32`.  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  FILE_KEY_SECRET: string;
-  
-  /**
    * **STORAGE_LOCAL_DIR**  
    * Directory for the local driver. Relative paths resolve against the repo root,  
    * so the API and worker share it in development. Mount a volume here in Docker.  
@@ -456,7 +464,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_e3843275 = CoercedEnvSchema;
+type _CoercedEnvSchema_07af0eb8 = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -464,9 +472,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_e3843275 = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_07af0eb8 = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'GOCARDLESS_SECRET_ID' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'SLACK_CLIENT_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'SLACK_CLIENT_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

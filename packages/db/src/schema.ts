@@ -63,10 +63,13 @@ export const accountTypeEnum = pgEnum("account_type", [
 ]);
 
 export const bankProvidersEnum = pgEnum("bank_providers", [
+  // Legacy: GoCardless closed new sign-ups in July 2025 and the provider code was
+  // removed. The value stays so existing bank_connections rows remain valid.
   "gocardless",
   "plaid",
   "teller",
   "enablebanking",
+  "simplefin",
 ]);
 
 export const connectionStatusEnum = pgEnum("connection_status", [

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02">
+  <BkToCstmrStmt>
+    <GrpHdr><MsgId>MSG-001</MsgId><CreDtTm>2024-03-01T08:00:00</CreDtTm></GrpHdr>
+    <Stmt>
+      <Id>STMT-2024-02</Id>
+      <Acct>
+        <Id><IBAN>DE89370400440532013000</IBAN></Id>
+        <Ccy>EUR</Ccy>
+      </Acct>
+      <Bal><Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">1000.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2024-02-01</Dt></Dt></Bal>
+      <Bal><Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">1819.50</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2024-02-29</Dt></Dt></Bal>
+      <Ntry>
+        <NtryRef>N1</NtryRef>
+        <Amt Ccy="EUR">1500.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts>BOOK</Sts>
+        <BookgDt><Dt>2024-02-02</Dt></BookgDt><ValDt><Dt>2024-02-02</Dt></ValDt>
+        <AcctSvcrRef>REF-0001</AcctSvcrRef>
+        <NtryDtls><TxDtls>
+          <RltdPties><Dbtr><Nm>Muster GmbH</Nm></Dbtr></RltdPties>
+          <RmtInf><Ustrd>Invoice 2024-001</Ustrd><Ustrd>Thank you</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">89.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts>
+        <BookgDt><Dt>2024-02-05</Dt></BookgDt><ValDt><Dt>2024-02-06</Dt></ValDt>
+        <AcctSvcrRef>REF-0002</AcctSvcrRef>
+        <NtryDtls><TxDtls>
+          <RltdPties><Cdtr><Nm>Stadtwerke Berlin</Nm></Cdtr></RltdPties>
+          <RmtInf><Ustrd>Strom Februar</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">45.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts>
+        <BookgDt><Dt>2024-02-09</Dt></BookgDt><ValDt><Dt>2024-02-09</Dt></ValDt>
+        <AcctSvcrRef>REF-0003</AcctSvcrRef>
+        <AddtlNtryInf>KARTENZAHLUNG REWE</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">300.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>BOOK</Sts>
+        <BookgDt><Dt>2024-02-14</Dt></BookgDt><ValDt><Dt>2024-02-14</Dt></ValDt>
+        <AcctSvcrRef>BATCH-0004</AcctSvcrRef>
+        <NtryDtls>
+          <TxDtls><AmtDtls><TxAmt><Amt Ccy="EUR">100.00</Amt></TxAmt></AmtDtls><RltdPties><Cdtr><Nm>Alice Freelancer</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Salary Alice</Ustrd></RmtInf></TxDtls>
+          <TxDtls><AmtDtls><TxAmt><Amt Ccy="EUR">200.00</Amt></TxAmt></AmtDtls><RltdPties><Cdtr><Nm>Bob Freelancer</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Salary Bob</Ustrd></RmtInf></TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">89.90</Amt><CdtDbtInd>DBIT</CdtDbtInd><RvslInd>true</RvslInd><Sts>BOOK</Sts>
+        <BookgDt><Dt>2024-02-20</Dt></BookgDt><ValDt><Dt>2024-02-20</Dt></ValDt>
+        <AcctSvcrRef>REF-0005</AcctSvcrRef>
+        <NtryDtls><TxDtls><RltdPties><Cdtr><Nm>Stadtwerke Berlin</Nm></Cdtr></RltdPties><RmtInf><Ustrd>Storno Strom</Ustrd></RmtInf></TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">10.00</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts>PDNG</Sts>
+        <BookgDt><Dt>2024-02-28</Dt></BookgDt>
+        <AcctSvcrRef>REF-PENDING</AcctSvcrRef>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

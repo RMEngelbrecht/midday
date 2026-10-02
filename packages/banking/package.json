@@ -14,10 +14,11 @@
     ".": "./src/index.ts",
     "./account": "./src/utils/account.ts",
     "./rates": "./src/utils/rates.ts",
-    "./gocardless/utils": "./src/providers/gocardless/utils.ts"
+    "./simplefin": "./src/providers/simplefin/simplefin-api.ts"
   },
   "dependencies": {
     "@midday/cache": "workspace:*",
+    "@midday/encryption": "workspace:*",
     "@midday/features": "workspace:*",
     "@midday/location": "workspace:*",
     "@midday/logger": "workspace:*",

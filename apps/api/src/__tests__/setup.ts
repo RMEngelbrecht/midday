@@ -1315,17 +1315,6 @@ mock.module("@midday/banking", () => ({
       Promise.reject(new Error("PlaidApi not mocked")),
     );
   },
-  GoCardLessApi: class GoCardLessApi {
-    buildLink = mock(() =>
-      Promise.reject(new Error("GoCardLessApi not mocked")),
-    );
-    createEndUserAgreement = mock(() =>
-      Promise.reject(new Error("GoCardLessApi not mocked")),
-    );
-    getRequisitionByReference = mock(() =>
-      Promise.reject(new Error("GoCardLessApi not mocked")),
-    );
-  },
   EnableBankingApi: class EnableBankingApi {
     authenticate = mock(() =>
       Promise.reject(new Error("EnableBankingApi not mocked")),
@@ -1334,6 +1323,11 @@ mock.module("@midday/banking", () => ({
       Promise.reject(new Error("EnableBankingApi not mocked")),
     );
   },
+  SimplefinApi: class SimplefinApi {
+    claim = mock(() => Promise.reject(new Error("SimplefinApi not mocked")));
+  },
+  encryptAccessUrl: (url: string) => `encrypted:${url}`,
+  isSimplefinEnabled: () => true,
   Provider: class Provider {
     getConnectionStatus = mock(() =>
       Promise.reject(new Error("Provider not mocked")),

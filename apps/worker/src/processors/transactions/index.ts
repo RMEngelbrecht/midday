@@ -1,6 +1,7 @@
 import { EnrichTransactionProcessor } from "./enrich-transaction";
 import { ExportTransactionsProcessor } from "./export";
 import { ExportTeamDataProcessor } from "./export-team-data";
+import { ImportStatementProcessor } from "./import-statement";
 import { ImportTransactionsProcessor } from "./import-transactions";
 import { ProcessTransactionAttachmentProcessor } from "./process-attachment";
 import { ProcessExportProcessor } from "./process-export";
@@ -13,6 +14,7 @@ import { UpdateBaseCurrencyProcessor } from "./update-base-currency";
 export { EnrichTransactionProcessor } from "./enrich-transaction";
 export { ExportTransactionsProcessor } from "./export";
 export { ExportTeamDataProcessor } from "./export-team-data";
+export { ImportStatementProcessor } from "./import-statement";
 export { ImportTransactionsProcessor } from "./import-transactions";
 export { ProcessTransactionAttachmentProcessor } from "./process-attachment";
 export { ProcessExportProcessor } from "./process-export";
@@ -28,6 +30,7 @@ export const transactionProcessors = {
   "enrich-transactions": new EnrichTransactionProcessor(),
   "export-team-data": new ExportTeamDataProcessor(),
   "export-transactions": new ExportTransactionsProcessor(),
+  "import-statement": new ImportStatementProcessor(),
   "import-transactions": new ImportTransactionsProcessor(),
   "process-export": new ProcessExportProcessor(),
   "process-transaction-attachment": new ProcessTransactionAttachmentProcessor(),

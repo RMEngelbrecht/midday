@@ -11,7 +11,7 @@ export type StorageDriver = "local" | "s3";
 export type BankingFeatures = {
   plaid: boolean;
   teller: boolean;
-  gocardless: boolean;
+  simplefin: boolean;
   enablebanking: boolean;
 };
 
@@ -56,8 +56,7 @@ export const FEATURE_ENV_KEYS = [
   "TELLER_APPLICATION_ID",
   "TELLER_CERT_BASE64",
   "TELLER_KEY_BASE64",
-  "GOCARDLESS_SECRET_ID",
-  "GOCARDLESS_SECRET_KEY",
+  "SIMPLEFIN_ENABLED",
   "ENABLEBANKING_APPLICATION_ID",
   "ENABLE_BANKING_KEY_CONTENT",
   "SMTP_URL",
@@ -109,7 +108,10 @@ export function deriveFeatures(env: FeatureEnv): Features {
         "TELLER_CERT_BASE64",
         "TELLER_KEY_BASE64",
       ),
-      gocardless: all("GOCARDLESS_SECRET_ID", "GOCARDLESS_SECRET_KEY"),
+      simplefin: // ENV coerces this key to a boolean, so stringify before comparing
+        String(env.SIMPLEFIN_ENABLED ?? "")
+          .trim()
+          .toLowerCase() === "true",
       enablebanking: all(
         "ENABLEBANKING_APPLICATION_ID",
         "ENABLE_BANKING_KEY_CONTENT",

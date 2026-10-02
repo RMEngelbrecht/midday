@@ -121,7 +121,7 @@ export type UpsertInstitutionData = {
   id: string;
   name: string;
   logo: string | null;
-  provider: "gocardless" | "plaid" | "teller" | "enablebanking";
+  provider: "plaid" | "teller" | "enablebanking" | "simplefin";
   countries: string[];
   availableHistory: number | null;
   maximumConsentValidity: number | null;

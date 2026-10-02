@@ -65,8 +65,12 @@ function createProviderClient(provider: BankProvider): BankingClient {
 
 let factory: (provider: BankProvider) => BankingClient = createProviderClient;
 
-export function getBankingClient(provider: BankProvider): BankingClient {
-  return factory(provider);
+/**
+ * `provider` is the raw bank_connections value. Legacy rows (e.g. the removed
+ * "gocardless") are rejected by the Provider constructor at runtime.
+ */
+export function getBankingClient(provider: string): BankingClient {
+  return factory(provider as BankProvider);
 }
 
 /** Test seam: replace the provider factory; pass nothing to restore it. */

@@ -45,9 +45,9 @@ const mockAccounts = {
   },
   creditCardNegative: {
     id: "acc-5",
-    name: "Business Credit Card (GoCardless)",
+    name: "Business Credit Card (EnableBanking)",
     type: "credit",
-    balance: -15000, // GoCardless stores as negative (debt)
+    balance: -15000, // EnableBanking stores as negative (debt)
     currency: "USD",
     enabled: true,
   },
@@ -129,7 +129,7 @@ describe("Credit Balance Normalization", () => {
     expect(normalizedDebt).toBeGreaterThan(0);
   });
 
-  test("negative credit balance (GoCardless convention) should be treated as debt", () => {
+  test("negative credit balance (EnableBanking convention) should be treated as debt", () => {
     const balance = mockAccounts.creditCardNegative.balance;
     const normalizedDebt = Math.abs(balance);
 
@@ -139,11 +139,11 @@ describe("Credit Balance Normalization", () => {
 
   test("Math.abs() should normalize both conventions to positive debt", () => {
     const plaidDebt = Math.abs(mockAccounts.creditCardPositive.balance);
-    const gocardlessDebt = Math.abs(mockAccounts.creditCardNegative.balance);
+    const ebDebt = Math.abs(mockAccounts.creditCardNegative.balance);
 
     // Both should be positive values representing debt
     expect(plaidDebt).toBeGreaterThan(0);
-    expect(gocardlessDebt).toBeGreaterThan(0);
+    expect(ebDebt).toBeGreaterThan(0);
   });
 
   test("total credit debt should sum absolute values", () => {

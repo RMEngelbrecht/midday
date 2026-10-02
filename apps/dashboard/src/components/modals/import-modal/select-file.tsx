@@ -1,3 +1,8 @@
+import {
+  decodeStatementBytes,
+  parseStatement,
+  STATEMENT_EXTENSIONS,
+} from "@midday/import/statement";
 import { cn } from "@midday/ui/cn";
 import { Spinner } from "@midday/ui/spinner";
 import Papa from "papaparse";
@@ -8,7 +13,8 @@ import { useCsvContext } from "./context";
 import { readLines } from "./utils";
 
 export function SelectFile() {
-  const { watch, control, setFileColumns, setFirstRows } = useCsvContext();
+  const { watch, control, setFileColumns, setFirstRows, setStatement } =
+    useCsvContext();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const processingRef = useRef<string | null>(null);
@@ -34,6 +40,41 @@ export function SelectFile() {
       // Clear old preview data early so remapping only uses the latest file.
       setFileColumns(null);
       setFirstRows(null);
+      setStatement(null);
+
+      // Structured statements (OFX/QFX, CAMT.053, MT940, QIF) skip column mapping
+      const lower = fileToProcess.name.toLowerCase();
+      if (STATEMENT_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
+        try {
+          const parsed = parseStatement(
+            decodeStatementBytes(
+              new Uint8Array(await fileToProcess.arrayBuffer()),
+            ),
+            fileToProcess.name,
+          );
+          const transactionCount =
+            parsed?.accounts.reduce((n, a) => n + a.transactions.length, 0) ??
+            0;
+          if (!parsed || transactionCount === 0) {
+            setError("No transactions found in this statement file.");
+            setIsLoading(false);
+            processingRef.current = null;
+            return;
+          }
+          const acct = parsed.accounts[0];
+          setStatement({
+            format: parsed.format,
+            transactionCount,
+            accountLabel: acct?.iban ?? acct?.accountNumber,
+            currency: acct?.currency,
+          });
+        } catch {
+          setError("Failed to read statement file.");
+        }
+        setIsLoading(false);
+        processingRef.current = null;
+        return;
+      }
 
       readLines(fileToProcess, 4)
         .then((lines) => {
@@ -74,7 +115,7 @@ export function SelectFile() {
           processingRef.current = null;
         });
     },
-    [setFileColumns, setFirstRows],
+    [setFileColumns, setFirstRows, setStatement],
   );
 
   useEffect(() => {
@@ -103,7 +144,9 @@ export function SelectFile() {
               if (rejection) {
                 const error = rejection.errors[0];
                 if (error?.code === "file-invalid-type") {
-                  setError("Please select a CSV file.");
+                  setError(
+                    "Please select a CSV, OFX/QFX, CAMT.053 (XML), MT940 or QIF file.",
+                  );
                 } else if (error?.code === "file-too-large") {
                   setError("File size exceeds 5MB limit.");
                 } else {
@@ -116,8 +159,18 @@ export function SelectFile() {
             accept={{
               "text/csv": [".csv"],
               "application/csv": [".csv"],
-              "text/plain": [".csv"],
+              "text/plain": [".csv", ".ofx", ".qfx", ".sta", ".mt940", ".qif"],
               "application/vnd.ms-excel": [".csv"],
+              "application/x-ofx": [".ofx", ".qfx"],
+              "application/xml": [".xml"],
+              "text/xml": [".xml"],
+              "application/octet-stream": [
+                ".ofx",
+                ".qfx",
+                ".sta",
+                ".mt940",
+                ".qif",
+              ],
             }}
             maxSize={5000000}
           >
@@ -142,7 +195,9 @@ export function SelectFile() {
                     <div>
                       <p>Drop your file here, or click to browse.</p>
                       <span>5MB file limit. </span>
-                      <span className="mt-2 text-[10px]">CSV format</span>
+                      <span className="mt-2 text-[10px]">
+                        CSV, OFX/QFX, CAMT.053, MT940, QIF
+                      </span>
                     </div>
                   )}
 

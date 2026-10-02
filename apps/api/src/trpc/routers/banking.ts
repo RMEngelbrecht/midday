@@ -1,5 +1,4 @@
 import {
-  connectionByReferenceSchema,
   connectionStatusSchema,
   deleteConnectionSchema,
   enablebankingExchangeSchema,
@@ -7,10 +6,9 @@ import {
   getBalanceSchema,
   getProviderAccountsSchema,
   getProviderTransactionsSchema,
-  gocardlessAgreementSchema,
-  gocardlessLinkSchema,
   plaidExchangeSchema,
   plaidLinkSchema,
+  simplefinClaimSchema,
 } from "@api/schemas/banking";
 import {
   createTRPCRouter,
@@ -20,12 +18,14 @@ import {
 } from "@api/trpc/init";
 import {
   EnableBankingApi,
-  GoCardLessApi,
+  encryptAccessUrl,
   getProviderErrorDetails,
   getRates,
+  isSimplefinEnabled,
   PlaidApi,
   Provider,
   ProviderError,
+  SimplefinApi,
 } from "@midday/banking";
 import { getInstitutionById } from "@midday/db/queries";
 import { createLoggerWithContext } from "@midday/logger";
@@ -86,42 +86,35 @@ export const bankingRouter = createTRPCRouter({
       }
     }),
 
-  gocardlessLink: protectedProcedure
-    .input(gocardlessLinkSchema)
+  /**
+   * Claims a SimpleFIN setup token and returns the access URL encrypted. The
+   * plaintext access URL (which embeds credentials) never leaves the server;
+   * the encrypted value is what the client passes on as `accessToken`.
+   */
+  simplefinClaim: protectedProcedure
+    .input(simplefinClaimSchema)
     .mutation(async ({ input }) => {
-      const api = new GoCardLessApi();
-
-      try {
-        const data = await api.buildLink(input);
-        return { data };
-      } catch (error) {
-        logger.error(
-          "Failed to create GoCardless link",
-          getProviderErrorDetails(error),
-        );
+      if (!isSimplefinEnabled()) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create GoCardless link",
+          code: "FORBIDDEN",
+          message: "SimpleFIN is not enabled",
         });
       }
-    }),
-
-  gocardlessAgreement: protectedProcedure
-    .input(gocardlessAgreementSchema)
-    .mutation(async ({ input }) => {
-      const api = new GoCardLessApi();
 
       try {
-        const data = await api.createEndUserAgreement(input);
-        return { data };
+        const accessUrl = await new SimplefinApi().claim(input.setupToken);
+        return { data: { accessToken: encryptAccessUrl(accessUrl) } };
       } catch (error) {
         logger.error(
-          "Failed to create GoCardless agreement",
+          "Failed to claim SimpleFIN token",
           getProviderErrorDetails(error),
         );
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create GoCardless agreement",
+          code: "BAD_REQUEST",
+          message:
+            error instanceof ProviderError
+              ? error.message
+              : "Failed to claim SimpleFIN setup token",
         });
       }
     }),
@@ -257,33 +250,6 @@ export const bankingRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete connection",
-        });
-      }
-    }),
-
-  connectionByReference: internalProcedure
-    .input(connectionByReferenceSchema)
-    .query(async ({ input }) => {
-      const api = new GoCardLessApi();
-
-      try {
-        const data = await api.getRequisitionByReference(input.reference);
-        if (!data) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Connection not found",
-          });
-        }
-        return { data: { id: data.id, accounts: data.accounts } };
-      } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        logger.error(
-          "Failed to get connection by reference",
-          getProviderErrorDetails(error),
-        );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to get connection by reference",
         });
       }
     }),

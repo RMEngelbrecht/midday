@@ -25,10 +25,15 @@ import { useUpload } from "@/hooks/use-upload";
 import { useUserQuery } from "@/hooks/use-user";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useTRPC } from "@/trpc/client";
-import { ImportCsvContext, importSchema } from "./context";
+import {
+  ImportCsvContext,
+  importSchema,
+  type StatementSummary,
+} from "./context";
 import { FieldMapping } from "./field-mapping";
 import { getBalanceFromLatestDate } from "./field-mapping.utils";
 import { SelectFile } from "./select-file";
+import { StatementConfirm } from "./statement-confirm";
 
 const pages = ["select-file", "confirm-import"] as const;
 
@@ -48,6 +53,7 @@ export function ImportModal() {
   const [firstRows, setFirstRows] = useState<Record<string, string>[] | null>(
     null,
   );
+  const [statement, setStatement] = useState<StatementSummary | null>(null);
   const [visibleProgressStep, setVisibleProgressStep] = useState<
     string | undefined
   >();
@@ -75,6 +81,27 @@ export function ImportModal() {
     enabled: !!jobId && isOpen,
     refetchInterval: 300,
   });
+
+  const importStatement = useMutation(
+    trpc.transactions.importStatement.mutationOptions({
+      onSuccess: (data) => {
+        if (data?.id) {
+          setJobId(data.id);
+        } else {
+          setIsImporting(false);
+        }
+      },
+      onError: () => {
+        setIsImporting(false);
+        setJobId(undefined);
+        toast({
+          duration: 3500,
+          variant: "error",
+          title: "Something went wrong please try again.",
+        });
+      },
+    }),
+  );
 
   const importTransactions = useMutation(
     trpc.transactions.import.mutationOptions({
@@ -139,6 +166,7 @@ export function ImportModal() {
     }
     setFileColumns(null);
     setFirstRows(null);
+    setStatement(null);
     setPageNumber(0);
     setJobId(undefined);
     reset();
@@ -289,12 +317,23 @@ export function ImportModal() {
     }
   }, [isOpen]);
 
+  // Structured statements have no column mapping: satisfy the CSV schema with
+  // placeholders so only the account choice gates the submit button.
+  useEffect(() => {
+    if (statement) {
+      setValue("amount", "-", { shouldValidate: true });
+      setValue("date", "-", { shouldValidate: true });
+      setValue("description", "-", { shouldValidate: true });
+      if (statement.currency) setValue("currency", statement.currency);
+    }
+  }, [statement, setValue]);
+
   // Go to second page if file looks good
   useEffect(() => {
-    if (file && fileColumns && firstRows && pageNumber === 0) {
+    if (file && ((fileColumns && firstRows) || statement) && pageNumber === 0) {
       setPageNumber(1);
     }
-  }, [file, fileColumns, firstRows, pageNumber]);
+  }, [file, fileColumns, firstRows, statement, pageNumber]);
 
   const importStepLabels: Record<string, string> = {
     analyzing: "Analyzing...",
@@ -359,8 +398,12 @@ export function ImportModal() {
             </div>
             <DialogDescription>
               {page === "select-file" &&
-                "Upload a CSV file of your transactions."}
+                "Upload a CSV, OFX/QFX, CAMT.053, MT940 or QIF file of your transactions."}
               {page === "confirm-import" &&
+                statement &&
+                "Choose the account these transactions belong to."}
+              {page === "confirm-import" &&
+                !statement &&
                 "We've mapped each column to what we believe is correct, but please review the data below to confirm it's accurate."}
             </DialogDescription>
           </DialogHeader>
@@ -373,6 +416,8 @@ export function ImportModal() {
                   setFileColumns,
                   firstRows,
                   setFirstRows,
+                  statement,
+                  setStatement,
                   control,
                   watch,
                   setValue,
@@ -394,6 +439,16 @@ export function ImportModal() {
                         path: [user?.team?.id ?? "", "imports", filename],
                         file,
                       });
+
+                      if (statement) {
+                        importStatement.mutate({
+                          filePath: path,
+                          currency:
+                            data.currency || statement.currency || "USD",
+                          bankAccountId: data.bank_account_id,
+                        });
+                        return;
+                      }
 
                       const currentBalance =
                         firstRows && data.date && data.balance
@@ -423,7 +478,11 @@ export function ImportModal() {
                     {page === "select-file" && <SelectFile />}
                     {page === "confirm-import" && (
                       <>
-                        <FieldMapping currencies={uniqueCurrencies} />
+                        {statement ? (
+                          <StatementConfirm />
+                        ) : (
+                          <FieldMapping currencies={uniqueCurrencies} />
+                        )}
 
                         <SubmitButtonMorph
                           isSubmitting={isImporting}
@@ -441,6 +500,7 @@ export function ImportModal() {
                             reset();
                             setFileColumns(null);
                             setFirstRows(null);
+                            setStatement(null);
                           }}
                         >
                           Choose another file

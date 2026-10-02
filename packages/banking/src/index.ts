@@ -1,7 +1,8 @@
 import { enabledBankProviders, getFeatures } from "@midday/features";
+import { ENV } from "./env";
 import { EnableBankingProvider } from "./providers/enablebanking/enablebanking-provider";
-import { GoCardLessProvider } from "./providers/gocardless/gocardless-provider";
 import { PlaidProvider } from "./providers/plaid/plaid-provider";
+import { SimplefinProvider } from "./providers/simplefin/simplefin-provider";
 import { TellerProvider } from "./providers/teller/teller-provider";
 import type {
   DeleteAccountsRequest,
@@ -23,16 +24,13 @@ export class Provider {
   #provider:
     | PlaidProvider
     | TellerProvider
-    | GoCardLessProvider
-    | EnableBankingProvider;
+    | EnableBankingProvider
+    | SimplefinProvider;
 
   constructor(params: ProviderParams) {
     this.#name = params.provider;
 
     switch (params.provider) {
-      case "gocardless":
-        this.#provider = new GoCardLessProvider();
-        break;
       case "teller":
         this.#provider = new TellerProvider();
         break;
@@ -41,6 +39,9 @@ export class Provider {
         break;
       case "enablebanking":
         this.#provider = new EnableBankingProvider();
+        break;
+      case "simplefin":
+        this.#provider = new SimplefinProvider();
         break;
       default: {
         const exhaustiveCheck: never = params.provider;
@@ -62,8 +63,8 @@ export class Provider {
     > = {
       plaid: () => new PlaidProvider(),
       teller: () => new TellerProvider(),
-      gocardless: () => new GoCardLessProvider(),
       enablebanking: () => new EnableBankingProvider(),
+      simplefin: () => new SimplefinProvider(),
     };
 
     try {
@@ -139,8 +140,13 @@ export type {
 } from "./institutions";
 export { fetchAllInstitutions } from "./institutions";
 export { EnableBankingApi } from "./providers/enablebanking/enablebanking-api";
-export { GoCardLessApi } from "./providers/gocardless/gocardless-api";
+/** True when SIMPLEFIN_ENABLED=true (no server keys are needed). */
+export const isSimplefinEnabled = () => ENV.SIMPLEFIN_ENABLED;
 export { PlaidApi } from "./providers/plaid/plaid-api";
+export {
+  encryptAccessUrl,
+  SimplefinApi,
+} from "./providers/simplefin/simplefin-api";
 export { TellerApi } from "./providers/teller/teller-api";
 export { syncInstitutionLogos } from "./sync-logos";
 // Re-export types, provider APIs, and institution sync

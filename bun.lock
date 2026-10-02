@@ -98,6 +98,7 @@
         "@midday/documents": "workspace:*",
         "@midday/events": "workspace:*",
         "@midday/features": "workspace:*",
+        "@midday/import": "workspace:*",
         "@midday/inbox": "workspace:*",
         "@midday/invoice": "workspace:*",
         "@midday/location": "workspace:*",
@@ -280,6 +281,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@midday/cache": "workspace:*",
+        "@midday/encryption": "workspace:*",
         "@midday/features": "workspace:*",
         "@midday/location": "workspace:*",
         "@midday/logger": "workspace:*",

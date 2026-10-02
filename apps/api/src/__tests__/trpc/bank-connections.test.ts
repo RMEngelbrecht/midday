@@ -45,7 +45,7 @@ describe("tRPC: bankConnections.delete", () => {
       Promise.resolve({
         id: CONN_ID,
         referenceId: "ref-xyz",
-        provider: "gocardless",
+        provider: "enablebanking",
         accessToken: "token-abc",
       }),
     );
@@ -58,7 +58,7 @@ describe("tRPC: bankConnections.delete", () => {
     expect(result).toMatchObject({
       id: CONN_ID,
       referenceId: "ref-xyz",
-      provider: "gocardless",
+      provider: "enablebanking",
     });
     expect(mocks.deleteBankConnection).toHaveBeenCalledWith(
       expect.anything(),

@@ -116,26 +116,6 @@ export function plaidProbe(): Dependency {
   };
 }
 
-/** GoCardless health check via @midday/banking */
-export function gocardlessProbe(): Dependency {
-  return {
-    name: "gocardless",
-    tier: 2,
-    cacheTtlMs: 60_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      try {
-        const provider = new Provider({ provider: "gocardless" });
-        return await provider
-          .getHealthCheck()
-          .then((h) => h.gocardless?.healthy ?? false);
-      } catch {
-        return false;
-      }
-    },
-  };
-}
-
 /** EnableBanking health check via @midday/banking */
 export function enableBankingProbe(): Dependency {
   return {
@@ -337,7 +317,6 @@ export function optionalProbes(
   const { banking, integrations } = features;
   const candidates: [boolean, () => Dependency][] = [
     [banking.plaid, plaidProbe],
-    [banking.gocardless, gocardlessProbe],
     [banking.enablebanking, enableBankingProbe],
     [banking.teller, tellerProbe],
     [integrations.stripe, stripeProbe],

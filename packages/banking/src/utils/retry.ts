@@ -43,7 +43,7 @@ export async function withRetry<TResult>(
  *
  * Checks for:
  * - Retry-After header (seconds or HTTP-date)
- * - X-RateLimit-Reset / HTTP_X_RATELIMIT_ACCOUNT_SUCCESS_RESET (seconds until reset)
+ * - X-RateLimit-Reset (seconds until reset)
  *
  * Falls back to exponential backoff with jitter if no header is found.
  */
@@ -53,14 +53,6 @@ function getRateLimitDelay(error: unknown, attempt: number): number {
     (error as any)?.response?.headers ?? (error as any)?.headers ?? null;
 
   if (headers) {
-    // GoCardless: HTTP_X_RATELIMIT_ACCOUNT_SUCCESS_RESET (seconds)
-    const gcReset =
-      headers?.http_x_ratelimit_account_success_reset ??
-      headers?.[`x-ratelimit-account-success-reset`];
-    if (gcReset) {
-      return Number(gcReset) * 1000;
-    }
-
     // Standard Retry-After header (seconds)
     const retryAfter = headers?.["retry-after"];
     if (retryAfter) {

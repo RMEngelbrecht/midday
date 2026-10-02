@@ -39,11 +39,6 @@ export class ProviderError extends Error {
       return "disconnected";
     }
 
-    // GoCardLess
-    if (this.message.startsWith("EUA was valid for")) {
-      return "disconnected";
-    }
-
     switch (code) {
       // Teller
       case "enrollment.disconnected":
@@ -60,16 +55,20 @@ export class ProviderError extends Error {
       case "ITEM_LOCKED":
       case "ITEM_CONCURRENTLY_DELETED":
       case "ACCESS_NOT_GRANTED":
-      // GoCardLess
-      case "AccessExpiredError":
-      case "AccountInactiveError":
-      case "Account suspended":
+      // SimpleFIN (HTTP 401/403: access URL revoked)
+      case "simplefin.disconnected":
         logger.warn("Provider disconnected", { code, message: this.message });
         return "disconnected";
 
       // EnableBanking
       case "ALREADY_AUTHORIZED":
         return "already_authorized";
+
+      // SimpleFIN
+      case "invalid_token":
+      case "claim_failed":
+      case "payment_required":
+        return code;
 
       default:
         logger.warn("Unknown provider error", { code, message: this.message });

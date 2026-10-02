@@ -105,7 +105,7 @@ describe.skipIf(SKIP)("SQL functions on a fresh database", () => {
       institutionId: "smoke-bank",
       name: "Smoke Bank",
       logoUrl: "https://example.com/bank.png",
-      provider: "gocardless",
+      provider: "enablebanking",
     });
     await db.insert(bankAccounts).values([
       {

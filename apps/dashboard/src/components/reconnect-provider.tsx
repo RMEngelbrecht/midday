@@ -10,13 +10,11 @@ import {
 } from "@midday/ui/tooltip";
 import { useToast } from "@midday/ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { nanoid } from "nanoid";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { useScript } from "usehooks-ts";
 import { usePublicConfig } from "@/components/public-config-provider";
-import { useTeamQuery } from "@/hooks/use-team";
 import { useTRPC } from "@/trpc/client";
 
 /**
@@ -51,11 +49,10 @@ export function ReconnectProvider({
   onComplete,
   variant,
 }: Props) {
-  const { appUrl, plaidEnvironment, teller: tellerConfig } = usePublicConfig();
+  const { plaidEnvironment, teller: tellerConfig } = usePublicConfig();
   const { toast } = useToast();
   const { theme } = useTheme();
   const trpc = useTRPC();
-  const { data: team } = useTeamQuery();
   const [plaidToken, setPlaidToken] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -67,14 +64,6 @@ export function ReconnectProvider({
         }
       },
     }),
-  );
-
-  const createGocardlessAgreement = useMutation(
-    trpc.banking.gocardlessAgreement.mutationOptions({}),
-  );
-
-  const createGocardlessLink = useMutation(
-    trpc.banking.gocardlessLink.mutationOptions({}),
   );
 
   const createEnableBankingLink = useMutation(
@@ -133,49 +122,6 @@ export function ReconnectProvider({
           accessToken: accessToken ?? undefined,
         });
 
-        return;
-      }
-      case "gocardless": {
-        if (!team?.id) {
-          return;
-        }
-
-        setIsLoading(true);
-        const reference = `${team.id}:${nanoid()}`;
-        const link = new URL(`${appUrl}/api/gocardless/reconnect`);
-        link.searchParams.append("id", id);
-
-        if (isDesktopApp()) {
-          link.searchParams.append("desktop", "true");
-        }
-
-        try {
-          const agreementData = await createGocardlessAgreement.mutateAsync({
-            institutionId,
-            transactionTotalDays: 60,
-          });
-
-          link.searchParams.append(
-            "access_valid_for_days",
-            String(agreementData.data.access_valid_for_days),
-          );
-
-          const linkData = await createGocardlessLink.mutateAsync({
-            agreement: agreementData.data.id,
-            institutionId,
-            redirect: link.toString(),
-            reference,
-          });
-
-          window.location.href = linkData.data.link;
-        } catch {
-          setIsLoading(false);
-          toast({
-            duration: 2500,
-            variant: "error",
-            title: "Something went wrong please try again.",
-          });
-        }
         return;
       }
       case "enablebanking": {

@@ -1,3 +1,4 @@
+import type { StatementFormat } from "@midday/import/statement";
 import { createContext, useContext } from "react";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { z } from "zod/v3";
@@ -56,11 +57,21 @@ export type ImportCsvFormData = {
   table?: Record<string, string>[];
 };
 
+export type StatementSummary = {
+  format: StatementFormat;
+  transactionCount: number;
+  /** IBAN / account number found in the file */
+  accountLabel?: string;
+  currency?: string;
+};
+
 export const ImportCsvContext = createContext<{
   fileColumns: string[] | null;
   setFileColumns: (columns: string[] | null) => void;
   firstRows: Record<string, string>[] | null;
   setFirstRows: (rows: Record<string, string>[] | null) => void;
+  statement: StatementSummary | null;
+  setStatement: (statement: StatementSummary | null) => void;
   control: Control<ImportCsvFormData>;
   watch: UseFormWatch<ImportCsvFormData>;
   setValue: UseFormSetValue<ImportCsvFormData>;

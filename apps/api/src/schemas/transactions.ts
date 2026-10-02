@@ -1014,6 +1014,12 @@ export const importTransactionsSchema = z.object({
     }),
 });
 
+export const importStatementSchema = z.object({
+  filePath: z.array(z.string()),
+  bankAccountId: z.string().uuid(),
+  currency: z.string().length(3),
+});
+
 export const generateCsvMappingSchema = z.object({
   fieldColumns: z.array(z.string()).min(1),
   firstRows: z.array(z.record(z.string(), z.string())).min(1),

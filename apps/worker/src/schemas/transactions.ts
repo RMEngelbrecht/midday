@@ -110,3 +110,13 @@ export const updateAccountBaseCurrencySchema = z.object({
 export type UpdateAccountBaseCurrencyPayload = z.infer<
   typeof updateAccountBaseCurrencySchema
 >;
+
+export const importStatementSchema = z.object({
+  teamId: z.string().uuid(),
+  bankAccountId: z.string().uuid(),
+  filePath: z.array(z.string()),
+  /** Fallback when the statement carries no currency (QIF) */
+  currency: z.string().length(3),
+});
+
+export type ImportStatementPayload = z.infer<typeof importStatementSchema>;

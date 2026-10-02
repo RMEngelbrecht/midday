@@ -1,0 +1,1 @@
+ALTER TYPE "public"."bank_providers" ADD VALUE 'simplefin';

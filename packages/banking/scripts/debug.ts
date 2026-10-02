@@ -33,12 +33,6 @@ import {
   transformBalance as ebTransformBalance,
   transformTransaction as ebTransformTransaction,
 } from "../src/providers/enablebanking/transform";
-import { GoCardLessApi } from "../src/providers/gocardless/gocardless-api";
-import {
-  transformAccount as gcTransformAccount,
-  transformAccountBalance as gcTransformAccountBalance,
-  transformTransaction as gcTransformTransaction,
-} from "../src/providers/gocardless/transform";
 import type { Account } from "../src/types";
 import type { AccountType } from "../src/utils/account";
 
@@ -183,44 +177,7 @@ async function debugConnection(bankConnectionId: string) {
   header("PROVIDER STATUS");
 
   try {
-    if (provider === "gocardless") {
-      const api = new GoCardLessApi();
-
-      const requisition = await api.getRequestion(connection.referenceId!);
-      if (!requisition) {
-        fail("Requisition not found");
-        return;
-      }
-
-      console.log(`  Requisition ID: ${requisition.id}`);
-      console.log(
-        `  Status:         ${formatRequisitionStatus(requisition.status)}`,
-      );
-      console.log(`  Created:        ${requisition.created}`);
-      console.log(`  Institution:    ${requisition.institution_id}`);
-      console.log(
-        `  Accounts:       ${requisition.accounts.length} (${requisition.accounts.join(", ")})`,
-      );
-
-      const agreement = await api.getEndUserAgreement(requisition.agreement);
-      console.log();
-      console.log(`  Agreement ID:              ${agreement.id}`);
-      console.log(
-        `  access_valid_for_days:     ${agreement.access_valid_for_days}`,
-      );
-      console.log(
-        `  max_historical_days:       ${agreement.max_historical_days}`,
-      );
-      console.log(`  accepted:                  ${agreement.accepted}`);
-      console.log(`  created:                   ${agreement.created}`);
-
-      const accountMismatch = requisition.accounts.filter(
-        (provId) => !accounts.some((a) => a.accountId === provId),
-      );
-      if (accountMismatch.length) {
-        warn(`Provider accounts not in DB: ${accountMismatch.join(", ")}`);
-      }
-    } else if (provider === "enablebanking") {
+    if (provider === "enablebanking") {
       const api = new EnableBankingApi();
 
       const session = await api.getSession(connection.accessToken!);
@@ -258,22 +215,6 @@ async function debugConnection(bankConnectionId: string) {
   }
 }
 
-function formatRequisitionStatus(
-  status: "CR" | "GC" | "UA" | "RJ" | "SA" | "GA" | "LN" | "EX",
-): string {
-  const labels: Record<string, string> = {
-    CR: `${YELLOW}CR (created)${RESET}`,
-    GC: `${YELLOW}GC (giving consent)${RESET}`,
-    UA: `${YELLOW}UA (undergoing authentication)${RESET}`,
-    RJ: `${RED}RJ (rejected)${RESET}`,
-    SA: `${YELLOW}SA (selecting accounts)${RESET}`,
-    GA: `${YELLOW}GA (granting access)${RESET}`,
-    LN: `${GREEN}LN (linked)${RESET}`,
-    EX: `${RED}EX (expired)${RESET}`,
-  };
-  return labels[status] ?? status;
-}
-
 // ── Subcommand: accounts ────────────────────────────────────────────────────
 
 async function debugAccounts(bankAccountId: string) {
@@ -283,46 +224,7 @@ async function debugAccounts(bankAccountId: string) {
   header("PROVIDER: ACCOUNTS (raw → transformed)");
 
   try {
-    if (provider === "gocardless") {
-      const api = new GoCardLessApi();
-      const rawAccounts = await api.getAccounts({
-        id: connection.referenceId!,
-      });
-
-      if (!rawAccounts?.length) {
-        warn("Provider returned no accounts");
-        return;
-      }
-
-      const matched = rawAccounts.find(
-        (a) =>
-          a.account.resourceId === account.accountId ||
-          a.id === account.accountId,
-      );
-
-      if (!matched) {
-        warn(
-          `Could not match account_id="${account.accountId}" in provider response`,
-        );
-        dim(`Provider account IDs: ${rawAccounts.map((a) => a.id).join(", ")}`);
-        dim(
-          `Provider resourceIds: ${rawAccounts.map((a) => a.account.resourceId).join(", ")}`,
-        );
-        return;
-      }
-
-      console.log(`${DIM}Raw provider response:${RESET}`);
-      json(matched);
-
-      const transformed = gcTransformAccount(matched);
-      console.log(`\n${DIM}Transformed:${RESET}`);
-      json(transformed);
-
-      console.log();
-      diffField("currency", account.currency, transformed.currency);
-      diffField("name", account.name, transformed.name);
-      diffField("type", account.type, transformed.type);
-    } else if (provider === "enablebanking") {
+    if (provider === "enablebanking") {
       const api = new EnableBankingApi();
       const rawAccounts = await api.getAccounts({
         id: connection.accessToken!,
@@ -397,32 +299,7 @@ async function debugBalance(bankAccountId: string) {
   header("PROVIDER: BALANCE (raw)");
 
   try {
-    if (provider === "gocardless") {
-      const api = new GoCardLessApi();
-      const raw = await api.getAccountBalances(account.accountId);
-
-      console.log(`${DIM}Raw balances array:${RESET}`);
-      json(raw.balances);
-      console.log(`\n${DIM}Primary balance:${RESET}`);
-      json(raw.primaryBalance);
-
-      header("PROVIDER: BALANCE (transformed)");
-      const transformed = gcTransformAccountBalance({
-        balance: raw.primaryBalance?.balanceAmount,
-        balances: raw.balances,
-        accountType: account.type ?? undefined,
-      });
-      json(transformed);
-
-      header("DIFF");
-      diffField("currency", account.currency, transformed.currency);
-      diffNumeric("balance", Number(account.balance), transformed.amount);
-      diffNumeric(
-        "available_balance",
-        Number(account.availableBalance),
-        transformed.available_balance,
-      );
-    } else if (provider === "enablebanking") {
+    if (provider === "enablebanking") {
       const api = new EnableBankingApi();
       const raw = await api.getAccountBalance(account.accountId);
 
@@ -507,49 +384,7 @@ async function debugTransactions(bankAccountId: string, limit: number) {
   header(`PROVIDER: TRANSACTIONS (limit ${limit})`);
 
   try {
-    if (provider === "gocardless") {
-      const api = new GoCardLessApi();
-      const rawTxs = await api.getTransactions({
-        accountId: account.accountId,
-        latest: true,
-      });
-
-      if (!rawTxs?.length) {
-        warn("Provider returned no transactions");
-        return;
-      }
-
-      const sliced = rawTxs.slice(0, limit);
-
-      for (let i = 0; i < sliced.length; i++) {
-        const raw = sliced[i]!;
-        const transformed = gcTransformTransaction({
-          transaction: raw,
-          accountType: account.type ?? "depository",
-        });
-
-        console.log(`\n${BOLD}── Transaction ${i + 1} ──${RESET}`);
-        console.log(`${DIM}Raw:${RESET}`);
-        json(raw);
-        console.log(`${DIM}Transformed:${RESET}`);
-        json(transformed);
-
-        const dbMatch = dbByInternalId.get(transformed.id);
-        if (dbMatch) {
-          ok(`DB match: ${dbMatch.id}`);
-          diffNumeric("amount", Number(dbMatch.amount), transformed.amount);
-          diffField("currency", dbMatch.currency, transformed.currency);
-          diffField("date", dbMatch.date, transformed.date);
-        } else {
-          warn(`Not found in DB (internal_id: ${transformed.id})`);
-        }
-      }
-
-      header("SUMMARY");
-      console.log(`  Provider returned: ${rawTxs.length} transactions`);
-      console.log(`  Showing: ${sliced.length}`);
-      console.log(`  DB transactions loaded: ${dbTransactions.length}`);
-    } else if (provider === "enablebanking") {
+    if (provider === "enablebanking") {
       const api = new EnableBankingApi();
       const raw = await api.getTransactions({
         accountId: account.accountId,
@@ -696,16 +531,7 @@ async function debugReconnect(bankConnectionId: string) {
   let apiAccounts: ApiAccount[];
 
   try {
-    if (provider === "gocardless") {
-      const api = new GoCardLessApi();
-      const raw = await api.getAccounts({ id: connection.referenceId! });
-      if (!raw?.length) {
-        fail("Provider returned no accounts");
-        return;
-      }
-      const transformed = raw.map((r) => gcTransformAccount(r));
-      apiAccounts = transformed.map(toApiAccount);
-    } else if (provider === "enablebanking") {
+    if (provider === "enablebanking") {
       const api = new EnableBankingApi();
       const raw = await api.getAccounts({ id: connection.accessToken! });
       if (!raw?.length) {
@@ -902,22 +728,7 @@ async function debugReconnect(bankConnectionId: string) {
             const providerDates: string[] = [];
             const acctType = api.type as AccountType;
 
-            if (provider === "gocardless") {
-              const gcApi = new GoCardLessApi();
-              const rawTxs = await gcApi.getTransactions({
-                accountId: api.id,
-                latest: false,
-              });
-              for (const raw of rawTxs ?? []) {
-                const t = gcTransformTransaction({
-                  transaction: raw,
-                  accountType: acctType,
-                });
-                providerTxIds.add(t.id);
-                providerTxFingerprints.add(`${t.date}|${t.amount}`);
-                providerDates.push(t.date);
-              }
-            } else if (provider === "enablebanking") {
+            if (provider === "enablebanking") {
               const ebApi = new EnableBankingApi();
               const raw = await ebApi.getTransactions({
                 accountId: api.id,

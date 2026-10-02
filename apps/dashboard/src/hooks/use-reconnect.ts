@@ -23,7 +23,7 @@ type UseReconnectReturn = {
  * Hook that encapsulates all reconnect and sync logic for bank connections.
  *
  * Handles:
- * - URL param detection for OAuth providers (GoCardless, EnableBanking)
+ * - URL param detection for OAuth providers (EnableBanking)
  * - Direct trigger for embedded SDK providers (Teller)
  * - Job status tracking via useSyncStatus
  * - Toast notifications (syncing, success, error)
@@ -146,7 +146,7 @@ export function useReconnect({
     }
   }, [status]);
 
-  // Handle reconnect flow from API route redirect (EnableBanking/GoCardLess)
+  // Handle reconnect flow from API route redirect (EnableBanking)
   // Only trigger for the specific connection that matches the URL param ID
   useEffect(() => {
     if (

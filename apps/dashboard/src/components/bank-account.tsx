@@ -126,7 +126,7 @@ export function BankAccount({ data, provider }: Props) {
 
   // Determine if this is a US or EU account based on provider
   const isUSAccount = provider === "teller" || provider === "plaid";
-  const isEUAccount = provider === "gocardless" || provider === "enablebanking";
+  const isEUAccount = provider === "enablebanking";
   const isCreditAccount = type === "credit";
 
   // Fetch decrypted details only when user wants to reveal

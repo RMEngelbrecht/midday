@@ -25,8 +25,8 @@ import { SyncTransactions } from "./sync-transactions";
 
 function getProviderName(provider: string | null) {
   switch (provider) {
-    case "gocardless":
-      return "GoCardLess";
+    case "simplefin":
+      return "SimpleFIN";
     case "enablebanking":
       return "Enable Banking";
     case "teller":
@@ -248,10 +248,10 @@ export function BankConnection({ connection }: { connection: BankConnection }) {
         connectionId={connection.id}
         provider={
           connection.provider as
-            | "gocardless"
             | "plaid"
             | "teller"
             | "enablebanking"
+            | "simplefin"
         }
         accessToken={connection.accessToken}
         referenceId={connection.referenceId}
