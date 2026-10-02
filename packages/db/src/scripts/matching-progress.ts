@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Matching Progress CLI
  *
@@ -12,7 +13,7 @@
  *   bun run eval:progress                           # legacy: evaluate against suggestion history
  *   bun run eval:progress --history                 # just print past runs
  *
- * Requires: DATABASE_PRIMARY_URL or DATABASE_URL
+ * Requires: DATABASE_URL
  */
 
 import { execSync } from "node:child_process";
@@ -20,6 +21,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
+import { ENV } from "../env";
 import {
   calculateAmountScore,
   calculateCurrencyScore,
@@ -1400,7 +1402,7 @@ Options:
   --no-save               Don't save this run to history
 
 Env:
-  DATABASE_PRIMARY_URL or DATABASE_URL
+  DATABASE_URL
 `);
     return;
   }
@@ -1416,18 +1418,15 @@ Env:
     return;
   }
 
-  const dbUrl = process.env.DATABASE_PRIMARY_URL || process.env.DATABASE_URL;
+  const dbUrl = ENV.DATABASE_URL;
   if (!dbUrl) {
-    console.error("Set DATABASE_PRIMARY_URL or DATABASE_URL");
+    console.error("Set DATABASE_URL");
     process.exit(1);
   }
 
   const pool = new Pool({
     connectionString: dbUrl,
-    ssl:
-      process.env.NODE_ENV === "development"
-        ? false
-        : { rejectUnauthorized: false },
+    ssl: ENV.APP_ENV === "development" ? false : { rejectUnauthorized: false },
     max: 2,
   });
 

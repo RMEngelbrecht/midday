@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import { ENV } from "@api/env";
 import { createCallerFactory } from "../../trpc/init";
 import { invoicePaymentsRouter } from "../../trpc/routers/invoice-payments";
 import { createTestContext } from "../helpers/test-context";
@@ -69,9 +70,7 @@ describe("tRPC: invoicePayments.getConnectUrl", () => {
     const caller = createCaller(createTestContext());
     const result = await caller.getConnectUrl();
 
-    expect(result).toBe(
-      `${process.env.MIDDAY_API_URL ?? "https://api.midday.ai"}/invoice-payments/connect-stripe`,
-    );
+    expect(result).toBe(`${ENV.API_URL}/invoice-payments/connect-stripe`);
   });
 
   test("throws when team id is missing from context", async () => {

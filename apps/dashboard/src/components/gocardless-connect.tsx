@@ -4,8 +4,8 @@ import {
 } from "@midday/desktop-client/platform";
 import { useToast } from "@midday/ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import { BankConnectButton } from "./bank-connect-button";
 
 type Props = {
@@ -23,6 +23,7 @@ export function GoCardLessConnect({
   redirectPath,
   connectRef,
 }: Props) {
+  const { appUrl, desktopScheme } = usePublicConfig();
   const { toast } = useToast();
   const trpc = useTRPC();
 
@@ -37,7 +38,9 @@ export function GoCardLessConnect({
   const handleOnSelect = async () => {
     onSelect();
 
-    const redirectBase = isDesktopApp() ? getDesktopSchemeUrl() : getUrl();
+    const redirectBase = isDesktopApp()
+      ? getDesktopSchemeUrl(desktopScheme)
+      : appUrl;
     const redirectTo = new URL(redirectPath ?? "/", redirectBase);
     redirectTo.searchParams.append("step", "account");
     redirectTo.searchParams.append("provider", "gocardless");

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import { ENV } from "@api/env";
 import { createCallerFactory } from "../../trpc/init";
 import { shortLinksRouter } from "../../trpc/routers/short-links";
 import { createTestContext } from "../helpers/test-context";
@@ -61,7 +62,7 @@ describe("tRPC: shortLinks.createForUrl", () => {
       id: "sl-row",
       shortId: "sh1",
       url: "https://example.com",
-      shortUrl: `${process.env.MIDDAY_DASHBOARD_URL}/s/sh1`,
+      shortUrl: `${ENV.APP_URL}/s/sh1`,
     });
     expect(mocks.createShortLink).toHaveBeenCalledWith(
       expect.anything(),

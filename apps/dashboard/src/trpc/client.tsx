@@ -11,6 +11,7 @@ import {
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { Cookies } from "@/utils/constants";
 import { getAccessToken } from "@/utils/session";
 import { makeQueryClient } from "./query-client";
@@ -42,13 +43,14 @@ export function TRPCReactProvider(
     children: React.ReactNode;
   }>,
 ) {
+  const { apiUrl, environment } = usePublicConfig();
   const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
         httpBatchStreamLink({
-          url: `${process.env.NEXT_PUBLIC_API_URL}/trpc`,
+          url: `${apiUrl}/trpc`,
           transformer: superjson,
           async headers() {
             const accessToken = await getAccessToken();
@@ -69,7 +71,7 @@ export function TRPCReactProvider(
         }),
         loggerLink({
           enabled: (opts) =>
-            process.env.NODE_ENV === "development" ||
+            environment === "development" ||
             (opts.direction === "down" && opts.result instanceof Error),
         }),
       ],

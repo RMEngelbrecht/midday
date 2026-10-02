@@ -14,6 +14,7 @@ import { Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import usePlacesAutoComplete, { getDetails } from "use-places-autocomplete";
 import { useOnClickOutside } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 
 type Libraries = Parameters<typeof useJsApiLoader>[0]["libraries"];
 const libraries: Libraries = ["places"];
@@ -87,6 +88,7 @@ export function SearchAddressInput({
   disabled = false,
   emptyMessage = "No results found.",
 }: Props) {
+  const { googleMapsApiKey } = usePublicConfig();
   const inputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
@@ -94,7 +96,7 @@ export function SearchAddressInput({
   const [inputValue, setInputValue] = useState<string>(defaultValue || "");
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY as string,
+    googleMapsApiKey: googleMapsApiKey ?? "",
     libraries,
   });
 

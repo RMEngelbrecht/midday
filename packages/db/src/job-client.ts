@@ -1,10 +1,11 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import type { Database } from "./client";
-import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./env";
+import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./connection";
+import { ENV } from "./env";
 import * as schema from "./schema";
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = ENV.APP_ENV === "development";
 
 /**
  * Creates a new job-optimized database instance.

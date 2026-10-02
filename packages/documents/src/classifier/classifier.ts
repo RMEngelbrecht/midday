@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject } from "ai";
+import { ENV } from "../env";
 import { documentClassifierPrompt, imageClassifierPrompt } from "../prompt";
 import { documentClassifierSchema, imageClassifierSchema } from "../schema";
 import type {
@@ -7,7 +8,7 @@ import type {
   DocumentClassifierRequest,
 } from "../types";
 
-const GOOGLE_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
+const GOOGLE_API_KEY = ENV.GOOGLE_GENERATIVE_AI_API_KEY!;
 
 const google = createGoogleGenerativeAI({
   apiKey: GOOGLE_API_KEY,

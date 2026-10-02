@@ -1,8 +1,26 @@
+import path from "node:path";
 import { withSentryConfig } from "@sentry/nextjs";
+
+// Runtime config is resolved by `varlock run` (it injects __VARLOCK_ENV) when
+// the server starts, never at build time, so one image serves any deployment.
+// `next build` runs without env: give the varlock ENV proxy an empty config so
+// modules that read ENV at import time load (values are undefined) instead of
+// throwing while Next collects page data.
+if (!process.env.__VARLOCK_ENV) {
+  process.env.__VARLOCK_ENV = JSON.stringify({
+    config: {},
+    settings: {},
+    sources: [],
+  });
+}
 
 /** @type {import("next").NextConfig} */
 const config = {
   output: "standalone",
+  // Monorepo root: keeps the standalone layout at apps/dashboard/server.js
+  // regardless of lockfiles in parent directories.
+  outputFileTracingRoot: path.join(__dirname, "../.."),
+  turbopack: { root: path.join(__dirname, "../..") },
   poweredByHeader: false,
   reactStrictMode: true,
 
@@ -24,14 +42,13 @@ const config = {
     ],
   },
   images: {
-    loader: "custom",
-    loaderFile: "./image-loader.ts",
     qualities: [80, 100],
+    // Dev serves API files from localhost; production keeps Next's SSRF guard.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
+    // Self-hosted APIs may be served over plain http (LAN, local dev).
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
     ],
   },
   transpilePackages: [

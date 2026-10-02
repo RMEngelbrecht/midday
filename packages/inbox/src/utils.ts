@@ -1,4 +1,5 @@
 import { decrypt, encrypt } from "@midday/encryption";
+import { ENV } from "./env";
 
 export function getInboxIdFromEmail(email: string) {
   return email.split("@").at(0);
@@ -47,7 +48,7 @@ export function decryptOAuthState(
 }
 
 export function getInboxEmail(inboxId: string) {
-  if (process.env.NODE_ENV !== "production") {
+  if (ENV.APP_ENV !== "production") {
     return `${inboxId}@inbox.staging.midday.ai`;
   }
 

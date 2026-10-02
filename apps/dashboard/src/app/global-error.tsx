@@ -12,11 +12,10 @@ export default function GlobalError({
   error: Error & { digest?: string };
 }) {
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") {
-      import("@sentry/nextjs").then((Sentry) => {
-        Sentry.captureException(error);
-      });
-    }
+    // No-op unless Sentry was initialized (SENTRY_DSN, production).
+    import("@sentry/nextjs").then((Sentry) => {
+      Sentry.captureException(error);
+    });
   }, [error]);
 
   return (

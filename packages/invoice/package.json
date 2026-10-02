@@ -6,7 +6,7 @@
     "clean": "rm -rf .turbo node_modules",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "test": "bun test --exit src",
+    "test": "APP_ENV=test varlock run -- bun test --exit src",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
@@ -31,7 +31,8 @@
     "@react-pdf/renderer": "catalog:",
     "date-fns": "catalog:",
     "jose": "catalog:",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "varlock": "catalog:"
   },
   "devDependencies": {
     "@types/qrcode": "^1.5.6"

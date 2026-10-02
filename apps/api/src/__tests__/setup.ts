@@ -1,39 +1,7 @@
 import { mock } from "bun:test";
 
-// Set required environment variables BEFORE any mock.module calls
-// to prevent module-level code (e.g. auth.ts JWKS, banking env validation) from failing
-process.env.SUPABASE_URL =
-  process.env.SUPABASE_URL || "https://test.supabase.co";
-process.env.SUPABASE_SECRET_KEY =
-  process.env.SUPABASE_SECRET_KEY || "test-service-key";
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL || "postgres://test:test@localhost:5432/test";
-process.env.MIDDAY_DASHBOARD_URL =
-  process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
-process.env.RESEND_API_KEY = process.env.RESEND_API_KEY || "re_test_key";
-process.env.FILE_KEY_SECRET = process.env.FILE_KEY_SECRET || "test-secret";
-process.env.INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || "test-internal";
-process.env.PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID || "test";
-process.env.PLAID_SECRET = process.env.PLAID_SECRET || "test";
-process.env.GOCARDLESS_SECRET_ID = process.env.GOCARDLESS_SECRET_ID || "test";
-process.env.GOCARDLESS_SECRET_KEY = process.env.GOCARDLESS_SECRET_KEY || "test";
-process.env.ENABLEBANKING_APPLICATION_ID =
-  process.env.ENABLEBANKING_APPLICATION_ID || "test";
-process.env.ENABLE_BANKING_KEY_CONTENT =
-  process.env.ENABLE_BANKING_KEY_CONTENT || "test";
-process.env.ENABLEBANKING_REDIRECT_URL =
-  process.env.ENABLEBANKING_REDIRECT_URL || "https://test.midday.ai/callback";
-process.env.TELLER_CERT_BASE64 = process.env.TELLER_CERT_BASE64 || "dGVzdA==";
-process.env.TELLER_KEY_BASE64 = process.env.TELLER_KEY_BASE64 || "dGVzdA==";
-process.env.R2_ENDPOINT = process.env.R2_ENDPOINT || "https://test.r2.dev";
-process.env.R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || "test";
-process.env.R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || "test";
-process.env.R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "test";
-process.env.LOGO_DEV_TOKEN = process.env.LOGO_DEV_TOKEN || "test";
-process.env.STRIPE_CONNECT_CLIENT_ID =
-  process.env.STRIPE_CONNECT_CLIENT_ID || "ca_test_connect_client";
-process.env.STRIPE_SECRET_KEY =
-  process.env.STRIPE_SECRET_KEY || "sk_test_mock_secret";
+// Test env values come from `.env.test` files (root and apps/api), loaded by
+// `varlock run` with APP_ENV=test (see package.json "test").
 
 // Create a mock db object for tRPC tests that simulates Drizzle's query interface
 const createMockDb = () => ({

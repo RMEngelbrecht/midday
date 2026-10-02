@@ -2,10 +2,11 @@ import { logger } from "@midday/logger";
 import { LogLevel, App as SlackApp } from "@slack/bolt";
 import { InstallProvider } from "@slack/oauth";
 import { WebClient } from "@slack/web-api";
+import { ENV } from "../../env";
 
-const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID;
-const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET;
-const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
+const SLACK_CLIENT_ID = ENV.SLACK_CLIENT_ID;
+const SLACK_CLIENT_SECRET = ENV.SLACK_CLIENT_SECRET;
+const SLACK_SIGNING_SECRET = ENV.SLACK_SIGNING_SECRET;
 
 let slackInstaller: InstallProvider | null = null;
 
@@ -18,9 +19,8 @@ export const getSlackInstaller = (): InstallProvider => {
     slackInstaller = new InstallProvider({
       clientId: SLACK_CLIENT_ID,
       clientSecret: SLACK_CLIENT_SECRET,
-      stateSecret: process.env.SLACK_STATE_SECRET,
-      logLevel:
-        process.env.NODE_ENV === "development" ? LogLevel.DEBUG : undefined,
+      stateSecret: ENV.SLACK_STATE_SECRET,
+      logLevel: ENV.APP_ENV === "development" ? LogLevel.DEBUG : undefined,
     });
   }
   return slackInstaller;

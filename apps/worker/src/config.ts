@@ -1,17 +1,16 @@
 import { createLoggerWithContext } from "@midday/logger";
+import { ENV } from "./env";
 
 const logger = createLoggerWithContext("worker:config");
 
-const isProduction =
-  process.env.NODE_ENV === "production" ||
-  process.env.RAILWAY_ENVIRONMENT === "production";
+const isProduction = ENV.APP_ENV === "production";
 
 /**
  * Parse Redis URL and return connection options for BullMQ
  * BullMQ will create and manage its own Redis connections
  */
 function parseRedisUrl() {
-  const redisUrl = process.env.REDIS_QUEUE_URL;
+  const redisUrl = ENV.REDIS_QUEUE_URL;
 
   if (!redisUrl) {
     throw new Error("REDIS_QUEUE_URL environment variable is required");

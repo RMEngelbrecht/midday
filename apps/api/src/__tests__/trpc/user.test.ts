@@ -5,10 +5,6 @@ import { userRouter } from "../../trpc/routers/user";
 import { createTestContext } from "../helpers/test-context";
 import { asMock, mocks } from "../setup";
 
-if (!process.env.FILE_KEY_SECRET) {
-  process.env.FILE_KEY_SECRET = "test-file-key-secret-for-trpc-user-tests";
-}
-
 const createCaller = createCallerFactory(userRouter);
 
 describe("tRPC: user.me", () => {

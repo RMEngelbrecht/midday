@@ -28,6 +28,7 @@ import {
 import { streamMiddayAssistant } from "@api/chat/assistant-runtime";
 import { buildSystemPrompt } from "@api/chat/prompt";
 import { stripFileAndImageParts } from "@api/chat/utils";
+import { ENV } from "@api/env";
 import type { McpContext } from "@api/mcp/types";
 import { expandScopes } from "@api/utils/scopes";
 import type { SlackAdapter } from "@chat-adapter/slack";
@@ -238,7 +239,7 @@ async function handleIncomingMessage(
     userId: user.id,
     userEmail: user.email ?? null,
     scopes: ALL_ASSISTANT_SCOPES,
-    apiUrl: process.env.MIDDAY_API_URL || "https://api.midday.ai",
+    apiUrl: ENV.API_URL,
     timezone: user.timezone ?? "UTC",
     locale: user.locale ?? "en",
     countryCode: user.team?.countryCode ?? null,

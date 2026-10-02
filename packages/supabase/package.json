@@ -17,7 +17,8 @@
     "date-fns": "catalog:",
     "react": "catalog:",
     "server-only": "^0.0.1",
-    "supabase": "^2.84.6"
+    "supabase": "^2.84.6",
+    "varlock": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

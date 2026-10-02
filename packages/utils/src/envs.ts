@@ -1,64 +1,21 @@
+import { ENV } from "./env";
+
+/** Public URL of the dashboard (APP_URL). Server-side only. */
 export function getAppUrl() {
-  // Allow explicit override via DASHBOARD_URL env var
-  if (process.env.DASHBOARD_URL) {
-    return process.env.DASHBOARD_URL;
-  }
-
-  // When running in Railway, use RAILWAY_ENVIRONMENT as the source of truth
-  // (NODE_ENV is always "production" in Docker builds, even for staging)
-  if (process.env.RAILWAY_ENVIRONMENT) {
-    if (process.env.RAILWAY_ENVIRONMENT === "production") {
-      return "https://app.midday.ai";
-    }
-
-    // Non-production Railway environment (staging, etc.)
-    if (process.env.RAILWAY_PUBLIC_DOMAIN) {
-      return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
-    }
-  }
-
-  // Non-Railway production (e.g. other hosting platforms)
-  if (process.env.NODE_ENV === "production") {
-    return "https://app.midday.ai";
-  }
-
-  return "http://localhost:3001";
+  return ENV.APP_URL;
 }
 
-export function getEmailUrl() {
-  if (process.env.NODE_ENV === "development") {
-    return "http://localhost:3000";
-  }
-
-  return "https://midday.ai";
-}
-
-export function getCdnUrl() {
-  return "https://cdn.midday.ai";
-}
-
+/** Public URL of the API (API_URL). Server-side only. */
 export function getApiUrl() {
-  // Allow explicit override via API_URL env var
-  if (process.env.API_URL) {
-    return process.env.API_URL;
-  }
+  return ENV.API_URL;
+}
 
-  // When running in Railway, use RAILWAY_ENVIRONMENT as the source of truth
-  // (NODE_ENV is always "production" in Docker builds, even for staging)
-  if (process.env.RAILWAY_ENVIRONMENT) {
-    if (process.env.RAILWAY_ENVIRONMENT === "production") {
-      return "https://api.midday.ai";
-    }
+/** Base URL for assets referenced from emails (logos, images). */
+export function getEmailUrl() {
+  return ENV.APP_URL;
+}
 
-    // Non-production Railway environment (staging, etc.)
-    // Fall through to localhost — override with API_URL env var in staging
-    return "http://localhost:3002";
-  }
-
-  // Non-Railway production (e.g. other hosting platforms)
-  if (process.env.NODE_ENV === "production") {
-    return "https://api.midday.ai";
-  }
-
-  return "http://localhost:3002";
+/** Base URL for static assets. Served by the dashboard until S9 bundles them. */
+export function getCdnUrl() {
+  return ENV.APP_URL;
 }

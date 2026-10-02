@@ -19,6 +19,7 @@
     "@midday/inbox": "workspace:*",
     "nanoid": "catalog:",
     "resend": "catalog:",
+    "varlock": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

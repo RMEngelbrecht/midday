@@ -1,5 +1,6 @@
 import type { Database } from "@midday/db/client";
 import { createLoggerWithContext } from "@midday/logger";
+import { ENV } from "./env";
 
 const logger = createLoggerWithContext("insights");
 
@@ -718,7 +719,7 @@ export function createInsightsService(
  * Returns empty array if no teams are configured (safe default).
  */
 export function getEnabledTeamIds(): string[] | undefined {
-  const envValue = process.env.INSIGHTS_ENABLED_TEAM_IDS;
+  const envValue = ENV.INSIGHTS_ENABLED_TEAM_IDS;
 
   // Not set = disabled (safe default for staging)
   if (!envValue) {

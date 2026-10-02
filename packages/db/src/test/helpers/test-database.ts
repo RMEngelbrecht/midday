@@ -2,11 +2,12 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import type { Database } from "../../client";
+import { ENV } from "../../env";
 import { withReplicas } from "../../replicas";
 import * as schema from "../../schema";
 
 const TEST_DATABASE_URL =
-  process.env.TEST_DATABASE_URL ||
+  ENV.TEST_DATABASE_URL ||
   "postgres://postgres:postgres@localhost:5433/midday_test";
 
 let pool: Pool | null = null;
@@ -62,5 +63,5 @@ export async function closeDatabase(): Promise<void> {
 }
 
 export function isTestDatabaseAvailable(): boolean {
-  return !!process.env.TEST_DATABASE_URL;
+  return !!ENV.TEST_DATABASE_URL;
 }

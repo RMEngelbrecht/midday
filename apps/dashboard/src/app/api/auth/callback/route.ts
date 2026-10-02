@@ -7,15 +7,15 @@ import { addSeconds, addYears } from "date-fns";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { ENV } from "@/env";
 import { getTRPCClient } from "@/trpc/server";
 import { Cookies } from "@/utils/constants";
-import { getUrl } from "@/utils/environment";
 import { isBlockedNewUser } from "@/utils/new-user-gate";
 
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
   const requestUrl = new URL(req.url);
-  const origin = getUrl();
+  const origin = ENV.APP_URL;
   const code = requestUrl.searchParams.get("code");
   const client = requestUrl.searchParams.get("client");
   const returnTo = requestUrl.searchParams.get("return_to");

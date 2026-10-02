@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { createClient } from "@api/services/supabase";
 import type { Session } from "@api/utils/auth";
 import { verifyAccessToken } from "@api/utils/auth";
@@ -14,7 +15,7 @@ import superjson from "superjson";
 import { withPrimaryReadAfterWrite } from "./middleware/primary-read-after-write";
 import { withTeamPermission } from "./middleware/team-permission";
 
-const DEBUG_PERF = process.env.DEBUG_PERF === "true";
+const DEBUG_PERF = ENV.DEBUG_PERF === true;
 const perfLogger = createLoggerWithContext("perf:trpc");
 
 type TRPCContext = {
@@ -41,8 +42,8 @@ export const createTRPCContext = async (
 
   const isInternalRequest =
     !!internalKey &&
-    !!process.env.INTERNAL_API_KEY &&
-    safeCompare(internalKey, process.env.INTERNAL_API_KEY);
+    !!ENV.INTERNAL_API_KEY &&
+    safeCompare(internalKey, ENV.INTERNAL_API_KEY);
 
   const jwtStart = DEBUG_PERF ? performance.now() : 0;
   const session = await verifyAccessToken(accessToken);

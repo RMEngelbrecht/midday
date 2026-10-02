@@ -2,7 +2,7 @@ import { bankingCache, CacheTTL } from "@midday/cache/banking-cache";
 import { formatISO, subDays } from "date-fns";
 import type { XiorInstance, XiorRequestConfig } from "xior";
 import xior from "xior";
-import { env } from "../../env";
+import { ENV } from "../../env";
 import type { GetInstitutionsRequest } from "../../types";
 import { ProviderError } from "../../utils/error";
 import { logger } from "../../utils/logger";
@@ -51,8 +51,8 @@ export class GoCardLessApi {
   #secretId;
 
   constructor() {
-    this.#secretId = env.GOCARDLESS_SECRET_ID;
-    this.#secretKey = env.GOCARDLESS_SECRET_KEY;
+    this.#secretId = ENV.GOCARDLESS_SECRET_ID;
+    this.#secretKey = ENV.GOCARDLESS_SECRET_KEY;
   }
 
   async getHealthCheck() {

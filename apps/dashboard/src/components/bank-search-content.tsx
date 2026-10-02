@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { useDebounceValue, useScript } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useConnectParams } from "@/hooks/use-connect-params";
 import { useTRPC } from "@/trpc/client";
 import { BankLogo } from "./bank-logo";
@@ -130,6 +131,7 @@ export function BankSearchContent({
   defaultCountryCode,
   emptyState,
 }: BankSearchContentProps) {
+  const { plaidEnvironment } = usePublicConfig();
   const trpc = useTRPC();
   const _router = useRouter();
   const [plaidToken, setPlaidToken] = useState<string | undefined>();
@@ -162,7 +164,7 @@ export function BankSearchContent({
   const { open: openPlaid } = usePlaidLink({
     token: plaidToken,
     publicKey: "",
-    env: process.env.NEXT_PUBLIC_PLAID_ENVIRONMENT!,
+    env: plaidEnvironment,
     clientName: "Midday",
     product: ["transactions"],
     onSuccess: async (public_token, metadata) => {

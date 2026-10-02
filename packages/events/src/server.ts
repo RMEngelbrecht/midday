@@ -1,14 +1,15 @@
 import { OpenPanel, type TrackProperties } from "@openpanel/nextjs";
+import { ENV } from "./env";
 
 export const setupAnalytics = async () => {
-  const client = new OpenPanel({
-    clientId: process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID!,
-    clientSecret: process.env.OPENPANEL_SECRET_KEY!,
-  });
+  const clientId = ENV.OPENPANEL_CLIENT_ID;
+  const clientSecret = ENV.OPENPANEL_SECRET_KEY;
+  const client =
+    clientId && clientSecret ? new OpenPanel({ clientId, clientSecret }) : null;
 
   return {
     track: (options: { event: string } & TrackProperties) => {
-      if (process.env.NODE_ENV !== "production") {
+      if (!client || ENV.APP_ENV !== "production") {
         console.log("Track", options);
         return;
       }

@@ -3,6 +3,7 @@
 import type { OAuthErrorCode } from "@midday/app-store/oauth-errors";
 import { createClient } from "@midday/supabase/client";
 import { useEffect, useRef, useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { isOAuthMessage, OAUTH_CHANNEL_NAME } from "@/utils/oauth-message";
 
 interface UseAppOAuthOptions {
@@ -19,6 +20,7 @@ export function useAppOAuth({
   onSuccess,
   onError,
 }: UseAppOAuthOptions) {
+  const { apiUrl } = usePublicConfig();
   const [isLoading, setIsLoading] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -107,8 +109,6 @@ export function useAppOAuth({
         popup?.close();
         throw new Error("Not authenticated");
       }
-
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetch(`${apiUrl}${installUrlEndpoint}`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,

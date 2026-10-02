@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { connectorsCache } from "@midday/cache/connectors-cache";
 import {
   CURATED_TOOLKIT_SLUGS,
@@ -17,7 +18,7 @@ const CACHE_KEY = "catalog";
 const CACHE_TTL = 86400; // 24h
 
 async function fetchCatalog(): Promise<CatalogEntry[]> {
-  const apiKey = process.env.COMPOSIO_API_KEY;
+  const apiKey = ENV.COMPOSIO_API_KEY;
 
   const composioMeta = new Map<string, { logo: string; description: string }>();
 

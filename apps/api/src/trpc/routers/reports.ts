@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import {
   createReportSchema,
   getAccountBalancesSchema,
@@ -161,7 +162,7 @@ export const reportsRouter = createTRPCRouter({
 
       return {
         ...result,
-        shortUrl: `${process.env.MIDDAY_DASHBOARD_URL}/r/${result?.linkId}`,
+        shortUrl: `${ENV.APP_URL}/r/${result?.linkId}`,
       };
     }),
 

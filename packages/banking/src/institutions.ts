@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { env } from "./env";
+import { ENV } from "./env";
 import { EnableBankingApi } from "./providers/enablebanking/enablebanking-api";
 import { GoCardLessApi } from "./providers/gocardless/gocardless-api";
 import { PlaidApi } from "./providers/plaid/plaid-api";
@@ -96,7 +96,7 @@ function extractDomain(url: string): string | null {
  * Used as fallback when Plaid doesn't return a logo.
  */
 function getLogoDevURL(domain: string): string {
-  return `https://img.logo.dev/${domain}?token=${env.LOGO_DEV_TOKEN}&format=png&size=256&retina=true`;
+  return `https://img.logo.dev/${domain}?token=${ENV.LOGO_DEV_TOKEN}&format=png&size=256&retina=true`;
 }
 
 async function fetchPlaidInstitutions(): Promise<InstitutionRecord[]> {

@@ -14,6 +14,8 @@ export interface UnifiedApp {
   // Official app specific
   onInitialize?: (params: {
     accessToken: string;
+    /** Public API URL (from the dashboard's runtime PublicConfig). */
+    apiUrl: string;
     onComplete?: () => void;
   }) => Promise<void>;
   settings?: Array<{

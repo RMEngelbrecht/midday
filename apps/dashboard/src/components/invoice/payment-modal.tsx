@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useSuccessSound } from "@/hooks/use-success-sound";
 import { downloadFile } from "@/lib/download";
 
@@ -197,6 +198,7 @@ export function PaymentModal({
   prefetch,
   useOverlay = false,
 }: PaymentModalProps) {
+  const { apiUrl, stripePublishableKey } = usePublicConfig();
   const { resolvedTheme } = useTheme();
   const { play: playSuccessSound } = useSuccessSound();
   const [mounted, setMounted] = useState(false);
@@ -338,8 +340,6 @@ export function PaymentModal({
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.midday.ai";
-
       const response = await fetch(
         `${apiUrl}/invoice-payments/payment-intent`,
         {
@@ -388,9 +388,9 @@ export function PaymentModal({
 
   const stripePromise = useMemo(() => {
     if (!paymentData) return null;
-    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    const publishableKey = stripePublishableKey;
     if (!publishableKey) {
-      console.error("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not configured");
+      console.error("STRIPE_PUBLISHABLE_KEY is not configured");
       return null;
     }
     return loadStripe(publishableKey, {
@@ -431,7 +431,7 @@ export function PaymentModal({
       setIsDownloading(true);
       try {
         await downloadFile(
-          `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice?token=${invoiceToken}&type=receipt`,
+          `${apiUrl}/files/download/invoice?token=${invoiceToken}&type=receipt`,
           `receipt-${invoiceNumber}.pdf`,
         );
         // Add minimum delay to show spinner

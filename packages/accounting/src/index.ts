@@ -1,3 +1,4 @@
+import { ENV } from "./env";
 import type { AccountingProvider } from "./provider";
 import { FortnoxProvider } from "./providers/fortnox";
 import { QuickBooksProvider } from "./providers/quickbooks";
@@ -17,25 +18,30 @@ export * from "./types";
 export * from "./utils";
 
 /**
- * OAuth environment variable mapping for each provider
+ * OAuth credentials (from env) for each provider
  */
-const PROVIDER_ENV_KEYS = {
-  xero: {
-    clientId: "XERO_CLIENT_ID",
-    clientSecret: "XERO_CLIENT_SECRET",
-    redirectUri: "XERO_OAUTH_REDIRECT_URL",
-  },
-  quickbooks: {
-    clientId: "QUICKBOOKS_CLIENT_ID",
-    clientSecret: "QUICKBOOKS_CLIENT_SECRET",
-    redirectUri: "QUICKBOOKS_OAUTH_REDIRECT_URL",
-  },
-  fortnox: {
-    clientId: "FORTNOX_CLIENT_ID",
-    clientSecret: "FORTNOX_CLIENT_SECRET",
-    redirectUri: "FORTNOX_OAUTH_REDIRECT_URL",
-  },
-} as const;
+function readProviderEnv(providerId: AccountingProviderId) {
+  switch (providerId) {
+    case "xero":
+      return {
+        clientId: ENV.XERO_CLIENT_ID,
+        clientSecret: ENV.XERO_CLIENT_SECRET,
+        redirectUri: ENV.XERO_OAUTH_REDIRECT_URL,
+      };
+    case "quickbooks":
+      return {
+        clientId: ENV.QUICKBOOKS_CLIENT_ID,
+        clientSecret: ENV.QUICKBOOKS_CLIENT_SECRET,
+        redirectUri: ENV.QUICKBOOKS_OAUTH_REDIRECT_URL,
+      };
+    case "fortnox":
+      return {
+        clientId: ENV.FORTNOX_CLIENT_ID,
+        clientSecret: ENV.FORTNOX_CLIENT_SECRET,
+        redirectUri: ENV.FORTNOX_OAUTH_REDIRECT_URL,
+      };
+  }
+}
 
 /**
  * Get OAuth credentials from environment variables for a provider
@@ -47,11 +53,7 @@ export function getProviderOAuthCredentials(providerId: AccountingProviderId): {
   clientSecret: string;
   redirectUri: string;
 } {
-  const envKeys = PROVIDER_ENV_KEYS[providerId];
-
-  const clientId = process.env[envKeys.clientId];
-  const clientSecret = process.env[envKeys.clientSecret];
-  const redirectUri = process.env[envKeys.redirectUri];
+  const { clientId, clientSecret, redirectUri } = readProviderEnv(providerId);
 
   if (!clientId || !clientSecret || !redirectUri) {
     throw new Error(`OAuth configuration missing for ${providerId}`);

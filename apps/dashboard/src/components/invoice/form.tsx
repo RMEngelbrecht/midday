@@ -20,11 +20,11 @@ import { differenceInDays } from "date-fns";
 import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounceValue } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { useUserQuery } from "@/hooks/use-user";
 import { useInvoiceEditorStore } from "@/store/invoice-editor";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import { SavingBar } from "../saving-bar";
 import { CustomerDetails } from "./customer-details";
 import { EditBlock } from "./edit-block";
@@ -43,6 +43,7 @@ import { TemplateSelector } from "./template-selector";
 import { transformFormValuesToDraft } from "./utils";
 
 export function Form() {
+  const { appUrl } = usePublicConfig();
   const { invoiceId, setParams } = useInvoiceParams();
   const { data: user } = useUserQuery();
   const { track } = useOpenPanel();
@@ -517,7 +518,7 @@ export function Form() {
                         size="icon"
                         type="button"
                         onClick={() => {
-                          window.open(`${getUrl()}/i/${token}`, "_blank");
+                          window.open(`${appUrl}/i/${token}`, "_blank");
                         }}
                       >
                         <Icons.ExternalLink className="size-3" />

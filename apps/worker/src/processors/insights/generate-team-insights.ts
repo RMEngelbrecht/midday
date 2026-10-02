@@ -14,6 +14,7 @@ import {
 } from "@midday/insights";
 import { triggerJob } from "@midday/job-client";
 import type { Job } from "bullmq";
+import { ENV } from "../../env";
 import { getDb } from "../../utils/db";
 import { BaseProcessor } from "../base";
 
@@ -200,8 +201,7 @@ export class GenerateInsightsProcessor extends BaseProcessor<GenerateTeamInsight
 
       // Trigger notification for new insights (not updates)
       // Must be explicitly enabled via INSIGHTS_NOTIFICATIONS_ENABLED=true
-      const notificationsEnabled =
-        process.env.INSIGHTS_NOTIFICATIONS_ENABLED === "true";
+      const notificationsEnabled = ENV.INSIGHTS_NOTIFICATIONS_ENABLED === true;
 
       if (!existingInsight && notificationsEnabled) {
         try {

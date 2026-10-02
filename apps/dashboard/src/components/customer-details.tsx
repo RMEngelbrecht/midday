@@ -42,6 +42,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CopyInput } from "@/components/copy-input";
 import { OpenURL } from "@/components/open-url";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useCustomerParams } from "@/hooks/use-customer-params";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { useRealtime } from "@/hooks/use-realtime";
@@ -93,6 +94,7 @@ function formatTimezoneWithLocalTime(timezone: string): {
 }
 
 export function CustomerDetails() {
+  const { apiUrl } = usePublicConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: user } = useUserQuery();
@@ -287,9 +289,7 @@ export function CustomerDetails() {
       console.error("File key not available");
       return;
     }
-    const url = new URL(
-      `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice`,
-    );
+    const url = new URL(`${apiUrl}/files/download/invoice`);
     url.searchParams.set("id", invoiceId);
     url.searchParams.set("fk", user.fileKey);
     downloadFile(url.toString(), "invoice.pdf");

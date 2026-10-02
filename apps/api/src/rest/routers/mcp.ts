@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { createMcpServer } from "@api/mcp/server";
 import { withAuth } from "@api/rest/middleware/auth";
 import { withDatabase } from "@api/rest/middleware/db";
@@ -14,17 +15,9 @@ import { rateLimiter } from "hono-rate-limiter";
 
 const app = new OpenAPIHono<Context>();
 
-const apiUrl = process.env.MIDDAY_API_URL || "https://api.midday.ai";
+const apiUrl = ENV.API_URL;
 
-const mcpRateLimitEnv = process.env.MCP_API_RATE_LIMIT;
-const parsedMcpLimit =
-  mcpRateLimitEnv !== undefined && mcpRateLimitEnv !== ""
-    ? Number(mcpRateLimitEnv)
-    : NaN;
-const mcpRateLimit =
-  Number.isFinite(parsedMcpLimit) && parsedMcpLimit > 0
-    ? parsedMcpLimit
-    : Number(process.env.API_RATE_LIMIT) || 1000;
+const mcpRateLimit = ENV.MCP_API_RATE_LIMIT ?? ENV.API_RATE_LIMIT;
 
 const REQUIRED_ACCEPT = "application/json, text/event-stream";
 
@@ -74,7 +67,7 @@ app.use(
 );
 
 app.all("/", async (c) => {
-  if (process.env.SENTRY_DSN) {
+  if (ENV.SENTRY_DSN) {
     Sentry.setTag("mcp", "true");
     Sentry.setTag("api.route", "mcp");
   }

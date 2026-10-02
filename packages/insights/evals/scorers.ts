@@ -3,6 +3,7 @@
  *
  * Only scorers that catch real quality problems
  */
+import { ENV } from "../src/env";
 import "dotenv/config";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
@@ -307,7 +308,7 @@ export const noFalseGrowthInLoss = createScorer<InsightSlots, InsightOutput>({
 // ============================================================================
 
 const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: ENV.OPENAI_API_KEY!,
 });
 
 /**

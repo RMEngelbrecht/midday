@@ -5,13 +5,13 @@
   "scripts": {
     "build": "NODE_ENV=production next build --turbopack",
     "clean": "git clean -xdf .next .turbo node_modules",
-    "dev": "TZ=UTC next dev -p 3001 --turbopack",
+    "dev": "TZ=UTC varlock run -- next dev -p 3001 --turbopack",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "start": "next start",
+    "start": "varlock run -- next start",
     "typecheck": "tsc --noEmit",
-    "test": "find src -name '*.test.ts' -o -name '*.spec.ts' | grep -q . && bun test --exit src || echo 'No tests yet'"
+    "test": "find src -name '*.test.ts' -o -name '*.spec.ts' | grep -q . && APP_ENV=test varlock run -- bun test --exit src || echo 'No tests yet'"
   },
   "dependencies": {
     "@ai-sdk/openai": "catalog:",
@@ -28,6 +28,7 @@
     "@midday/desktop-client": "workspace:*",
     "@midday/documents": "workspace:*",
     "@midday/events": "workspace:*",
+    "@midday/features": "workspace:*",
     "@midday/inbox": "workspace:*",
     "@midday/invoice": "workspace:*",
     "@midday/location": "workspace:*",
@@ -83,6 +84,7 @@
     "tus-js-client": "4.3.1",
     "use-places-autocomplete": "^4.0.1",
     "usehooks-ts": "^3.1.1",
+    "varlock": "catalog:",
     "zod": "catalog:",
     "zustand": "^5.0.12"
   },

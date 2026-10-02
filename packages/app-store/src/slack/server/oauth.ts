@@ -1,6 +1,7 @@
+import { ENV } from "../../env";
 import { getSlackInstaller } from "./client";
 
-const SLACK_OAUTH_REDIRECT_URL = process.env.SLACK_OAUTH_REDIRECT_URL;
+const SLACK_OAUTH_REDIRECT_URL = ENV.SLACK_OAUTH_REDIRECT_URL;
 
 export const getInstallUrl = ({
   teamId,

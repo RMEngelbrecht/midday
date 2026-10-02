@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import type { Session } from "@api/utils/auth";
 import { withRetryOnPrimary } from "@api/utils/db-retry";
 import { teamCache } from "@midday/cache/team-cache";
@@ -5,7 +6,7 @@ import type { Database } from "@midday/db/client";
 import { createLoggerWithContext } from "@midday/logger";
 import { TRPCError } from "@trpc/server";
 
-const DEBUG_PERF = process.env.DEBUG_PERF === "true";
+const DEBUG_PERF = ENV.DEBUG_PERF === true;
 const perfLogger = createLoggerWithContext("perf:trpc");
 const teamPermissionLogger = createLoggerWithContext("trpc:team-permission");
 

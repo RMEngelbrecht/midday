@@ -90,11 +90,6 @@ describe("REST: GET /apps/slack/oauth-callback", () => {
   const app = createApp();
 
   beforeEach(() => {
-    process.env.SLACK_CLIENT_ID = "client-id";
-    process.env.SLACK_CLIENT_SECRET = "client-secret";
-    process.env.SLACK_OAUTH_REDIRECT_URL =
-      "http://localhost:3003/apps/slack/oauth-callback";
-
     initializeMock.mockReset();
     initializeMock.mockImplementation(() => Promise.resolve());
     setInstallationMock.mockReset();

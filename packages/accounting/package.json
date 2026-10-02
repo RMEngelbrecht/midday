@@ -12,7 +12,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "bun test --exit",
+    "test": "APP_ENV=test varlock run -- bun test --exit",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
   },
@@ -20,6 +20,7 @@
     "@midday/encryption": "workspace:*",
     "@midday/logger": "workspace:*",
     "intuit-oauth": "^4.2.2",
+    "varlock": "catalog:",
     "xero-node": "^15.0.0",
     "zod": "catalog:"
   },

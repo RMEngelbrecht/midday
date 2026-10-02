@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import type { MiddlewareHandler } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
 import { withAuth } from "./auth";
@@ -25,7 +26,7 @@ export const protectedMiddleware: MiddlewareHandler[] = [
   withAuth,
   rateLimiter({
     windowMs: 10 * 60 * 1000, // 10 minutes
-    limit: Number(process.env.API_RATE_LIMIT) || 1000,
+    limit: ENV.API_RATE_LIMIT,
     keyGenerator: (c) => {
       return c.get("session")?.user?.id ?? "unknown";
     },

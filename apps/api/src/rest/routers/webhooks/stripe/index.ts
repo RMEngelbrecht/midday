@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import type { Context } from "@api/rest/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
@@ -51,7 +52,7 @@ app.openapi(
       });
     }
 
-    const webhookSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
+    const webhookSecret = ENV.STRIPE_CONNECT_WEBHOOK_SECRET;
     if (!webhookSecret) {
       logger.error("STRIPE_CONNECT_WEBHOOK_SECRET not configured");
       throw new HTTPException(500, {
@@ -62,7 +63,7 @@ app.openapi(
     let event: Stripe.Event;
 
     try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+      const stripe = new Stripe(ENV.STRIPE_SECRET_KEY!);
       const rawBody = await c.req.text();
 
       event = await stripe.webhooks.constructEventAsync(

@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { ENV } from "../env";
 import {
   calculateAmountScore,
   calculateCurrencyScore,
@@ -547,17 +548,14 @@ async function main() {
   if (opts.fromDaysAgo <= opts.toDaysAgo) {
     throw new Error("--from-days-ago must be greater than --to-days-ago");
   }
-  const dbUrl = process.env.DATABASE_PRIMARY_URL || process.env.DATABASE_URL;
+  const dbUrl = ENV.DATABASE_URL;
   if (!dbUrl) {
     throw new Error("DATABASE_PRIMARY_URL or DATABASE_URL is required");
   }
 
   const pool = new Pool({
     connectionString: dbUrl,
-    ssl:
-      process.env.NODE_ENV === "development"
-        ? false
-        : { rejectUnauthorized: false },
+    ssl: ENV.APP_ENV === "development" ? false : { rejectUnauthorized: false },
     max: 2,
   });
 

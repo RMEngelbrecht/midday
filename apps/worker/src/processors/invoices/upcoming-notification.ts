@@ -5,6 +5,7 @@ import {
 } from "@midday/db/queries";
 import { Notifications } from "@midday/notifications";
 import type { Job } from "bullmq";
+import { ENV } from "../../env";
 import type { InvoiceUpcomingNotificationPayload } from "../../schemas/invoices";
 import { getDb } from "../../utils/db";
 import { isStaging } from "../../utils/env";
@@ -36,7 +37,7 @@ export class InvoiceUpcomingNotificationProcessor extends BaseProcessor<InvoiceU
     _job: Job<InvoiceUpcomingNotificationPayload>,
   ): Promise<ProcessResult> {
     // Kill switch - can be toggled without deploy via environment variable
-    if (process.env.DISABLE_UPCOMING_NOTIFICATIONS === "true") {
+    if (ENV.DISABLE_UPCOMING_NOTIFICATIONS === true) {
       this.logger.warn(
         "Upcoming invoice notifications disabled via DISABLE_UPCOMING_NOTIFICATIONS",
       );

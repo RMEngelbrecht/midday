@@ -3,6 +3,7 @@ import type { FileUIPart, UIMessage } from "ai";
 import { DefaultChatTransport } from "ai";
 import { nanoid } from "nanoid";
 import { create } from "zustand";
+import { getClientPublicConfig } from "@/components/public-config-provider";
 import { getAccessToken } from "@/utils/session";
 
 export type RateLimitInfo = { limit: number; remaining: number };
@@ -35,7 +36,15 @@ interface ChatStoreState {
 }
 
 const chatTransport = new DefaultChatTransport({
-  api: `${process.env.NEXT_PUBLIC_API_URL}/chat`,
+  // API_URL is runtime config: resolve it per request, not at module load.
+  prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
+    api: `${getClientPublicConfig().apiUrl}/chat`,
+    // Same body the transport sends by default.
+    body: { ...body, id, messages, trigger, messageId },
+  }),
+  prepareReconnectToStreamRequest: ({ id }) => ({
+    api: `${getClientPublicConfig().apiUrl}/chat/${id}/stream`,
+  }),
   headers: async () => {
     const token = await getAccessToken();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";

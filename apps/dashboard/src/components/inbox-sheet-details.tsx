@@ -9,12 +9,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileViewer } from "@/components/file-viewer";
 import { FormatAmount } from "@/components/format-amount";
 import { InboxActions } from "@/components/inbox/inbox-actions";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useInboxParams } from "@/hooks/use-inbox-params";
 import { useUserQuery } from "@/hooks/use-user";
 import { useTRPC } from "@/trpc/client";
 import { getWebsiteLogo } from "@/utils/logos";
 
 export function InboxSheetDetails() {
+  const { apiUrl } = usePublicConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { params } = useInboxParams();
@@ -121,7 +123,7 @@ export function InboxSheetDetails() {
           <div className="h-full flex items-center justify-center">
             <FileViewer
               mimeType={data.contentType}
-              url={`${process.env.NEXT_PUBLIC_API_URL}/files/proxy?filePath=vault/${data.filePath.join("/")}`}
+              url={`${apiUrl}/files/proxy?filePath=vault/${data.filePath.join("/")}`}
               maxWidth={565}
             />
           </div>

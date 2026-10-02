@@ -1,15 +1,16 @@
 import pino from "pino";
+import { ENV } from "./env.js";
 
 /**
  * Check if we're in pretty mode
  */
-const isPretty = process.env.LOG_PRETTY === "true";
+const isPretty = ENV.LOG_PRETTY === true;
 
 /**
  * Create the base pino logger instance
  */
 const baseLogger = pino({
-  level: process.env.LOG_LEVEL || "info",
+  level: ENV.LOG_LEVEL || "info",
   serializers: {
     req: pino.stdSerializers.req,
     res: pino.stdSerializers.res,

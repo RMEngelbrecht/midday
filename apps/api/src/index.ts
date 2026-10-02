@@ -1,4 +1,5 @@
 // Import Sentry instrumentation first, before any other modules
+import { ENV } from "@api/env";
 import "./instrument";
 
 import { trpcServer } from "@hono/trpc-server";
@@ -38,7 +39,12 @@ app.use(
 app.use(
   "*",
   cors({
-    origin: process.env.ALLOWED_API_ORIGINS?.split(",") ?? [],
+    origin: [
+      ENV.APP_URL,
+      ...(ENV.ALLOWED_API_ORIGINS?.split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean) ?? []),
+    ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowHeaders: [
       "Authorization",
@@ -70,7 +76,7 @@ app.use(
 
 // Always emit Server-Timing so the browser Network tab shows server-side duration.
 // When DEBUG_PERF is on, also log structured details to stdout.
-const debugPerf = process.env.DEBUG_PERF === "true";
+const debugPerf = ENV.DEBUG_PERF === true;
 const perfLoggerHono = debugPerf ? createLoggerWithContext("perf:trpc") : null;
 
 app.use("/trpc/*", async (c, next) => {
@@ -281,9 +287,8 @@ app.openAPIRegistry.registerComponent("securitySchemes", "token", {
   "x-speakeasy-example": "MIDDAY_API_KEY",
 });
 
-const dashboardUrl =
-  process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
-const apiUrl = process.env.MIDDAY_API_URL || "https://api.midday.ai";
+const dashboardUrl = ENV.APP_URL;
+const apiUrl = ENV.API_URL;
 
 app.openAPIRegistry.registerComponent("securitySchemes", "oauth2", {
   type: "oauth2",
@@ -331,14 +336,7 @@ app.get(
 
 app.route("/", routers);
 
-const poolStatsIntervalMsRaw = process.env.DB_POOL_STATS_INTERVAL_MS;
-const parsedPoolStatsIntervalMs = Number.parseInt(
-  poolStatsIntervalMsRaw ?? "60000",
-  10,
-);
-const poolStatsIntervalMs = Number.isFinite(parsedPoolStatsIntervalMs)
-  ? parsedPoolStatsIntervalMs
-  : 60000;
+const poolStatsIntervalMs = ENV.DB_POOL_STATS_INTERVAL_MS;
 const poolStatsInterval =
   poolStatsIntervalMs > 0
     ? setInterval(() => {
@@ -350,7 +348,7 @@ const poolStatsInterval =
 
 if (poolStatsIntervalMs <= 0) {
   logger.info("API DB pool stats logging disabled", {
-    configuredIntervalMs: poolStatsIntervalMsRaw ?? "0",
+    configuredIntervalMs: poolStatsIntervalMs,
   });
 }
 
@@ -445,7 +443,7 @@ import { warmToolIndex } from "./chat/tools";
 warmToolIndex();
 
 export default {
-  port: process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3000,
+  port: ENV.PORT,
   fetch: app.fetch,
   host: "0.0.0.0", // Listen on all interfaces
   idleTimeout: 60,

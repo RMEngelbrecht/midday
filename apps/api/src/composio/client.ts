@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { Composio } from "@composio/core";
 import { VercelProvider } from "@composio/vercel";
 import { connectorsCache } from "@midday/cache/connectors-cache";
@@ -6,7 +7,7 @@ import { logger } from "@midday/logger";
 import { LRUCache } from "lru-cache";
 
 export const composio = new Composio({
-  apiKey: process.env.COMPOSIO_API_KEY,
+  apiKey: ENV.COMPOSIO_API_KEY,
   provider: new VercelProvider(),
 });
 
@@ -14,7 +15,7 @@ const COMPOSIO_API_BASE = "https://backend.composio.dev/api/v3";
 
 export async function composioFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${COMPOSIO_API_BASE}${path}`, {
-    headers: { "x-api-key": process.env.COMPOSIO_API_KEY! },
+    headers: { "x-api-key": ENV.COMPOSIO_API_KEY! },
   });
   if (!res.ok) {
     throw new Error(`Composio API error: ${res.status}`);
@@ -98,7 +99,7 @@ const toolsCache = new LRUCache<string, Record<string, unknown>>({
 export async function getComposioTools(
   userId: string,
 ): Promise<Record<string, never> | Record<string, unknown>> {
-  if (!process.env.COMPOSIO_API_KEY) return {};
+  if (!ENV.COMPOSIO_API_KEY) return {};
 
   const cached = toolsCache.get(userId);
   if (cached) return cached;

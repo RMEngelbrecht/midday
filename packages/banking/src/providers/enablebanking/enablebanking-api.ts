@@ -3,7 +3,7 @@ import { bankingCache, CacheTTL } from "@midday/cache/banking-cache";
 import { formatISO, subDays } from "date-fns";
 import * as jose from "jose";
 import xior, { type XiorInstance, type XiorRequestConfig } from "xior";
-import { env } from "../../env";
+import { ENV } from "../../env";
 import type { GetTransactionsRequest } from "../../types";
 import { getProviderErrorDetails, ProviderError } from "../../utils/error";
 import { logger } from "../../utils/logger";
@@ -37,9 +37,19 @@ export class EnableBankingApi {
   #cachedApi: XiorInstance | null = null;
 
   constructor() {
-    this.#applicationId = env.ENABLEBANKING_APPLICATION_ID;
-    this.#keyContent = env.ENABLE_BANKING_KEY_CONTENT;
-    this.#redirectUrl = env.ENABLEBANKING_REDIRECT_URL;
+    if (
+      !ENV.ENABLEBANKING_APPLICATION_ID ||
+      !ENV.ENABLE_BANKING_KEY_CONTENT ||
+      !ENV.ENABLEBANKING_REDIRECT_URL
+    ) {
+      throw new Error(
+        "Enable Banking is not configured. Set ENABLEBANKING_APPLICATION_ID, ENABLE_BANKING_KEY_CONTENT and ENABLEBANKING_REDIRECT_URL.",
+      );
+    }
+
+    this.#applicationId = ENV.ENABLEBANKING_APPLICATION_ID;
+    this.#keyContent = ENV.ENABLE_BANKING_KEY_CONTENT;
+    this.#redirectUrl = ENV.ENABLEBANKING_REDIRECT_URL;
   }
 
   #encodeData(data: object) {

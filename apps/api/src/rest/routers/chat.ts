@@ -6,6 +6,7 @@ import {
   stripFileAndImageParts,
   writeChatTitle,
 } from "@api/chat/utils";
+import { ENV } from "@api/env";
 import type { McpContext } from "@api/mcp/types";
 import type { Context } from "@api/rest/types";
 import { getGeoContext } from "@api/utils/geo";
@@ -35,7 +36,7 @@ const app = new OpenAPIHono<ChatContext>();
 app.use(
   rateLimiter<ChatContext>({
     windowMs: 10 * 60 * 1000,
-    limit: Number(process.env.CHAT_RATE_LIMIT) || 100,
+    limit: ENV.CHAT_RATE_LIMIT,
     keyGenerator: (c) => c.get("session")?.user?.id ?? "unknown",
     handler: (c) =>
       c.json(
@@ -71,7 +72,7 @@ app.post("/", async (c) => {
       userId: user?.id ?? session.user.id,
       userEmail: user?.email ?? session.user.email ?? null,
       scopes,
-      apiUrl: process.env.MIDDAY_API_URL || "https://api.midday.ai",
+      apiUrl: ENV.API_URL,
       timezone: resolvedTimezone,
       locale: user?.locale || geo.locale,
       countryCode: geo.country,

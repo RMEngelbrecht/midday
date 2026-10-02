@@ -6,6 +6,7 @@ import type { Database } from "@midday/db/client";
 import { updateInboxAccount } from "@midday/db/queries";
 import { encrypt } from "@midday/encryption";
 import { ensureFileExtension } from "@midday/utils";
+import { ENV } from "../env";
 import { InboxAuthError, InboxSyncError } from "../errors";
 import { generateDeterministicId } from "../generate-id";
 import type {
@@ -72,9 +73,9 @@ export class OutlookProvider implements OAuthProviderInterface {
   constructor(db: Database) {
     this.#db = db;
 
-    const clientId = process.env.OUTLOOK_CLIENT_ID;
-    const clientSecret = process.env.OUTLOOK_CLIENT_SECRET;
-    const redirectUri = process.env.OUTLOOK_REDIRECT_URI;
+    const clientId = ENV.OUTLOOK_CLIENT_ID;
+    const clientSecret = ENV.OUTLOOK_CLIENT_SECRET;
+    const redirectUri = ENV.OUTLOOK_REDIRECT_URI;
 
     if (!clientId || !clientSecret) {
       throw new Error(

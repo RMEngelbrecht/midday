@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { ENV } from "@api/env";
 
 // https://teller.io/docs/api/webhooks#verifying-messages
 export const validateTellerSignature = (params: {
@@ -21,7 +22,7 @@ export const validateTellerSignature = (params: {
 
   const signedMessage = `${timestamp}.${params.text}`;
   const calculatedSignature = crypto
-    .createHmac("sha256", process.env.TELLER_SIGNING_SECRET!)
+    .createHmac("sha256", ENV.TELLER_SIGNING_SECRET!)
     .update(signedMessage)
     .digest("hex");
 

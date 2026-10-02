@@ -1,6 +1,7 @@
 import type { AppRouter } from "@midday/api/trpc/routers/_app";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
+import { ENV } from "./env";
 import { fetchWithRetry } from "./fetch-with-retry";
 
 /**
@@ -8,12 +9,9 @@ import { fetchWithRetry } from "./fetch-with-retry";
  * Authenticates via INTERNAL_API_KEY header.
  */
 export function createInternalClient() {
-  const apiUrl =
-    process.env.API_INTERNAL_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:3003";
+  const apiUrl = ENV.API_INTERNAL_URL ?? ENV.API_URL;
 
-  const internalApiKey = process.env.INTERNAL_API_KEY;
+  const internalApiKey = ENV.INTERNAL_API_KEY;
 
   if (!internalApiKey) {
     throw new Error(
@@ -22,12 +20,6 @@ export function createInternalClient() {
   }
 
   const trpcUrl = `${apiUrl}/trpc`;
-
-  if (!process.env.API_INTERNAL_URL && !process.env.NEXT_PUBLIC_API_URL) {
-    console.warn(
-      `[trpc-internal] Neither API_INTERNAL_URL nor NEXT_PUBLIC_API_URL is set, falling back to ${trpcUrl}`,
-    );
-  }
 
   return createTRPCClient<AppRouter>({
     links: [

@@ -30,13 +30,13 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useCopyToClipboard } from "usehooks-ts";
 import { FileViewer } from "@/components/file-viewer";
 import { FormatAmount } from "@/components/format-amount";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useFileUrl } from "@/hooks/use-file-url";
 import { useInboxFilterParams } from "@/hooks/use-inbox-filter-params";
 import { useInboxParams } from "@/hooks/use-inbox-params";
 import { useUserQuery } from "@/hooks/use-user";
 import { downloadFile } from "@/lib/download";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import { getWebsiteLogo } from "@/utils/logos";
 import { EditInboxModal } from "../modals/edit-inbox-modal";
 import { DeleteInboxDialog } from "./delete-inbox-dialog";
@@ -45,6 +45,7 @@ import { InboxDetailsSkeleton } from "./inbox-details-skeleton";
 import { InboxSourceIcon } from "./inbox-source-icon";
 
 export function InboxDetails() {
+  const { apiUrl, appUrl } = usePublicConfig();
   const { setParams, params } = useInboxParams();
 
   const { params: filterParams } = useInboxFilterParams();
@@ -212,7 +213,7 @@ export function InboxDetails() {
   const handleCopyLink = () => {
     if (!data) return;
 
-    copy(`${getUrl()}/inbox?inboxId=${data.id}`);
+    copy(`${appUrl}/inbox?inboxId=${data.id}`);
 
     toast({
       duration: 4000,
@@ -537,7 +538,7 @@ export function InboxDetails() {
                         ? "image/jpeg"
                         : data.contentType
                     }
-                    url={`${process.env.NEXT_PUBLIC_API_URL}/files/proxy?filePath=vault/${data?.filePath.join("/")}`}
+                    url={`${apiUrl}/files/proxy?filePath=vault/${data?.filePath.join("/")}`}
                     // Include contentType in key to remount after HEIC conversion (busts browser cache)
                     key={`${params.inboxOrder}-${JSON.stringify(filterParams)}-${data.contentType}-primary`}
                   />
@@ -566,7 +567,7 @@ export function InboxDetails() {
                               ? "image/jpeg"
                               : relatedItem.contentType
                           }
-                          url={`${process.env.NEXT_PUBLIC_API_URL}/files/proxy?filePath=vault/${relatedItem.filePath.join("/")}`}
+                          url={`${apiUrl}/files/proxy?filePath=vault/${relatedItem.filePath.join("/")}`}
                           // Include contentType in key to remount after HEIC conversion
                           key={`${relatedItem.id}-${params.inboxOrder}-${JSON.stringify(filterParams)}-${relatedItem.contentType}`}
                         />

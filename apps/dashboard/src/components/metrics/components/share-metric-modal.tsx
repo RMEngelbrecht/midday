@@ -22,9 +22,9 @@ import { FaLinkedinIn } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { CopyInput } from "@/components/copy-input";
 import { OpenURL } from "@/components/open-url";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useUserQuery } from "@/hooks/use-user";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import type { ReportType } from "../utils/chart-types";
 
 interface ShareMetricModalProps {
@@ -44,6 +44,7 @@ export function ShareMetricModal({
   to,
   currency,
 }: ShareMetricModalProps) {
+  const { appUrl } = usePublicConfig();
   const { data: user } = useUserQuery();
   const trpc = useTRPC();
   const [expireAt, setExpireAt] = useState<Date | undefined>(
@@ -74,7 +75,7 @@ export function ShareMetricModal({
   };
 
   const shareUrl = createReportMutation.data
-    ? `${getUrl()}/r/${createReportMutation.data.linkId}`
+    ? `${appUrl}/r/${createReportMutation.data.linkId}`
     : "";
 
   const openInX = () => {

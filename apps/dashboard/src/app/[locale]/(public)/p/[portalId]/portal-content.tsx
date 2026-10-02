@@ -23,6 +23,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { InvoiceStatus } from "@/components/invoice-status";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { downloadFile } from "@/lib/download";
 import { saveFile } from "@/lib/save-file";
 import { useTRPC } from "@/trpc/client";
@@ -32,6 +33,7 @@ type Props = {
 };
 
 export function PortalContent({ portalId }: Props) {
+  const { apiUrl } = usePublicConfig();
   const trpc = useTRPC();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
@@ -91,7 +93,7 @@ export function PortalContent({ portalId }: Props) {
     setDownloadingId(invoice.id);
     try {
       downloadFile(
-        `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice?token=${invoice.token}`,
+        `${apiUrl}/files/download/invoice?token=${invoice.token}`,
         `${invoice.invoiceNumber || "invoice"}.pdf`,
       );
     } finally {
@@ -116,7 +118,7 @@ export function PortalContent({ portalId }: Props) {
 
       const filePromises = selected.map(async (invoice) => {
         try {
-          const url = `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice?token=${invoice.token}`;
+          const url = `${apiUrl}/files/download/invoice?token=${invoice.token}`;
           const response = await fetch(url);
           if (!response.ok) {
             throw new Error(`Failed to fetch invoice ${invoice.id}`);
@@ -322,7 +324,7 @@ export function PortalContent({ portalId }: Props) {
                           <DropdownMenuItem
                             onClick={() => {
                               downloadFile(
-                                `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice?token=${invoice.token}&type=receipt`,
+                                `${apiUrl}/files/download/invoice?token=${invoice.token}&type=receipt`,
                                 `receipt-${invoice.invoiceNumber || "invoice"}.pdf`,
                               );
                             }}

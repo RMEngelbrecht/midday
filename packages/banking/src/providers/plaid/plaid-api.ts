@@ -10,7 +10,7 @@ import {
   Products,
   type Transaction,
 } from "plaid";
-import { env } from "../../env";
+import { ENV } from "../../env";
 import type { ConnectionStatus, GetInstitutionsRequest } from "../../types";
 import { PLAID_COUNTRIES } from "../../utils/countries";
 import { ProviderError } from "../../utils/error";
@@ -40,11 +40,17 @@ export class PlaidApi {
   #countryCodes = PLAID_COUNTRIES as CountryCode[];
 
   constructor() {
-    this.#clientId = env.PLAID_CLIENT_ID;
-    this.#clientSecret = env.PLAID_SECRET;
+    if (!ENV.PLAID_CLIENT_ID || !ENV.PLAID_SECRET) {
+      throw new Error(
+        "Plaid is not configured. Set PLAID_CLIENT_ID and PLAID_SECRET.",
+      );
+    }
+
+    this.#clientId = ENV.PLAID_CLIENT_ID;
+    this.#clientSecret = ENV.PLAID_SECRET;
 
     const configuration = new Configuration({
-      basePath: PlaidEnvironments[env.PLAID_ENVIRONMENT],
+      basePath: PlaidEnvironments[ENV.PLAID_ENVIRONMENT],
       baseOptions: {
         headers: {
           "PLAID-CLIENT-ID": this.#clientId,

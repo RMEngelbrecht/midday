@@ -7,6 +7,7 @@ import type {
   ExtractionConfig,
   ModelConfig,
 } from "../config/extraction-config";
+import { ENV } from "../env";
 import type { PromptComponents } from "../prompts/factory";
 import { createFieldSpecificPrompt } from "../prompts/field-specific";
 import type { DocumentFormat } from "../utils/format-detection";
@@ -14,11 +15,11 @@ import { extractTextFromPdf } from "../utils/pdf-text-extract";
 import { retryCall } from "../utils/retry";
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
 });
 
 const mistral = createMistral({
-  apiKey: process.env.MISTRAL_API_KEY!,
+  apiKey: ENV.MISTRAL_API_KEY!,
 });
 
 /**

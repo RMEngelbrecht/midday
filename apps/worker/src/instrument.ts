@@ -1,16 +1,13 @@
 import * as Sentry from "@sentry/bun";
+import { ENV } from "./env";
 
-if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
+if (ENV.APP_ENV === "production" && ENV.SENTRY_DSN) {
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
+    dsn: ENV.SENTRY_DSN,
 
-    release: process.env.GIT_COMMIT_SHA || process.env.RAILWAY_GIT_COMMIT_SHA,
+    release: ENV.GIT_COMMIT_SHA,
 
-    // Use Railway environment name so staging and production are separate in Sentry
-    environment:
-      process.env.RAILWAY_ENVIRONMENT_NAME ||
-      process.env.NODE_ENV ||
-      "production",
+    environment: ENV.APP_ENV,
 
     integrations: [Sentry.consoleLoggingIntegration({ levels: ["error"] })],
 

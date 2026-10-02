@@ -3,6 +3,7 @@
  *
  * Tests that generated insights are personal, well-formatted, and have appropriate tone
  */
+import { ENV } from "../src/env";
 import "dotenv/config";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
@@ -17,7 +18,7 @@ import { allFixtures } from "./fixtures";
 import { allScorers } from "./scorers";
 
 const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: ENV.OPENAI_API_KEY!,
 });
 
 const MODEL = "gpt-4.1-mini";

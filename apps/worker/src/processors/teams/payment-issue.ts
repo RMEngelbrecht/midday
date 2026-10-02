@@ -2,10 +2,11 @@ import { PaymentIssueEmail } from "@midday/email/emails/payment-issue";
 import { render } from "@midday/email/render";
 import type { Job } from "bullmq";
 import { Resend } from "resend";
+import { ENV } from "../../env";
 import type { PaymentIssuePayload } from "../../schemas/teams";
 import { BaseProcessor } from "../base";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+const resend = new Resend(ENV.RESEND_API_KEY!);
 
 export class PaymentIssueProcessor extends BaseProcessor<PaymentIssuePayload> {
   async process(job: Job<PaymentIssuePayload>): Promise<void> {

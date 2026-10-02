@@ -7,17 +7,18 @@ import { Icons } from "@midday/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useFileUrl } from "@/hooks/use-file-url";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { downloadFile } from "@/lib/download";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import { CopyInput } from "./copy-input";
 import { FormatAmount } from "./format-amount";
 import { InvoiceSheetHeader } from "./invoice-sheet-header";
 import { OpenURL } from "./open-url";
 
 export function InvoiceSuccess() {
+  const { appUrl } = usePublicConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { invoiceId, canvas, setParams } = useInvoiceParams();
@@ -140,7 +141,7 @@ export function InvoiceSuccess() {
               </span>
               <div className="flex w-full gap-2 mt-1">
                 <div className="flex-1 min-w-0">
-                  <CopyInput value={`${getUrl()}/i/${invoice.token}`} />
+                  <CopyInput value={`${appUrl}/i/${invoice.token}`} />
                 </div>
 
                 <Button
@@ -178,7 +179,7 @@ export function InvoiceSuccess() {
       </div>
 
       <div className="flex mt-auto absolute bottom-6 justify-end gap-4 right-6 left-6">
-        <OpenURL href={`${getUrl()}/i/${invoice.token}`}>
+        <OpenURL href={`${appUrl}/i/${invoice.token}`}>
           <Button variant="secondary">View invoice</Button>
         </OpenURL>
 

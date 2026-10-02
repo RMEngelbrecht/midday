@@ -20,6 +20,7 @@ import {
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useDebounceCallback } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { VirtualRow } from "@/components/tables/core";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { useRealtime } from "@/hooks/use-realtime";
@@ -67,6 +68,7 @@ type Props = {
 };
 
 export function DataTable({ initialSettings, initialTab }: Props) {
+  const { appUrl } = usePublicConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: user } = useUserQuery();
@@ -269,7 +271,7 @@ export function DataTable({ initialSettings, initialTab }: Props) {
   const copyUrl = useCallback((id: string) => {
     try {
       window.navigator.clipboard.writeText(
-        `${process.env.NEXT_PUBLIC_URL}/transactions/?transactionId=${id}`,
+        `${appUrl}/transactions/?transactionId=${id}`,
       );
 
       toast({

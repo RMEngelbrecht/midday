@@ -1,10 +1,11 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { createLoggerWithContext } from "@midday/logger";
 import { generateText } from "ai";
+import { ENV } from "../env";
 import { removeProtocolFromDomain } from "../utils";
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
 });
 
 const DOMAIN_LOOKUP_TIMEOUT = 8000; // 8 seconds

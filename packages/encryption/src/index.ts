@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import * as jose from "jose";
+import { ENV } from "./env";
 
 // ============================================================================
 // URL-Safe Base64 Utilities
@@ -92,7 +93,7 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 
 function getKey(): Buffer {
-  const key = process.env.MIDDAY_ENCRYPTION_KEY;
+  const key = ENV.MIDDAY_ENCRYPTION_KEY;
   if (!key) {
     throw new Error("MIDDAY_ENCRYPTION_KEY environment variable is not set.");
   }
@@ -183,7 +184,7 @@ export function hash(str: string): string {
  * @returns A compact JWT token containing the teamId
  */
 export async function generateFileKey(teamId: string): Promise<string> {
-  const secret = process.env.FILE_KEY_SECRET;
+  const secret = ENV.FILE_KEY_SECRET;
   if (!secret) {
     throw new Error("FILE_KEY_SECRET environment variable is not set.");
   }
@@ -204,7 +205,7 @@ export async function generateFileKey(teamId: string): Promise<string> {
  */
 export async function verifyFileKey(token: string): Promise<string | null> {
   try {
-    const secret = process.env.FILE_KEY_SECRET;
+    const secret = ENV.FILE_KEY_SECRET;
     if (!secret) {
       return null;
     }

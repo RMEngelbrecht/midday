@@ -4,16 +4,22 @@ import {
   useOpenPanel,
 } from "@openpanel/nextjs";
 
+// Build mode (inlined by the bundler), not deployment configuration.
 const isProd = process.env.NODE_ENV === "production";
 
-const Provider = () => (
-  <OpenPanelComponent
-    clientId={process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID!}
-    trackAttributes={true}
-    trackScreenViews={isProd}
-    trackOutgoingLinks={isProd}
-  />
-);
+/**
+ * Renders the OpenPanel script when analytics is configured. The client id is
+ * passed from the server (runtime config), never inlined at build time.
+ */
+const Provider = ({ clientId }: { clientId?: string }) =>
+  clientId ? (
+    <OpenPanelComponent
+      clientId={clientId}
+      trackAttributes={true}
+      trackScreenViews={isProd}
+      trackOutgoingLinks={isProd}
+    />
+  ) : null;
 
 const track = (options: { event: string } & TrackProperties) => {
   const { track: openTrack } = useOpenPanel();

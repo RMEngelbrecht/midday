@@ -1,5 +1,5 @@
 import { bankingCache, CacheTTL } from "@midday/cache/banking-cache";
-import { env } from "../../env";
+import { ENV } from "../../env";
 import type {
   GetConnectionStatusRequest,
   GetConnectionStatusResponse,
@@ -184,8 +184,8 @@ export class TellerApi {
    * Uses TELLER_CERT_BASE64 and TELLER_KEY_BASE64 for client certificate auth.
    */
   async #fetch(url: string, init?: RequestInit): Promise<Response> {
-    const cert = env.TELLER_CERT_BASE64;
-    const key = env.TELLER_KEY_BASE64;
+    const cert = ENV.TELLER_CERT_BASE64;
+    const key = ENV.TELLER_KEY_BASE64;
 
     if (!cert || !key) {
       throw new Error(

@@ -5,7 +5,7 @@ import { createClient } from "@midday/supabase/client";
 import type { Provider } from "@supabase/supabase-js";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { getUrl } from "@/utils/environment";
+import { usePublicConfig } from "@/components/public-config-provider";
 
 export type OAuthProvider = "google" | "apple" | "github" | "azure";
 
@@ -48,6 +48,7 @@ const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
 };
 
 export function useOAuthSignIn(provider: OAuthProvider) {
+  const { appUrl } = usePublicConfig();
   const [isLoading, setLoading] = useState(false);
   const supabase = createClient();
   const searchParams = useSearchParams();
@@ -57,7 +58,7 @@ export function useOAuthSignIn(provider: OAuthProvider) {
   const handleSignIn = async () => {
     setLoading(true);
 
-    const redirectTo = new URL("/api/auth/callback", getUrl());
+    const redirectTo = new URL("/api/auth/callback", appUrl);
     redirectTo.searchParams.append("provider", provider);
 
     const isDesktop = isDesktopApp();

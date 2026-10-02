@@ -4,6 +4,7 @@ export const onInitialize = async ({
   onComplete,
 }: {
   accessToken: string;
+  apiUrl: string;
   onComplete?: () => void;
 }) => {
   // Dispatch event to open WhatsApp connect dialog

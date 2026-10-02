@@ -13,14 +13,15 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
-    "migrate": "tsx scripts/migrate.ts",
-    "migrate:preview": "tsx scripts/migrate.ts --command preview",
-    "migrate:run": "tsx scripts/migrate.ts --command migrate"
+    "migrate": "varlock run -- tsx scripts/migrate.ts",
+    "migrate:preview": "varlock run -- tsx scripts/migrate.ts --command preview",
+    "migrate:run": "varlock run -- tsx scripts/migrate.ts --command migrate"
   },
   "dependencies": {
     "@ai-sdk/google": "catalog:",
     "@midday/logger": "workspace:*",
     "ai": "catalog:",
+    "varlock": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useUserQuery } from "@/hooks/use-user";
 import { saveFile } from "@/lib/save-file";
 
@@ -9,6 +10,7 @@ type Invoice = {
 };
 
 export function useDownloadInvoicesZip() {
+  const { apiUrl } = usePublicConfig();
   const { data: user } = useUserQuery();
   const [isPending, setIsPending] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
@@ -23,7 +25,6 @@ export function useDownloadInvoicesZip() {
 
     try {
       const zip = new JSZip();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       // Track used filenames to avoid duplicates
       const usedFilenames = new Set<string>();

@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@midday/logger": "workspace:*"
+    "@midday/logger": "workspace:*",
+    "varlock": "catalog:"
   },
   "devDependencies": {
     "@midday/tsconfig": "workspace:*",

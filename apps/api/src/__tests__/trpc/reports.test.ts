@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import { ENV } from "@api/env";
 import { createCallerFactory } from "../../trpc/init";
 import { reportsRouter } from "../../trpc/routers/reports";
 import { createTestContext } from "../helpers/test-context";
@@ -278,7 +279,7 @@ describe("tRPC: reports.create", () => {
     expect(result).toMatchObject({
       id: "report-row-id",
       linkId: "link-abc",
-      shortUrl: `${process.env.MIDDAY_DASHBOARD_URL}/r/link-abc`,
+      shortUrl: `${ENV.APP_URL}/r/link-abc`,
     });
     expect(mocks.createReport).toHaveBeenCalledWith(
       expect.anything(),

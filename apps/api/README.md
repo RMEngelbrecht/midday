@@ -34,7 +34,7 @@ Two separate Redis instances are used:
 
 #### Database Configuration
 ```bash
-DATABASE_PRIMARY_URL=postgresql://...
+DATABASE_URL=postgresql://...
 ```
 
 ### Development

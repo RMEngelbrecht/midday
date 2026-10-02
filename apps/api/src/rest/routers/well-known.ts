@@ -1,11 +1,11 @@
+import { ENV } from "@api/env";
 import { SCOPES } from "@api/utils/scopes";
 import { OpenAPIHono } from "@hono/zod-openapi";
 
 const app = new OpenAPIHono();
 
-const apiUrl = process.env.MIDDAY_API_URL || "https://api.midday.ai";
-const dashboardUrl =
-  process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
+const apiUrl = ENV.API_URL;
+const dashboardUrl = ENV.APP_URL;
 
 const supportedScopes = SCOPES.filter(
   (s) => !s.startsWith("apis."),

@@ -2,6 +2,7 @@ import { track } from "@midday/events/client";
 import { LogEvents } from "@midday/events/events";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useConnectParams } from "@/hooks/use-connect-params";
 import { BankConnectButton } from "./bank-connect-button";
 
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function TellerConnect({ id, onSelect, connectRef }: Props) {
+  const { teller: tellerConfig } = usePublicConfig();
   const [institution, setInstitution] = useState<string | undefined>();
   const { setParams } = useConnectParams();
   const { theme } = useTheme();
@@ -20,8 +22,8 @@ export function TellerConnect({ id, onSelect, connectRef }: Props) {
     if (institution) {
       // @ts-expect-error
       const teller = window.TellerConnect.setup({
-        applicationId: process.env.NEXT_PUBLIC_TELLER_APPLICATION_ID!,
-        environment: process.env.NEXT_PUBLIC_TELLER_ENVIRONMENT,
+        applicationId: tellerConfig?.applicationId ?? "",
+        environment: tellerConfig?.environment,
         institution,
         appearance: theme,
         onSuccess: (authorization: {

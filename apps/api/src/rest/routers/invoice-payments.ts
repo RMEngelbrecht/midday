@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { protectedMiddleware, publicMiddleware } from "@api/rest/middleware";
 import type { Context } from "@api/rest/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -85,7 +86,7 @@ app.openapi(
       throw new HTTPException(401, { message: "Team not found" });
     }
 
-    const clientId = process.env.STRIPE_CONNECT_CLIENT_ID;
+    const clientId = ENV.STRIPE_CONNECT_CLIENT_ID;
     if (!clientId) {
       throw new HTTPException(500, {
         message: "Stripe Connect is not configured",
@@ -99,9 +100,8 @@ app.openapi(
       source: "invoice-settings",
     });
 
-    const _dashboardUrl =
-      process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
-    const redirectUri = `${process.env.MIDDAY_API_URL || "https://api.midday.ai"}/invoice-payments/connect-stripe/callback`;
+    const _dashboardUrl = ENV.APP_URL;
+    const redirectUri = `${ENV.API_URL}/invoice-payments/connect-stripe/callback`;
 
     // Build Stripe Connect OAuth URL (Standard accounts)
     const params = new URLSearchParams({
@@ -182,8 +182,7 @@ app.openapi(
   async (c) => {
     const db = c.get("db");
     const { code, state, error, error_description } = c.req.valid("query");
-    const dashboardUrl =
-      process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
+    const dashboardUrl = ENV.APP_URL;
 
     // Handle OAuth errors
     if (error || !code) {
@@ -207,7 +206,7 @@ app.openapi(
     }
 
     try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+      const stripe = new Stripe(ENV.STRIPE_SECRET_KEY!);
 
       // Exchange authorization code for connected account ID
       const response = await stripe.oauth.token({
@@ -302,11 +301,11 @@ app.openapi(
 
     if (team?.stripeAccountId) {
       try {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+        const stripe = new Stripe(ENV.STRIPE_SECRET_KEY!);
 
         // Deauthorize the connected account
         await stripe.oauth.deauthorize({
-          client_id: process.env.STRIPE_CONNECT_CLIENT_ID!,
+          client_id: ENV.STRIPE_CONNECT_CLIENT_ID!,
           stripe_user_id: team.stripeAccountId,
         });
       } catch (err) {
@@ -455,7 +454,7 @@ app.openapi(
     }
 
     try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+      const stripe = new Stripe(ENV.STRIPE_SECRET_KEY!);
 
       // Check if there's an existing payment intent for this invoice
       if (invoice.paymentIntentId) {

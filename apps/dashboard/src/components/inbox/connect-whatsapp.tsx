@@ -14,6 +14,7 @@ import { Spinner } from "@midday/ui/spinner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useTRPC } from "@/trpc/client";
 import { useConnectDialogReset } from "./use-connect-dialog";
 
@@ -22,6 +23,7 @@ interface ConnectWhatsAppProps {
 }
 
 export function ConnectWhatsApp({ showTrigger = true }: ConnectWhatsAppProps) {
+  const { whatsappNumber } = usePublicConfig();
   const trpc = useTRPC();
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
@@ -48,7 +50,6 @@ export function ConnectWhatsApp({ showTrigger = true }: ConnectWhatsAppProps) {
     resetMutation: () => createLinkTokenMutation.reset(),
   });
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
   const message = linkCode ? `Connect to Midday: ${linkCode}` : "";
   const whatsappUrl =
     whatsappNumber && message

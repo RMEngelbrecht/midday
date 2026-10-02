@@ -30,33 +30,14 @@ RUN bun install
 # Copy full source from pruned workspace
 COPY --from=builder /app/out/full/ .
 
-# Build-time NEXT_PUBLIC_ env vars (Railway passes these as build args)
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-ARG NEXT_PUBLIC_SUPABASE_ID
-ARG NEXT_PUBLIC_URL
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_OPENPANEL_CLIENT_ID
-ARG NEXT_PUBLIC_SENTRY_DSN
-ARG NEXT_PUBLIC_PLAID_ENVIRONMENT
-ARG NEXT_PUBLIC_TELLER_APPLICATION_ID
-ARG NEXT_PUBLIC_TELLER_ENVIRONMENT
-ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-ARG NEXT_PUBLIC_GOOGLE_API_KEY
-ARG NEXT_PUBLIC_DESKTOP_SCHEME
-ARG NEXT_PUBLIC_WHATSAPP_NUMBER
-ARG NEXT_PUBLIC_TELEGRAM_BOT_USERNAME
-ARG NEXT_PUBLIC_SENDBLUE_NUMBER
+# No runtime config at build time: APP_URL, API_URL, feature keys etc. are read
+# when the server starts (varlock) and passed to the browser via PublicConfig,
+# so one image serves any deployment.
 
-# Sentry source map upload (build-time only)
+# Sentry source map upload (build-time only, optional)
 ARG SENTRY_AUTH_TOKEN
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
-
-# Server Action encryption key — must be identical across all replicas/regions
-# to prevent "Failed to find Server Action" errors. Base64-encoded, 32 bytes.
-ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
-ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 
 # Git SHA stamped by CI (echo "$GITHUB_SHA" > .git-commit-sha) before `railway up`.
 # The file lives at repo root, so the builder stage has it after COPY . .
@@ -71,6 +52,11 @@ RUN GIT_COMMIT_SHA=$(cat /tmp/git-sha.txt 2>/dev/null || echo ""); \
     export GIT_COMMIT_SHA; \
     export SENTRY_RELEASE="$GIT_COMMIT_SHA"; \
     bunx turbo run build --filter=@midday/dashboard --only
+
+# Collapse the dashboard's env schema import graph (root + packages) into a
+# self-contained directory for the runner stage.
+COPY --from=builder /app/.env.schema ./.env.schema
+RUN cd apps/dashboard && bun ../../node_modules/varlock/bin/cli.js flatten --out-dir .env-flat
 
 # Runner stage - clean bun image, no turbo
 FROM oven/bun:1.3.10 AS runner
@@ -88,8 +74,12 @@ COPY --from=installer --chown=nextjs:nodejs /app/apps/dashboard/.next/standalone
 COPY --from=installer --chown=nextjs:nodejs /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/dashboard/public ./apps/dashboard/public
 
+# Env schema (validated at startup) and the varlock CLI (no dependencies).
+COPY --from=installer --chown=nextjs:nodejs /app/apps/dashboard/.env-flat/ ./apps/dashboard/
+COPY --from=installer /app/node_modules/varlock ./node_modules/varlock
+
 # Carry the git SHA into the runtime container and use the shared entrypoint to
-# set GIT_COMMIT_SHA / SENTRY_RELEASE when Railway doesn't provide them.
+# set GIT_COMMIT_SHA / SENTRY_RELEASE when they aren't provided.
 COPY --from=installer /tmp/git-sha.txt /tmp/git-sha.txt
 COPY --from=builder /app/scripts/docker-entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
@@ -99,4 +89,5 @@ USER nextjs
 EXPOSE 3000
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["bun", "apps/dashboard/server.js"]
+# varlock validates env against the schema and injects it before Next starts.
+CMD ["bun", "node_modules/varlock/bin/cli.js", "run", "--path", "apps/dashboard/", "--", "bun", "apps/dashboard/server.js"]

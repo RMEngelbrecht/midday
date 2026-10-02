@@ -15,6 +15,7 @@ import JSZip from "jszip";
 import { useEffect, useRef, useState } from "react";
 import { MdContentCopy, MdOutlineFileDownload } from "react-icons/md";
 import { useCopyToClipboard } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { downloadFile } from "@/lib/download";
 import { saveFile } from "@/lib/save-file";
 import { PaymentModal } from "./invoice/payment-modal";
@@ -48,6 +49,7 @@ export default function InvoiceToolbar({
   isPaymentOpen,
   useOverlay,
 }: Props) {
+  const { apiUrl } = usePublicConfig();
   const [, copy] = useCopyToClipboard();
   const { toast } = useToast();
   const [internalPaymentOpen, setInternalPaymentOpen] = useState(false);
@@ -83,7 +85,6 @@ export default function InvoiceToolbar({
       if (isPaid) {
         // For paid invoices, download both invoice and receipt as a zip
         const zip = new JSZip();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
         // Fetch both PDFs in parallel for better performance
         const [invoiceResponse, receiptResponse] = await Promise.all([
@@ -117,7 +118,7 @@ export default function InvoiceToolbar({
       } else {
         // Download invoice only
         await downloadFile(
-          `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice?token=${token}`,
+          `${apiUrl}/files/download/invoice?token=${token}`,
           `${invoiceNumber}.pdf`,
         );
       }

@@ -5,6 +5,7 @@ import {
   DEFAULT_SERVER_ERROR_MESSAGE,
 } from "next-safe-action";
 import { z } from "zod";
+import { ENV } from "@/env";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { logger } from "@/utils/logger";
 
@@ -43,7 +44,7 @@ export const authActionClient = actionClientWithMeta
   .use(async ({ next, clientInput, metadata }) => {
     const result = await next({ ctx: {} });
 
-    if (process.env.NODE_ENV === "development") {
+    if (ENV.APP_ENV === "development") {
       logger("Input ->", clientInput);
       logger("Result ->", result.data);
       logger("Metadata ->", metadata);

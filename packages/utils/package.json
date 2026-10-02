@@ -19,5 +19,8 @@
     "./format": "./src/format.ts",
     "./sanitize-redirect": "./src/sanitize-redirect.ts",
     "./tax": "./src/tax.ts"
+  },
+  "dependencies": {
+    "varlock": "catalog:"
   }
 }

@@ -1,8 +1,6 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { ENV } from "../env";
 import type { Database } from "../types/db";
 
 export const createClient = () =>
-  createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL! || process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!,
-  );
+  createSupabaseClient<Database>(ENV.SUPABASE_URL!, ENV.SUPABASE_SECRET_KEY!);

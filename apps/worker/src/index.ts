@@ -1,4 +1,5 @@
 // Import Sentry instrumentation first, before any other modules
+import { ENV } from "./env";
 import "./instrument";
 
 import { closeWorkerDb, getWorkerPoolStats } from "@midday/db/worker-client";
@@ -145,10 +146,10 @@ function initializeWorkbench() {
     workbench({
       queues,
       auth:
-        process.env.BOARD_USERNAME && process.env.BOARD_PASSWORD
+        ENV.BOARD_USERNAME && ENV.BOARD_PASSWORD
           ? {
-              username: process.env.BOARD_USERNAME,
-              password: process.env.BOARD_PASSWORD,
+              username: ENV.BOARD_USERNAME,
+              password: ENV.BOARD_PASSWORD,
             }
           : undefined,
       title: "Midday Jobs",
@@ -191,7 +192,7 @@ app.get("/info", (c) => {
 });
 
 // Start server
-const port = Number.parseInt(process.env.PORT || "8080", 10);
+const port = ENV.PORT;
 
 Bun.serve({
   port,
@@ -202,14 +203,7 @@ Bun.serve({
 logger.info(`Worker server running on port ${port}`);
 logger.info("Workers initialized and ready to process jobs");
 
-const poolStatsIntervalMsRaw = process.env.DB_POOL_STATS_INTERVAL_MS;
-const parsedPoolStatsIntervalMs = Number.parseInt(
-  poolStatsIntervalMsRaw ?? "60000",
-  10,
-);
-const poolStatsIntervalMs = Number.isFinite(parsedPoolStatsIntervalMs)
-  ? parsedPoolStatsIntervalMs
-  : 60000;
+const poolStatsIntervalMs = ENV.DB_POOL_STATS_INTERVAL_MS;
 const poolStatsInterval =
   poolStatsIntervalMs > 0
     ? setInterval(() => {
@@ -221,7 +215,7 @@ const poolStatsInterval =
 
 if (poolStatsIntervalMs <= 0) {
   logger.info("Worker DB pool stats logging disabled", {
-    configuredIntervalMs: poolStatsIntervalMsRaw ?? "0",
+    configuredIntervalMs: poolStatsIntervalMs,
   });
 }
 

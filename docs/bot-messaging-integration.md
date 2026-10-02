@@ -465,8 +465,8 @@ Connected bot users operate with `apis.all` scope, granting full Midday assistan
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Yes | Used in deep links (`t.me/{bot}?start=...`) |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Yes | Used in deep links (`wa.me/{number}?text=...`) |
+| `TELEGRAM_BOT_USERNAME` | Yes | Used in deep links (`t.me/{bot}?start=...`) |
+| `WHATSAPP_NUMBER` | Yes | Used in deep links (`wa.me/{number}?text=...`) |
 
 ---
 

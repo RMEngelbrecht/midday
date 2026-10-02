@@ -14,7 +14,7 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "test": "bun test --exit src"
+    "test": "APP_ENV=test varlock run -- bun test --exit src"
   },
   "dependencies": {
     "@microsoft/microsoft-graph-client": "^3.0.7",
@@ -23,6 +23,7 @@
     "@midday/supabase": "workspace:*",
     "@midday/utils": "workspace:*",
     "googleapis": "^171.4.0",
+    "varlock": "catalog:",
     "zod": "catalog:"
   }
 }

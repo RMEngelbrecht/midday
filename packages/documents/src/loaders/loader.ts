@@ -4,11 +4,12 @@ import { CSVLoader } from "@langchain/community/document_loaders/fs/csv";
 import { PPTXLoader } from "@langchain/community/document_loaders/fs/pptx";
 import { generateText } from "ai";
 import { parseOfficeAsync } from "officeparser";
+import { ENV } from "../env";
 import { cleanText, extractTextFromRtf } from "../utils";
 import { retryCall } from "../utils/retry";
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
 });
 
 export async function loadDocument({

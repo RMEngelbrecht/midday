@@ -1,8 +1,7 @@
 import { updateSession } from "@midday/supabase/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 import { createI18nMiddleware } from "next-international/middleware";
-
-const ORIGIN = process.env.NEXT_PUBLIC_URL || "http://localhost:3001";
+import { ENV } from "@/env";
 
 const I18nMiddleware = createI18nMiddleware({
   locales: ["en"],
@@ -11,6 +10,9 @@ const I18nMiddleware = createI18nMiddleware({
 });
 
 export async function proxy(request: NextRequest) {
+  // Read at request time: APP_URL is runtime config.
+  const ORIGIN = ENV.APP_URL;
+
   const { response, isAuthenticated, supabase } = await updateSession(
     request,
     I18nMiddleware(request),

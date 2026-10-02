@@ -5,6 +5,7 @@ import { ensureFileExtension } from "@midday/utils";
 import type { Credentials } from "google-auth-library";
 import { type Auth, type gmail_v1, google } from "googleapis";
 import { decodeBase64Url } from "../attachments";
+import { ENV } from "../env";
 import { InboxAuthError, InboxSyncError } from "../errors";
 import { generateDeterministicId } from "../generate-id";
 import type {
@@ -55,9 +56,9 @@ export class GmailProvider implements OAuthProviderInterface {
   constructor(db: Database) {
     this.#db = db;
 
-    const clientId = process.env.GMAIL_CLIENT_ID;
-    const clientSecret = process.env.GMAIL_CLIENT_SECRET;
-    const redirectUri = process.env.GMAIL_REDIRECT_URI;
+    const clientId = ENV.GMAIL_CLIENT_ID;
+    const clientSecret = ENV.GMAIL_CLIENT_SECRET;
+    const redirectUri = ENV.GMAIL_REDIRECT_URI;
 
     if (!clientId || !clientSecret) {
       throw new Error(

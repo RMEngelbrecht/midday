@@ -1,14 +1,15 @@
 import * as jose from "jose";
+import { ENV } from "../env";
 
 export async function verify(token: string) {
-  const secret = new TextEncoder().encode(process.env.INVOICE_JWT_SECRET);
+  const secret = new TextEncoder().encode(ENV.INVOICE_JWT_SECRET);
   const { payload } = await jose.jwtVerify(token, secret);
 
   return payload;
 }
 
 export async function generateToken(id: string) {
-  const secret = new TextEncoder().encode(process.env.INVOICE_JWT_SECRET);
+  const secret = new TextEncoder().encode(ENV.INVOICE_JWT_SECRET);
   const token = await new jose.SignJWT({ id })
     .setProtectedHeader({ alg: "HS256" })
     .sign(secret);

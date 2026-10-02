@@ -47,8 +47,10 @@ COPY --from=installer /app/node_modules ./node_modules
 COPY --from=installer /app/apps/worker ./apps/worker
 COPY --from=installer /app/packages ./packages
 COPY --from=installer /app/package.json ./package.json
+# Root env schema; app/package schemas import it (`@import(../../)`).
+COPY --from=builder /app/.env.schema ./.env.schema
 
-# Carry the git SHA into the runtime container (stamped by CI before `railway up`)
+# Carry the git SHA into the runtime container (stamped by CI before the build)
 COPY --from=builder /app/.git-commit-sha /tmp/git-sha.txt
 COPY --from=builder /app/scripts/docker-entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
@@ -58,4 +60,5 @@ WORKDIR /app/apps/worker
 EXPOSE 8080
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["bun", "src/index.ts"]
+# varlock validates env against the schema and injects it before the app starts.
+CMD ["bun", "/app/node_modules/varlock/bin/cli.js", "run", "--", "bun", "src/index.ts"]

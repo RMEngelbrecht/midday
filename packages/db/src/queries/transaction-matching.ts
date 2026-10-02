@@ -10,6 +10,7 @@ import {
   sql,
 } from "drizzle-orm";
 import type { Database, DatabaseOrTransaction } from "../client";
+import { ENV } from "../env";
 import {
   inbox,
   transactionAttachments,
@@ -585,7 +586,7 @@ function computeDeclinePenalty(
   return clamp(0.08 + netSignal * 0.08, 0, 0.35);
 }
 
-const AUTO_MATCH_ENABLED = process.env.MATCH_AUTO_ENABLED === "true";
+const AUTO_MATCH_ENABLED = ENV.MATCH_AUTO_ENABLED === true;
 
 function resolveMatchType(
   confidence: number,

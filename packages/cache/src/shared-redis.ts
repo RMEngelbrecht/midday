@@ -1,14 +1,11 @@
 import { createLoggerWithContext } from "@midday/logger";
 import { RedisClient } from "bun";
+import { ENV } from "./env";
 
 const logger = createLoggerWithContext("redis");
 
 export function resolveRedisUrl(): string {
-  if (process.env.REDIS_URL) {
-    return process.env.REDIS_URL;
-  }
-
-  throw new Error("No Redis URL configured. Set REDIS_URL.");
+  return ENV.REDIS_URL;
 }
 
 let sharedClient: RedisClient | null = null;
@@ -20,9 +17,7 @@ let reconnectCount = 0;
 let keepaliveTimer: ReturnType<typeof setInterval> | null = null;
 let initialConnectPromise: Promise<void> | null = null;
 
-const isProduction =
-  process.env.NODE_ENV === "production" ||
-  process.env.RAILWAY_ENVIRONMENT === "production";
+const isProduction = ENV.APP_ENV === "production";
 
 const MAX_DISCONNECT_MS = 15_000;
 

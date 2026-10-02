@@ -4,6 +4,7 @@ import type {
 } from "@midday/accounting";
 import type { Database } from "@midday/db/client";
 import { updateAppTokens } from "@midday/db/queries";
+import { ENV } from "../env";
 
 /**
  * Ensure the accounting provider has a valid (non-expired) token
@@ -59,21 +60,21 @@ export const getProviderCredentials = (
   switch (providerId) {
     case "xero":
       return {
-        clientId: process.env.XERO_CLIENT_ID,
-        clientSecret: process.env.XERO_CLIENT_SECRET,
-        redirectUri: process.env.XERO_OAUTH_REDIRECT_URL,
+        clientId: ENV.XERO_CLIENT_ID,
+        clientSecret: ENV.XERO_CLIENT_SECRET,
+        redirectUri: ENV.XERO_OAUTH_REDIRECT_URL,
       };
     case "quickbooks":
       return {
-        clientId: process.env.QUICKBOOKS_CLIENT_ID,
-        clientSecret: process.env.QUICKBOOKS_CLIENT_SECRET,
-        redirectUri: process.env.QUICKBOOKS_OAUTH_REDIRECT_URL,
+        clientId: ENV.QUICKBOOKS_CLIENT_ID,
+        clientSecret: ENV.QUICKBOOKS_CLIENT_SECRET,
+        redirectUri: ENV.QUICKBOOKS_OAUTH_REDIRECT_URL,
       };
     case "fortnox":
       return {
-        clientId: process.env.FORTNOX_CLIENT_ID,
-        clientSecret: process.env.FORTNOX_CLIENT_SECRET,
-        redirectUri: process.env.FORTNOX_OAUTH_REDIRECT_URL,
+        clientId: ENV.FORTNOX_CLIENT_ID,
+        clientSecret: ENV.FORTNOX_CLIENT_SECRET,
+        redirectUri: ENV.FORTNOX_OAUTH_REDIRECT_URL,
       };
     default:
       // Unknown provider - credentials will fail validation

@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { ENV } from "@api/env";
 import { publicMiddleware } from "@api/rest/middleware";
 import type { Context } from "@api/rest/types";
 import { validateResponse } from "@api/utils/validate-response";
@@ -122,7 +123,7 @@ const slackInteractionSchema = z.object({
 });
 
 async function verifySlackInteraction(req: Request): Promise<unknown> {
-  const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
+  const SLACK_SIGNING_SECRET = ENV.SLACK_SIGNING_SECRET;
 
   if (!SLACK_SIGNING_SECRET) {
     throw new Error("SLACK_SIGNING_SECRET is not set");

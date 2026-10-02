@@ -8,19 +8,20 @@ import {
   getDatabaseSsl,
   getPrimaryDatabaseUrl,
   getReplicaDatabaseUrls,
-} from "./env";
+} from "./connection";
+import { ENV } from "./env";
 import { createDrizzleLogger, instrumentPool } from "./instrument";
 import { withReplicas } from "./replicas";
 import * as schema from "./schema";
 
 const logger = createLoggerWithContext("db");
 
-const isDevelopment = process.env.NODE_ENV === "development";
-const DEBUG_PERF = process.env.DEBUG_PERF === "true";
-const DB_POOL_EVENT_LOGGING = process.env.DB_POOL_EVENT_LOGGING === "true";
+const isDevelopment = ENV.APP_ENV === "development";
+const DEBUG_PERF = ENV.DEBUG_PERF === true;
+const DB_POOL_EVENT_LOGGING = ENV.DB_POOL_EVENT_LOGGING === true;
 
 const connectionConfig = {
-  max: Number(process.env.DATABASE_POOL_MAX) || (isDevelopment ? 8 : 20),
+  max: ENV.DATABASE_POOL_MAX ?? (isDevelopment ? 8 : 20),
   min: isDevelopment ? 0 : 2,
   idleTimeoutMillis: isDevelopment ? 5000 : 30000,
   connectionTimeoutMillis: 5000,

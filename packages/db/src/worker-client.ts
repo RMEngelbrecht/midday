@@ -2,12 +2,13 @@ import { createLoggerWithContext } from "@midday/logger";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import type { Database } from "./client";
-import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./env";
+import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./connection";
+import { ENV } from "./env";
 import * as schema from "./schema";
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = ENV.APP_ENV === "development";
 const logger = createLoggerWithContext("db:worker");
-const DB_POOL_EVENT_LOGGING = process.env.DB_POOL_EVENT_LOGGING === "true";
+const DB_POOL_EVENT_LOGGING = ENV.DB_POOL_EVENT_LOGGING === true;
 
 /**
  * Worker database client with connection pool optimized for BullMQ concurrent jobs

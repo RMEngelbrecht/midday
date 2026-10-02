@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 import {
   getInvoiceById,
@@ -38,7 +39,7 @@ export const invoicePaymentsRouter = createTRPCRouter({
       });
     }
 
-    const clientId = process.env.STRIPE_CONNECT_CLIENT_ID;
+    const clientId = ENV.STRIPE_CONNECT_CLIENT_ID;
     if (!clientId) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -47,7 +48,7 @@ export const invoicePaymentsRouter = createTRPCRouter({
     }
 
     // Return the REST endpoint URL that handles the OAuth flow
-    const apiUrl = process.env.MIDDAY_API_URL || "https://api.midday.ai";
+    const apiUrl = ENV.API_URL;
     return `${apiUrl}/invoice-payments/connect-stripe`;
   }),
 
@@ -65,11 +66,11 @@ export const invoicePaymentsRouter = createTRPCRouter({
 
       if (team?.stripeAccountId) {
         try {
-          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+          const stripe = new Stripe(ENV.STRIPE_SECRET_KEY!);
 
           // Deauthorize the connected account
           await stripe.oauth.deauthorize({
-            client_id: process.env.STRIPE_CONNECT_CLIENT_ID!,
+            client_id: ENV.STRIPE_CONNECT_CLIENT_ID!,
             stripe_user_id: team.stripeAccountId,
           });
         } catch (err) {
@@ -143,7 +144,7 @@ export const invoicePaymentsRouter = createTRPCRouter({
       }
 
       try {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+        const stripe = new Stripe(ENV.STRIPE_SECRET_KEY!);
 
         // Create refund on the connected account
         const refund = await stripe.refunds.create(

@@ -1,4 +1,5 @@
 import { createLoggerWithContext } from "@midday/logger";
+import { ENV } from "../env";
 import type {
   CustomerEnrichmentResult,
   companyTypeOptions,
@@ -65,7 +66,7 @@ export async function lookupCompany(
   domain: string | null,
   options?: { signal?: AbortSignal },
 ): Promise<LookupResult | null> {
-  const apiKey = process.env.COMPANY_ENRICH_API_KEY;
+  const apiKey = ENV.COMPANY_ENRICH_API_KEY;
   if (!apiKey) {
     logger.warn("COMPANY_ENRICH_API_KEY not set, skipping enrichment");
     return null;

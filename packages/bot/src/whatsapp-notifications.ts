@@ -1,4 +1,5 @@
 import { parseISO } from "date-fns";
+import { ENV } from "./env";
 
 const WHATSAPP_API_URL = "https://graph.facebook.com/v21.0";
 
@@ -14,8 +15,8 @@ export type WhatsAppMatchNotificationParams = {
 };
 
 function getWhatsAppConfig() {
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = ENV.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken = ENV.WHATSAPP_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {
     throw new Error(

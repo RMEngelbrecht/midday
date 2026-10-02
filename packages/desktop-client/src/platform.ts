@@ -6,25 +6,15 @@ export function isDesktopApp() {
 }
 
 /**
- * Returns the deep link scheme for the current environment.
- * Controlled by NEXT_PUBLIC_DESKTOP_SCHEME env var.
- *
- * - Production: "midday"
- * - Staging:    "midday-staging"
- * - Dev:        "midday-dev"
- */
-export function getDesktopScheme(): string {
-  return process.env.NEXT_PUBLIC_DESKTOP_SCHEME || "midday";
-}
-
-/**
- * Returns the deep link base URL (scheme + "://") for the current environment.
+ * Returns the deep link base URL (scheme + "://").
+ * The scheme is a deployment setting (DESKTOP_SCHEME), read on the server and
+ * passed to client code through the dashboard's runtime PublicConfig.
  *
  * @example
- * getDesktopSchemeUrl() // "midday://" in production, "midday-dev://" in dev
+ * getDesktopSchemeUrl("midday") // "midday://"
  */
-export function getDesktopSchemeUrl(): string {
-  return `${getDesktopScheme()}://`;
+export function getDesktopSchemeUrl(scheme: string): string {
+  return `${scheme}://`;
 }
 
 export type DeepLinkHandler = (path: string) => void;
@@ -50,19 +40,14 @@ export async function listenForDeepLinks(handler: DeepLinkHandler) {
 }
 
 /**
- * Generate a deep link URL for the current environment.
+ * Generate a deep link URL.
  * @param path The path to navigate to (without leading slash)
- * @returns The deep link URL
+ * @param scheme The desktop deep link scheme (DESKTOP_SCHEME)
  *
  * @example
- * ```typescript
- * // In production:
- * createDeepLink('dashboard');           // "midday://dashboard"
- * // In dev:
- * createDeepLink('transactions/123');    // "midday-dev://transactions/123"
- * ```
+ * createDeepLink("transactions/123", "midday-dev"); // "midday-dev://transactions/123"
  */
-export function createDeepLink(path: string): string {
+export function createDeepLink(path: string, scheme: string): string {
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  return `${getDesktopSchemeUrl()}${cleanPath}`;
+  return `${getDesktopSchemeUrl(scheme)}${cleanPath}`;
 }

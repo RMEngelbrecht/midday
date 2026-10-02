@@ -1,6 +1,7 @@
 import type { MCPClient } from "@ai-sdk/mcp";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { openai } from "@ai-sdk/openai";
+import { ENV } from "@api/env";
 import { createMcpServer } from "@api/mcp/server";
 import type { McpContext } from "@api/mcp/types";
 import { expandScopes } from "@api/utils/scopes";
@@ -131,7 +132,7 @@ export function warmToolIndex(): void {
     userId: "warmup",
     userEmail: null,
     scopes: expandScopes(["apis.all"]) as McpContext["scopes"],
-    apiUrl: process.env.MIDDAY_API_URL ?? "https://api.midday.ai",
+    apiUrl: ENV.API_URL,
     timezone: "UTC",
     locale: "en",
     countryCode: null,

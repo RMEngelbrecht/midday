@@ -1,6 +1,7 @@
 import { createLoggerWithContext } from "@midday/logger";
 import type { QueueOptions } from "bullmq";
 import { Queue } from "bullmq";
+import { ENV } from "./env";
 
 const queues: Map<string, Queue> = new Map();
 
@@ -12,16 +13,14 @@ const logger = createLoggerWithContext("job-client");
  * BullMQ will create and manage its own Redis connection
  */
 function getConnectionOptions() {
-  const redisUrl = process.env.REDIS_QUEUE_URL;
+  const redisUrl = ENV.REDIS_QUEUE_URL;
 
   if (!redisUrl) {
     throw new Error("REDIS_QUEUE_URL environment variable is required");
   }
 
   const url = new URL(redisUrl);
-  const isProduction =
-    process.env.NODE_ENV === "production" ||
-    process.env.RAILWAY_ENVIRONMENT === "production";
+  const isProduction = ENV.APP_ENV === "production";
 
   return {
     host: url.hostname,

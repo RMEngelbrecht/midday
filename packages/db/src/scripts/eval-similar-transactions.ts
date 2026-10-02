@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { ENV } from "../env";
 import { calculateNameScore } from "../utils/transaction-matching";
 
 const MIN_SIMILARITY_THRESHOLD = 0.6;
@@ -353,7 +354,7 @@ async function main() {
     );
     console.log("");
     console.log("Required env:");
-    console.log("  DATABASE_PRIMARY_URL or DATABASE_URL");
+    console.log("  DATABASE_URL");
     return;
   }
 
@@ -364,18 +365,15 @@ async function main() {
     process.exit(1);
   }
 
-  const dbUrl = process.env.DATABASE_PRIMARY_URL || process.env.DATABASE_URL;
+  const dbUrl = ENV.DATABASE_URL;
   if (!dbUrl) {
-    console.error("Error: DATABASE_PRIMARY_URL or DATABASE_URL is required");
+    console.error("Error: DATABASE_URL is required");
     process.exit(1);
   }
 
   const pool = new Pool({
     connectionString: dbUrl,
-    ssl:
-      process.env.NODE_ENV === "development"
-        ? false
-        : { rejectUnauthorized: false },
+    ssl: ENV.APP_ENV === "development" ? false : { rejectUnauthorized: false },
     max: 2,
   });
 

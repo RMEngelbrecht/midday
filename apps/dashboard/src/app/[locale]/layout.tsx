@@ -8,7 +8,9 @@ import { Hedvig_Letters_Sans, Hedvig_Letters_Serif } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactElement } from "react";
 import { DesktopHeader } from "@/components/desktop-header";
+import { PublicConfigProvider } from "@/components/public-config-provider";
 import { isDesktopApp } from "@/utils/desktop";
+import { getPublicConfig } from "@/utils/public-config.server";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -90,6 +92,8 @@ export default async function Layout({
 }) {
   const { locale } = await params;
   const isDesktop = await isDesktopApp();
+  // Resolved from env at request time, never inlined at build time.
+  const publicConfig = getPublicConfig();
 
   return (
     <html
@@ -103,15 +107,17 @@ export default async function Layout({
           "whitespace-pre-line overscroll-none antialiased",
         )}
       >
-        <DesktopHeader />
+        <PublicConfigProvider config={publicConfig}>
+          <DesktopHeader />
 
-        <NuqsAdapter>
-          <Providers locale={locale}>
-            {children}
-            <Toaster />
-          </Providers>
-          <Analytics />
-        </NuqsAdapter>
+          <NuqsAdapter>
+            <Providers locale={locale}>
+              {children}
+              <Toaster />
+            </Providers>
+            <Analytics clientId={publicConfig.openpanelClientId ?? undefined} />
+          </NuqsAdapter>
+        </PublicConfigProvider>
       </body>
     </html>
   );

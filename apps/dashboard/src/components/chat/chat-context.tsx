@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { getAccessToken } from "@/utils/session";
 
 export type RateLimitInfo = { limit: number; remaining: number };
@@ -45,6 +46,7 @@ export function useChatState() {
 }
 
 export function ChatProvider({ children }: { children: ReactNode }) {
+  const { apiUrl } = usePublicConfig();
   const { track } = useOpenPanel();
 
   const [inputValue, setInputValue] = useState("");
@@ -74,7 +76,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const chatTransport = useMemo(
     () =>
       new DefaultChatTransport({
-        api: `${process.env.NEXT_PUBLIC_API_URL}/chat`,
+        api: `${apiUrl}/chat`,
         headers: async () => {
           const token = await getAccessToken();
           const timezone =

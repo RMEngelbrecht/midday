@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { publicMiddleware } from "@api/rest/middleware";
 import type { Context } from "@api/rest/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
@@ -136,9 +137,9 @@ app.openapi(
 
     try {
       // Exchange authorization code for access token
-      const slackClientId = process.env.SLACK_CLIENT_ID;
-      const slackClientSecret = process.env.SLACK_CLIENT_SECRET;
-      const slackRedirectUri = process.env.SLACK_OAUTH_REDIRECT_URL;
+      const slackClientId = ENV.SLACK_CLIENT_ID;
+      const slackClientSecret = ENV.SLACK_CLIENT_SECRET;
+      const slackRedirectUri = ENV.SLACK_OAUTH_REDIRECT_URL;
 
       if (!slackClientId || !slackClientSecret || !slackRedirectUri) {
         throw new HTTPException(500, {
@@ -257,8 +258,7 @@ app.openapi(
       });
 
       // Build redirect URL to dashboard
-      const dashboardUrl =
-        process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
+      const dashboardUrl = ENV.APP_URL;
 
       return c.redirect(`${dashboardUrl}/oauth-callback?status=success`, 302);
     } catch (err) {

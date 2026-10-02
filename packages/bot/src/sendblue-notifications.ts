@@ -1,9 +1,10 @@
 import SendblueAPI from "sendblue";
+import { ENV } from "./env";
 
 function getSendblueConfig() {
-  const apiKey = process.env.SENDBLUE_API_KEY;
-  const apiSecret = process.env.SENDBLUE_API_SECRET;
-  const fromNumber = process.env.SENDBLUE_FROM_NUMBER;
+  const apiKey = ENV.SENDBLUE_API_KEY;
+  const apiSecret = ENV.SENDBLUE_API_SECRET;
+  const fromNumber = ENV.SENDBLUE_FROM_NUMBER;
 
   if (!apiKey || !apiSecret || !fromNumber) {
     throw new Error(
@@ -26,6 +27,6 @@ export async function sendSendblueTextNotification(params: {
     content: params.text,
     from_number: fromNumber,
     number: params.phoneNumber,
-    status_callback: process.env.SENDBLUE_STATUS_CALLBACK_URL,
+    status_callback: ENV.SENDBLUE_STATUS_CALLBACK_URL,
   });
 }

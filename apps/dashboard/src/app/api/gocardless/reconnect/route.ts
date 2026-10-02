@@ -2,10 +2,10 @@ import { getSession } from "@midday/supabase/cached-queries";
 import { updateBankConnection } from "@midday/supabase/mutations";
 import { createClient } from "@midday/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
-import { getUrl } from "@/utils/environment";
+import { ENV } from "@/env";
 
 export async function GET(req: NextRequest) {
-  const origin = getUrl();
+  const origin = ENV.APP_URL;
   const {
     data: { session },
   } = await getSession();
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (isDesktop === "true") {
-    const scheme = process.env.NEXT_PUBLIC_DESKTOP_SCHEME || "midday";
+    const scheme = ENV.DESKTOP_SCHEME;
     return NextResponse.redirect(
       `${scheme}://settings/accounts?id=${id}&step=reconnect`,
     );

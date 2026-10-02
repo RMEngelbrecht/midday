@@ -1,9 +1,10 @@
+import { ENV } from "@api/env";
 import type { Session } from "@api/utils/auth";
 import { replicationCache } from "@midday/cache/replication-cache";
 import type { Database, DatabaseWithPrimary } from "@midday/db/client";
 import { createLoggerWithContext } from "@midday/logger";
 
-const DEBUG_PERF = process.env.DEBUG_PERF === "true";
+const DEBUG_PERF = ENV.DEBUG_PERF === true;
 const perfLogger = createLoggerWithContext("perf:trpc");
 
 export const withPrimaryReadAfterWrite = async <TReturn>(opts: {

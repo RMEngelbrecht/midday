@@ -12,6 +12,7 @@ import { Sheet, SheetContent } from "@midday/ui/sheet";
 import { format } from "date-fns";
 import { useCallback, useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { SavingBar } from "@/components/saving-bar";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { useTemplateUpdate } from "@/hooks/use-template-update";
@@ -129,6 +130,7 @@ function EditableMultilineText({
 }
 
 export function EmailPreview() {
+  const { apiUrl } = usePublicConfig();
   const { emailPreview, setParams } = useInvoiceParams();
   const { watch, setValue } = useFormContext();
   const { data: user } = useUserQuery();
@@ -333,7 +335,7 @@ export function EmailPreview() {
                   ? `invoice-${invoiceNumber}.pdf`
                   : "invoice.pdf";
                 downloadFile(
-                  `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice?token=${token}`,
+                  `${apiUrl}/files/download/invoice?token=${token}`,
                   filename,
                 );
               }}

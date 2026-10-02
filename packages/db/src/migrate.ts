@@ -11,7 +11,7 @@ import path from "node:path";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Client } from "pg";
-import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./env";
+import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./connection";
 
 // Arbitrary constant shared by every migrator process.
 const MIGRATION_LOCK_ID = 727_001;

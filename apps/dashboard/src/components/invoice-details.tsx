@@ -14,12 +14,12 @@ import { cn } from "@midday/ui/cn";
 import { Icons } from "@midday/ui/icons";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useFileUrl } from "@/hooks/use-file-url";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { useUserQuery } from "@/hooks/use-user";
 import { downloadFile } from "@/lib/download";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import { getWebsiteLogo } from "@/utils/logos";
 import { CopyInput } from "./copy-input";
 import { FormatAmount } from "./format-amount";
@@ -31,6 +31,7 @@ import { InvoiceStatus } from "./invoice-status";
 import { OpenURL } from "./open-url";
 
 export function InvoiceDetails() {
+  const { appUrl } = usePublicConfig();
   const trpc = useTRPC();
   const { invoiceId } = useInvoiceParams();
   const { data: user } = useUserQuery();
@@ -418,10 +419,10 @@ export function InvoiceDetails() {
             <span className="text-sm text-[#606060]">Invoice link</span>
             <div className="flex w-full gap-2">
               <div className="flex-1 min-w-0 relative">
-                <CopyInput value={`${getUrl()}/i/${token}`} className="pr-14" />
+                <CopyInput value={`${appUrl}/i/${token}`} className="pr-14" />
 
                 <div className="absolute right-10 top-[11px] border-r border-border pr-2">
-                  <OpenURL href={`${getUrl()}/i/${token}`}>
+                  <OpenURL href={`${appUrl}/i/${token}`}>
                     <Icons.OpenInNew />
                   </OpenURL>
                 </div>

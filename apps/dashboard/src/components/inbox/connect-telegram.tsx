@@ -14,6 +14,7 @@ import { Spinner } from "@midday/ui/spinner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useTRPC } from "@/trpc/client";
 import { useConnectDialogReset } from "./use-connect-dialog";
 
@@ -22,6 +23,7 @@ interface ConnectTelegramProps {
 }
 
 export function ConnectTelegram({ showTrigger = true }: ConnectTelegramProps) {
+  const { telegramBotUsername } = usePublicConfig();
   const trpc = useTRPC();
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -54,8 +56,6 @@ export function ConnectTelegram({ showTrigger = true }: ConnectTelegramProps) {
     resetMutation: () => createLinkTokenMutation.reset(),
   });
 
-  const telegramBotUsername =
-    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "";
   const telegramUrl =
     telegramBotUsername && linkCode
       ? `https://t.me/${telegramBotUsername}?start=${encodeURIComponent(linkCode)}`

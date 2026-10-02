@@ -1,6 +1,7 @@
 import { stripSpecialCharacters } from "@midday/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import * as tus from "tus-js-client";
+import { getClientPublicConfig } from "@/components/public-config-provider";
 
 type ResumableUploadParmas = {
   file: File;
@@ -21,9 +22,11 @@ export async function resumableUpload(
 
   const fullPath = decodeURIComponent([...path, filename].join("/"));
 
+  const supabaseUrl = getClientPublicConfig().supabase?.url;
+
   return new Promise((resolve, reject) => {
     const upload = new tus.Upload(file, {
-      endpoint: `https://${process.env.NEXT_PUBLIC_SUPABASE_ID}.supabase.co/storage/v1/upload/resumable`,
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
       retryDelays: [0, 3000, 5000, 10000],
       headers: {
         authorization: `Bearer ${session?.access_token}`,

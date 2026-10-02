@@ -26,18 +26,16 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Track error with Sentry in production
-    if (process.env.NODE_ENV === "production") {
-      import("@sentry/nextjs").then((Sentry) => {
-        Sentry.captureException(error, {
-          contexts: {
-            react: {
-              componentStack: errorInfo.componentStack,
-            },
+    // No-op unless Sentry was initialized (SENTRY_DSN, production).
+    import("@sentry/nextjs").then((Sentry) => {
+      Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
           },
-        });
+        },
       });
-    }
+    });
 
     // Call optional error handler
     this.props.onError?.(error, errorInfo);

@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import {
   createShortLinkForDocumentSchema,
   createShortLinkSchema,
@@ -32,7 +33,7 @@ export const shortLinksRouter = createTRPCRouter({
 
       return {
         ...result,
-        shortUrl: `${process.env.MIDDAY_DASHBOARD_URL}/s/${result.shortId}`,
+        shortUrl: `${ENV.APP_URL}/s/${result.shortId}`,
       };
     }),
 
@@ -85,7 +86,7 @@ export const shortLinksRouter = createTRPCRouter({
 
       return {
         ...result,
-        shortUrl: `${process.env.MIDDAY_DASHBOARD_URL}/s/${result.shortId}`,
+        shortUrl: `${ENV.APP_URL}/s/${result.shortId}`,
         originalUrl: response.data.signedUrl,
       };
     }),

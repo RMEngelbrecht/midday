@@ -17,7 +17,6 @@
     "@chat-adapter/state-redis": "^4.23.0",
     "@chat-adapter/telegram": "^4.23.0",
     "@chat-adapter/whatsapp": "^4.23.0",
-    "chat-adapter-sendblue": "^0.2.0",
     "@midday/app-store": "workspace:*",
     "@midday/cache": "workspace:*",
     "@midday/db": "workspace:*",
@@ -27,7 +26,9 @@
     "@midday/supabase": "workspace:*",
     "@midday/utils": "workspace:*",
     "chat": "^4.23.0",
-    "nanoid": "catalog:"
+    "chat-adapter-sendblue": "^0.2.0",
+    "nanoid": "catalog:",
+    "varlock": "catalog:"
   },
   "devDependencies": {
     "@midday/tsconfig": "workspace:*",

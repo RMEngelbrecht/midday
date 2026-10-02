@@ -11,6 +11,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createLoggerWithContext } from "@midday/logger";
 import { generateObject, generateText } from "ai";
 import { z } from "zod/v4";
+import { ENV } from "../env";
 
 const logger = createLoggerWithContext("insights:generator");
 
@@ -35,7 +36,7 @@ import {
 } from "./prompts/index";
 
 const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: ENV.OPENAI_API_KEY!,
 });
 
 export type ContentGeneratorOptions = {

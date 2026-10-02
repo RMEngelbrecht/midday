@@ -3,6 +3,7 @@
 import { getDesktopSchemeUrl } from "@midday/desktop-client/platform";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import appIcon from "../../public/appicon.png";
 
 interface CheckoutSuccessDesktopProps {
@@ -13,7 +14,8 @@ export function CheckoutSuccessDesktop({
   redirectPath,
 }: CheckoutSuccessDesktopProps) {
   const hasRunned = useRef(false);
-  const schemeUrl = getDesktopSchemeUrl();
+  const { desktopScheme } = usePublicConfig();
+  const schemeUrl = getDesktopSchemeUrl(desktopScheme);
 
   useEffect(() => {
     if (redirectPath && !hasRunned.current) {

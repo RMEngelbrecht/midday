@@ -1,3 +1,4 @@
+import { ENV } from "@/env";
 import "server-only";
 
 import type { AppRouter } from "@midday/api/trpc/routers/_app";
@@ -20,10 +21,8 @@ import {
 //            will return the same client during the same request.
 export const getQueryClient = cache(makeQueryClient);
 
-// Server-side: prefer Railway private networking (skips DNS + TLS + Cloudflare)
-// Falls back to public URL for local dev / non-Railway environments
-const API_BASE_URL =
-  process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL;
+// Server-side: API_INTERNAL_URL (private network) defaults to API_URL.
+const API_BASE_URL = ENV.API_INTERNAL_URL ?? ENV.API_URL;
 
 const SSR_FETCH_TIMEOUT_MS = 8_000;
 
@@ -67,7 +66,7 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
       }),
       loggerLink({
         enabled: (opts) =>
-          process.env.NODE_ENV === "development" ||
+          ENV.APP_ENV === "development" ||
           (opts.direction === "down" && opts.result instanceof Error),
       }),
     ],

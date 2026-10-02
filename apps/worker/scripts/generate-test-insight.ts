@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Script to manually trigger insight generation for testing
  *
@@ -25,6 +26,7 @@ import { getWorkerDb } from "@midday/db/worker-client";
 import { getPreviousCompletePeriod } from "@midday/insights/period";
 import type { PeriodType } from "@midday/insights/types";
 import { Queue } from "bullmq";
+import { ENV } from "../src/env";
 
 async function main() {
   const rawArgs = process.argv.slice(2);
@@ -90,7 +92,7 @@ async function main() {
   console.log();
 
   // Create queue connection directly
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = ENV.REDIS_URL;
 
   if (!redisUrl) {
     console.error("❌ REDIS_URL environment variable is required");

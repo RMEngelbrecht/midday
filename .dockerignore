@@ -1,0 +1,5 @@
+# Never bake local env values into images; runtime config comes from the
+# container environment and is validated by varlock at startup.
+**/.env
+**/.env.local
+**/.env.*.local

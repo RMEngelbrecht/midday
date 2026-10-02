@@ -20,6 +20,7 @@ import { useToast } from "@midday/ui/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useAppOAuth } from "@/hooks/use-app-oauth";
 import { useTRPC } from "@/trpc/client";
 import { getScopeDescription } from "@/utils/scopes";
@@ -204,6 +205,7 @@ function AppHeroBanner({ app }: { app: UnifiedApp }) {
 }
 
 export function UnifiedAppComponent({ app }: UnifiedAppProps) {
+  const { apiUrl } = usePublicConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -439,6 +441,7 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
         }, 30000); // 30 second timeout as fallback
 
         await app.onInitialize({
+          apiUrl,
           accessToken: session.access_token,
           onComplete: () => {
             clearTimeout(timeoutId);

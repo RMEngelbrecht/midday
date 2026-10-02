@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { createRemoteJWKSet, type JWTPayload, jwtVerify } from "jose";
 
 export type Session = {
@@ -20,13 +21,13 @@ type SupabaseJWTPayload = JWTPayload & {
 // Primary: verify via JWKS (asymmetric ES256/RS256). jose caches the
 // keyset in memory so only the first call hits the network.
 const JWKS = createRemoteJWKSet(
-  new URL(`${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
+  new URL(`${ENV.SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
 );
 
 // Fallback: HS256 shared secret for tokens issued before key rotation.
 // Remove this once the legacy JWT secret is revoked in Supabase.
-const HS256_SECRET = process.env.SUPABASE_JWT_SECRET
-  ? new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET)
+const HS256_SECRET = ENV.SUPABASE_JWT_SECRET
+  ? new TextEncoder().encode(ENV.SUPABASE_JWT_SECRET)
   : null;
 
 function extractSession(payload: JWTPayload): Session {

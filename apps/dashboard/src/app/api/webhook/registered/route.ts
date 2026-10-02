@@ -5,6 +5,7 @@ import type { OnboardTeamPayload } from "@midday/jobs/schema";
 import { tasks } from "@trigger.dev/sdk";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { ENV } from "@/env";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
   const decodedSignature = Buffer.from(signature, "base64");
 
   const calculatedSignature = crypto
-    .createHmac("sha256", process.env.WEBHOOK_SECRET_KEY!)
+    .createHmac("sha256", ENV.WEBHOOK_SECRET_KEY!)
     .update(text)
     .digest();
 

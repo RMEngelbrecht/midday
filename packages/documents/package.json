@@ -16,7 +16,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "test": "bun test --exit src"
+    "test": "APP_ENV=test varlock run -- bun test --exit src"
   },
   "dependencies": {
     "@ai-sdk/google": "catalog:",
@@ -30,6 +30,7 @@
     "mammoth": "^1.11.0",
     "officeparser": "5.2.2",
     "unpdf": "^1.4.0",
+    "varlock": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

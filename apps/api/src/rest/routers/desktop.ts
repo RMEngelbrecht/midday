@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import type { Context } from "@api/rest/types";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
@@ -43,8 +44,8 @@ function getGitHubHeaders(): Record<string, string> {
     "User-Agent": "Midday-Desktop-Updater",
   };
 
-  if (process.env.GITHUB_RELEASE_TOKEN) {
-    headers.Authorization = `Bearer ${process.env.GITHUB_RELEASE_TOKEN}`;
+  if (ENV.GITHUB_RELEASE_TOKEN) {
+    headers.Authorization = `Bearer ${ENV.GITHUB_RELEASE_TOKEN}`;
   }
 
   return headers;

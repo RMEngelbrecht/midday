@@ -24,6 +24,7 @@
     "@midday/logger": "workspace:*",
     "ai": "catalog:",
     "date-fns": "catalog:",
+    "varlock": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

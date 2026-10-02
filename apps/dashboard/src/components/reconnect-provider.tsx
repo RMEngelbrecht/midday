@@ -15,9 +15,9 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { useScript } from "usehooks-ts";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useTeamQuery } from "@/hooks/use-team";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 
 /**
  * Callback type for when a provider reconnect flow completes.
@@ -51,6 +51,7 @@ export function ReconnectProvider({
   onComplete,
   variant,
 }: Props) {
+  const { appUrl, plaidEnvironment, teller: tellerConfig } = usePublicConfig();
   const { toast } = useToast();
   const { theme } = useTheme();
   const trpc = useTRPC();
@@ -87,7 +88,7 @@ export function ReconnectProvider({
   const { open: openPlaid } = usePlaidLink({
     token: plaidToken,
     publicKey: "",
-    env: process.env.NEXT_PUBLIC_PLAID_ENVIRONMENT!,
+    env: plaidEnvironment,
     clientName: "Midday",
     product: ["transactions"],
     onSuccess: () => {
@@ -103,8 +104,8 @@ export function ReconnectProvider({
   const openTeller = () => {
     // @ts-expect-error
     const teller = window.TellerConnect.setup({
-      applicationId: process.env.NEXT_PUBLIC_TELLER_APPLICATION_ID!,
-      environment: process.env.NEXT_PUBLIC_TELLER_ENVIRONMENT,
+      applicationId: tellerConfig?.applicationId ?? "",
+      environment: tellerConfig?.environment,
       enrollmentId,
       appearance: theme,
       onSuccess: () => {
@@ -141,7 +142,7 @@ export function ReconnectProvider({
 
         setIsLoading(true);
         const reference = `${team.id}:${nanoid()}`;
-        const link = new URL(`${getUrl()}/api/gocardless/reconnect`);
+        const link = new URL(`${appUrl}/api/gocardless/reconnect`);
         link.searchParams.append("id", id);
 
         if (isDesktopApp()) {

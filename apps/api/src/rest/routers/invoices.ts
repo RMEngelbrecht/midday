@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import type { Context } from "@api/rest/types";
 import {
   deleteInvoiceResponseSchema,
@@ -121,13 +122,10 @@ app.openapi(
           ...invoiceWithoutToken,
           ...calculatedAmounts,
           pdfUrl:
-            token && process.env.MIDDAY_DASHBOARD_URL
-              ? `${process.env.MIDDAY_DASHBOARD_URL}/api/download/invoice?token=${token}`
+            token && ENV.APP_URL
+              ? `${ENV.APP_URL}/api/download/invoice?token=${token}`
               : null,
-          previewUrl:
-            token && process.env.MIDDAY_DASHBOARD_URL
-              ? `${process.env.MIDDAY_DASHBOARD_URL}/i/${token}`
-              : null,
+          previewUrl: token && ENV.APP_URL ? `${ENV.APP_URL}/i/${token}` : null,
         };
       }),
     };
@@ -300,13 +298,10 @@ app.openapi(
         ? JSON.stringify(result.bottomBlock)
         : null,
       pdfUrl:
-        token && process.env.MIDDAY_DASHBOARD_URL
-          ? `${process.env.MIDDAY_DASHBOARD_URL}/api/download/invoice?token=${token}`
+        token && ENV.APP_URL
+          ? `${ENV.APP_URL}/api/download/invoice?token=${token}`
           : null,
-      previewUrl:
-        token && process.env.MIDDAY_DASHBOARD_URL
-          ? `${process.env.MIDDAY_DASHBOARD_URL}/i/${token}`
-          : null,
+      previewUrl: token && ENV.APP_URL ? `${ENV.APP_URL}/i/${token}` : null,
     };
 
     return c.json(validateResponse(response, invoiceResponseSchema));
@@ -614,13 +609,10 @@ app.openapi(
         ? JSON.stringify(result.bottomBlock)
         : null,
       pdfUrl:
-        token && process.env.MIDDAY_DASHBOARD_URL
-          ? `${process.env.MIDDAY_DASHBOARD_URL}/api/download/invoice?token=${token}`
+        token && ENV.APP_URL
+          ? `${ENV.APP_URL}/api/download/invoice?token=${token}`
           : null,
-      previewUrl:
-        token && process.env.MIDDAY_DASHBOARD_URL
-          ? `${process.env.MIDDAY_DASHBOARD_URL}/i/${token}`
-          : null,
+      previewUrl: token && ENV.APP_URL ? `${ENV.APP_URL}/i/${token}` : null,
     };
 
     return c.json(validateResponse(response, draftInvoiceResponseSchema), 201);
@@ -700,13 +692,10 @@ app.openapi(
         ? JSON.stringify(result.bottomBlock)
         : null,
       pdfUrl:
-        token && process.env.MIDDAY_DASHBOARD_URL
-          ? `${process.env.MIDDAY_DASHBOARD_URL}/api/download/invoice?token=${token}`
+        token && ENV.APP_URL
+          ? `${ENV.APP_URL}/api/download/invoice?token=${token}`
           : null,
-      previewUrl:
-        token && process.env.MIDDAY_DASHBOARD_URL
-          ? `${process.env.MIDDAY_DASHBOARD_URL}/i/${token}`
-          : null,
+      previewUrl: token && ENV.APP_URL ? `${ENV.APP_URL}/i/${token}` : null,
     };
 
     return c.json(validateResponse(response, updateInvoiceResponseSchema));

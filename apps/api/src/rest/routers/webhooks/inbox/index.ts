@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import type { Context } from "@api/rest/types";
 import { resend } from "@api/services/resend";
 import { createAdminClient } from "@api/services/supabase";
@@ -24,19 +25,19 @@ const app = new OpenAPIHono<Context>();
 // HTTP Basic Authentication
 // Postmark supports basic auth by including credentials in the webhook URL:
 // https://username:password@domain.com/webhook/inbox
-if (process.env.INBOX_WEBHOOK_USERNAME && process.env.INBOX_WEBHOOK_PASSWORD) {
+if (ENV.INBOX_WEBHOOK_USERNAME && ENV.INBOX_WEBHOOK_PASSWORD) {
   app.use(
     "*",
     basicAuth({
-      username: process.env.INBOX_WEBHOOK_USERNAME,
-      password: process.env.INBOX_WEBHOOK_PASSWORD,
+      username: ENV.INBOX_WEBHOOK_USERNAME,
+      password: ENV.INBOX_WEBHOOK_PASSWORD,
     }),
   );
 }
 
 // IP address validation
 app.use("*", async (c, next) => {
-  if (process.env.NODE_ENV === "development") {
+  if (ENV.APP_ENV === "development") {
     await next();
     return;
   }

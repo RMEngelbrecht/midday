@@ -1,11 +1,12 @@
 export const onInitialize = async ({
   accessToken,
+  apiUrl,
   onComplete,
 }: {
   accessToken: string;
+  apiUrl: string;
   onComplete?: () => void;
 }) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const response = await fetch(`${apiUrl}/apps/slack/install-url`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,

@@ -7,6 +7,6 @@ export default {
   casing: "snake_case",
   schemaFilter: ["public", "auth"],
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? process.env.DATABASE_PRIMARY_URL ?? "",
+    url: process.env.DATABASE_URL ?? "",
   },
 } satisfies Config;

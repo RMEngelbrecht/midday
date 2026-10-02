@@ -5,6 +5,7 @@ import {
   type PeriodType,
 } from "@midday/insights";
 import type { Job } from "bullmq";
+import { ENV } from "../../env";
 import { insightsQueue } from "../../queues/insights";
 import { getDb } from "../../utils/db";
 import { BaseProcessor } from "../base";
@@ -59,7 +60,7 @@ export class DispatchInsightsProcessor extends BaseProcessor<DispatchInsightsPay
   async process(job: Job<DispatchInsightsPayload>): Promise<ProcessResult> {
     const { periodType } = job.data;
 
-    if (process.env.INSIGHTS_ENABLED !== "true") {
+    if (ENV.INSIGHTS_ENABLED !== true) {
       this.logger.info(
         "Insights generation disabled (INSIGHTS_ENABLED != true)",
         {

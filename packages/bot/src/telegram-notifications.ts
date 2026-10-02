@@ -1,8 +1,10 @@
+import { ENV } from "./env";
+
 const TELEGRAM_API_URL =
-  process.env.TELEGRAM_API_BASE_URL || "https://api.telegram.org";
+  ENV.TELEGRAM_API_BASE_URL || "https://api.telegram.org";
 
 function getTelegramConfig() {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const botToken = ENV.TELEGRAM_BOT_TOKEN;
 
   if (!botToken) {
     throw new Error(

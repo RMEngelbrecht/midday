@@ -8,10 +8,11 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "test": "bun test --exit src"
+    "test": "APP_ENV=test varlock run -- bun test --exit src"
   },
   "dependencies": {
-    "jose": "catalog:"
+    "jose": "catalog:",
+    "varlock": "catalog:"
   },
   "devDependencies": {
     "@types/node": "latest"

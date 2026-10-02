@@ -119,14 +119,12 @@ export function Apps() {
       type: "official" as const,
       onInitialize:
         "onInitialize" in app && typeof app.onInitialize === "function"
-          ? async ({
-              accessToken,
-              onComplete,
-            }: {
+          ? async (params: {
               accessToken: string;
+              apiUrl: string;
               onComplete?: () => void;
             }) => {
-              const result = app.onInitialize({ accessToken, onComplete });
+              const result = app.onInitialize(params);
               return result instanceof Promise
                 ? result
                 : Promise.resolve(result);

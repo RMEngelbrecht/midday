@@ -30,12 +30,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useCopyToClipboard } from "usehooks-ts";
 import { OpenURL } from "@/components/open-url";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useFileUrl } from "@/hooks/use-file-url";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { useUserQuery } from "@/hooks/use-user";
 import { downloadFile } from "@/lib/download";
 import { useTRPC } from "@/trpc/client";
-import { getUrl } from "@/utils/environment";
 import type { Invoice } from "./columns";
 
 type Props = {
@@ -43,6 +43,7 @@ type Props = {
 };
 
 export function ActionsMenu({ row }: Props) {
+  const { apiUrl, appUrl } = usePublicConfig();
   const trpc = useTRPC();
   const { data: user } = useUserQuery();
   const queryClient = useQueryClient();
@@ -237,7 +238,7 @@ export function ActionsMenu({ row }: Props) {
   );
 
   const handleCopyLink = async () => {
-    copy(`${getUrl()}/i/${row.token}`);
+    copy(`${appUrl}/i/${row.token}`);
 
     toast({
       duration: 4000,
@@ -270,7 +271,7 @@ export function ActionsMenu({ row }: Props) {
           )}
 
           <DropdownMenuItem>
-            <OpenURL href={`${getUrl()}/i/${row.token}`}>Open invoice</OpenURL>
+            <OpenURL href={`${appUrl}/i/${row.token}`}>Open invoice</OpenURL>
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={handleCopyLink}>
@@ -284,9 +285,7 @@ export function ActionsMenu({ row }: Props) {
                   console.error("File key not available");
                   return;
                 }
-                const url = new URL(
-                  `${process.env.NEXT_PUBLIC_API_URL}/files/download/invoice`,
-                );
+                const url = new URL(`${apiUrl}/files/download/invoice`);
                 url.searchParams.set("id", row.id);
                 url.searchParams.set("fk", user.fileKey);
                 downloadFile(

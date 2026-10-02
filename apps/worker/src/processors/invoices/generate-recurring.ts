@@ -15,6 +15,7 @@ import type { Job } from "bullmq";
 import { addDays } from "date-fns";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_JOB_OPTIONS } from "../../config/job-options";
+import { ENV } from "../../env";
 import {
   RecurringInvoiceError,
   RecurringInvoiceErrors,
@@ -64,7 +65,7 @@ export class InvoiceRecurringSchedulerProcessor extends BaseProcessor<InvoiceRec
     _job: Job<InvoiceRecurringSchedulerPayload>,
   ): Promise<ProcessResult> {
     // Kill switch - can be toggled without deploy via environment variable
-    if (process.env.DISABLE_RECURRING_INVOICES === "true") {
+    if (ENV.DISABLE_RECURRING_INVOICES === true) {
       this.logger.warn(
         "Recurring invoice scheduler disabled via DISABLE_RECURRING_INVOICES",
       );

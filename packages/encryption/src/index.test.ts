@@ -1,22 +1,11 @@
-import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
-import crypto from "node:crypto";
+import { describe, expect, it } from "bun:test";
 import { decrypt, encrypt } from "./index";
+
+// MIDDAY_ENCRYPTION_KEY comes from the root `.env.test` (loaded by `varlock run`).
 
 describe("Encryption/Decryption", () => {
   const plaintext = "This is a secret message.";
   const emptyPlaintext = "";
-  let validKey: string;
-
-  beforeAll(() => {
-    // Generate a valid 32-byte key for testing
-    validKey = crypto.randomBytes(32).toString("hex");
-  });
-
-  beforeEach(() => {
-    // Set the environment variable before each test
-    process.env.MIDDAY_ENCRYPTION_KEY = validKey;
-  });
-
   it("should encrypt and decrypt a string successfully", () => {
     const encrypted = encrypt(plaintext);
     expect(typeof encrypted).toBe("string");

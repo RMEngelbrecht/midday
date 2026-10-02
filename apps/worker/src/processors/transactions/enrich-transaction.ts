@@ -7,6 +7,7 @@ import {
 } from "@midday/db/queries";
 import { generateObject } from "ai";
 import type { Job } from "bullmq";
+import { ENV } from "../../env";
 import type { EnrichTransactionsPayload } from "../../schemas/transactions";
 import { getDb } from "../../utils/db";
 import {
@@ -21,7 +22,7 @@ import { BaseProcessor } from "../base";
 const BATCH_SIZE = 50;
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
 });
 
 /**

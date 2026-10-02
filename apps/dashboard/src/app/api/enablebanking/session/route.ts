@@ -1,11 +1,11 @@
 import { getSession } from "@midday/supabase/cached-queries";
 import { sanitizeRedirectPath } from "@midday/utils/sanitize-redirect";
 import { type NextRequest, NextResponse } from "next/server";
+import { ENV } from "@/env";
 import { getTRPCClient } from "@/trpc/server";
-import { getUrl } from "@/utils/environment";
 
 export async function GET(request: NextRequest) {
-  const origin = getUrl();
+  const origin = ENV.APP_URL;
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const thirdSegment = stateParts[2];
 
   const isDesktop = type === "desktop";
-  const scheme = process.env.NEXT_PUBLIC_DESKTOP_SCHEME || "midday";
+  const scheme = ENV.DESKTOP_SCHEME;
   const redirectBase = isDesktop ? `${scheme}://` : origin;
 
   if (!code) {

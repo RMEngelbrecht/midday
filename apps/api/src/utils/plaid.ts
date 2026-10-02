@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { ENV } from "@api/env";
 import { decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 import {
   Configuration,
@@ -15,12 +16,11 @@ const KEY_CACHE = new Map<
 function getPlaidClient() {
   return new PlaidApi(
     new Configuration({
-      basePath:
-        PlaidEnvironments[process.env.PLAID_ENVIRONMENT ?? "production"],
+      basePath: PlaidEnvironments[ENV.PLAID_ENVIRONMENT],
       baseOptions: {
         headers: {
-          "PLAID-CLIENT-ID": process.env.PLAID_CLIENT_ID!,
-          "PLAID-SECRET": process.env.PLAID_SECRET!,
+          "PLAID-CLIENT-ID": ENV.PLAID_CLIENT_ID!,
+          "PLAID-SECRET": ENV.PLAID_SECRET!,
         },
       },
     }),

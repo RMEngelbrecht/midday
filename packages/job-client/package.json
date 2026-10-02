@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@midday/logger": "workspace:*",
-    "bullmq": "catalog:"
+    "bullmq": "catalog:",
+    "varlock": "catalog:"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { publicMiddleware } from "@api/rest/middleware";
 import type { Context } from "@api/rest/types";
 import {
@@ -86,8 +87,7 @@ app.openapi(
     const db = c.get("db");
     const query = c.req.valid("query");
     const { code, state, error } = query;
-    const dashboardUrl =
-      process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
+    const dashboardUrl = ENV.APP_URL;
 
     // Try to decrypt state first to determine redirect target (apps vs settings)
     const parsedState = decryptAccountingOAuthState(state);

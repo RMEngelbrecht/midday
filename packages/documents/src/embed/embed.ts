@@ -1,7 +1,8 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { embed, embedMany } from "ai";
+import { ENV } from "../env";
 
-const GOOGLE_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
+const GOOGLE_API_KEY = ENV.GOOGLE_GENERATIVE_AI_API_KEY!;
 
 const google = createGoogleGenerativeAI({
   apiKey: GOOGLE_API_KEY,

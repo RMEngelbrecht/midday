@@ -10,6 +10,7 @@
 import { Provider } from "@midday/banking";
 import { checkHealth as checkCacheHealth } from "@midday/cache/health";
 import { checkHealth as checkDbHealth } from "@midday/db/utils/health";
+import { ENV } from "./env";
 import type { Dependency } from "./registry";
 
 // ---------------------------------------------------------------------------
@@ -52,12 +53,9 @@ export function supabaseProbe(): Dependency {
     cacheTtlMs: 30_000,
     timeoutMs: 3_000,
     probe: async () => {
-      const url =
-        process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const url = ENV.SUPABASE_URL;
       if (!url) throw new Error("SUPABASE_URL not set");
-      const apikey =
-        process.env.SUPABASE_SECRET_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+      const apikey = ENV.SUPABASE_SECRET_KEY || ENV.SUPABASE_PUBLISHABLE_KEY;
       const headers: Record<string, string> = {};
       if (apikey) {
         headers.apikey = apikey;
@@ -81,7 +79,7 @@ export function redisQueueProbe(): Dependency {
     cacheTtlMs: 30_000,
     timeoutMs: 3_000,
     probe: async () => {
-      const url = process.env.REDIS_QUEUE_URL;
+      const url = ENV.REDIS_QUEUE_URL;
       if (!url) throw new Error("REDIS_QUEUE_URL not set");
 
       const client = new RedisClient(url, { connectionTimeout: 3000 });
@@ -181,7 +179,7 @@ export function stripeProbe(): Dependency {
     cacheTtlMs: 60_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = process.env.STRIPE_SECRET_KEY;
+      const key = ENV.STRIPE_SECRET_KEY;
       if (!key) return false;
       const res = await fetch("https://api.stripe.com/v1/balance", {
         headers: { Authorization: `Bearer ${key}` },
@@ -200,7 +198,7 @@ export function resendProbe(): Dependency {
     cacheTtlMs: 60_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = process.env.RESEND_API_KEY;
+      const key = ENV.RESEND_API_KEY;
       if (!key) return false;
       const res = await fetch("https://api.resend.com/domains", {
         headers: { Authorization: `Bearer ${key}` },
@@ -235,7 +233,7 @@ export function openaiProbe(): Dependency {
     cacheTtlMs: 60_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = process.env.OPENAI_API_KEY;
+      const key = ENV.OPENAI_API_KEY;
       if (!key) return false;
       const res = await fetch("https://api.openai.com/v1/models?limit=1", {
         headers: { Authorization: `Bearer ${key}` },
@@ -300,7 +298,7 @@ export function googleAiProbe(): Dependency {
     cacheTtlMs: 300_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+      const key = ENV.GOOGLE_GENERATIVE_AI_API_KEY;
       if (!key) return false;
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=1`,
@@ -319,7 +317,7 @@ export function exaProbe(): Dependency {
     cacheTtlMs: 300_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = process.env.EXA_API_KEY;
+      const key = ENV.EXA_API_KEY;
       if (!key) return false;
       const res = await fetch("https://api.exa.ai/search", {
         method: "POST",
@@ -344,7 +342,7 @@ export function mistralProbe(): Dependency {
     cacheTtlMs: 300_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = process.env.MISTRAL_API_KEY;
+      const key = ENV.MISTRAL_API_KEY;
       if (!key) return false;
       const res = await fetch("https://api.mistral.ai/v1/models", {
         headers: { Authorization: `Bearer ${key}` },
