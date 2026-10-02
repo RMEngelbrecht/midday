@@ -25,4 +25,15 @@ export const invoicesStaticSchedulers: StaticSchedulerConfig[] = [
       tz: "UTC",
     },
   },
+  {
+    // Marks unpaid invoices paid (matching transaction) or overdue
+    name: "invoice-status-scheduler",
+    queue: "invoices",
+    cron: "0 0,12 * * *",
+    jobName: "invoice-status-scheduler",
+    payload: {},
+    options: {
+      tz: "UTC",
+    },
+  },
 ];

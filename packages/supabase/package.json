@@ -31,7 +31,6 @@
     "./middleware": "./src/client/middleware.ts",
     "./queries": "./src/queries/index.ts",
     "./cached-queries": "./src/queries/cached-queries.ts",
-    "./types": "./src/types/index.ts",
-    "./account-matching": "./src/utils/account-matching.ts"
+    "./types": "./src/types/index.ts"
   }
 }

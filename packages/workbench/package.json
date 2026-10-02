@@ -1,7 +1,7 @@
 {
   "name": "workbench",
   "version": "0.1.0",
-  "description": "A modern, Trigger.dev-inspired job queue dashboard for BullMQ",
+  "description": "A modern job queue dashboard for BullMQ",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

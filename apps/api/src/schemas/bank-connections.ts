@@ -80,3 +80,12 @@ export const reconnectBankConnectionSchema = z.object({
   newReferenceId: z.string(),
   expiresAt: z.string(),
 });
+
+export const syncBankConnectionSchema = z.object({
+  connectionId: z.string().uuid(),
+});
+
+export const reconnectSyncBankConnectionSchema = z.object({
+  connectionId: z.string().uuid(),
+  provider: z.string().min(1),
+});

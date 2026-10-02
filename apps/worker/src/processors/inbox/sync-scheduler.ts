@@ -15,6 +15,10 @@ import {
 import { triggerJob } from "@midday/job-client";
 import { ensureFileExtension } from "@midday/utils";
 import type { Job } from "bullmq";
+import {
+  inboxSyncScheduler,
+  removeDynamicScheduler,
+} from "../../schedulers/dynamic";
 import type { InboxProviderSyncAccountPayload } from "../../schemas/inbox";
 import { getDb } from "../../utils/db";
 import { processBatch } from "../../utils/process-batch";
@@ -44,7 +48,16 @@ export class SyncSchedulerProcessor extends BaseProcessor<InboxProviderSyncAccou
     const accountRow = await getInboxAccountInfo(db, { id: inboxAccountId });
 
     if (!accountRow) {
-      throw new Error("Account not found");
+      // Account was deleted: drop its scheduler so it stops firing
+      await removeDynamicScheduler(inboxSyncScheduler, inboxAccountId);
+      this.logger.warn("Inbox account not found, removed its scheduler", {
+        accountId: inboxAccountId,
+      });
+      return {
+        accountId: inboxAccountId,
+        attachmentsProcessed: 0,
+        syncedAt: new Date().toISOString(),
+      };
     }
 
     const connector = new InboxConnector(accountRow.provider, db);

@@ -1,13 +1,10 @@
 import { ENV } from "../env";
-import type {
-  DynamicSchedulerTemplate,
-  StaticSchedulerConfig,
-} from "../types/scheduler-config";
-import { generateQuarterDailyCronTag } from "../utils/generate-cron-tag";
+import type { StaticSchedulerConfig } from "../types/scheduler-config";
 
 /**
  * Static scheduler configurations for inbox
- * These run on fixed schedules and are registered on startup
+ * These run on fixed schedules and are registered on startup.
+ * Per-account sync schedulers are dynamic (see ./dynamic.ts).
  */
 export const inboxStaticSchedulers: StaticSchedulerConfig[] = [
   {
@@ -15,6 +12,17 @@ export const inboxStaticSchedulers: StaticSchedulerConfig[] = [
     queue: "inbox",
     cron: "0 2 * * *", // Daily at 2 AM UTC
     jobName: "no-match-scheduler",
+    payload: {},
+    options: {
+      tz: "UTC",
+    },
+  },
+  {
+    // Upserts a sync scheduler per inbox account and removes orphans
+    name: "ensure-inbox-schedulers",
+    queue: "inbox-provider",
+    cron: "15 3 * * *",
+    jobName: "ensure-inbox-schedulers",
     payload: {},
     options: {
       tz: "UTC",
@@ -35,26 +43,4 @@ export const inboxStaticSchedulers: StaticSchedulerConfig[] = [
         },
       ]
     : []),
-];
-
-/**
- * Dynamic scheduler templates for inbox
- * These are registered per-account when accounts are connected
- */
-export const inboxDynamicSchedulerTemplates: DynamicSchedulerTemplate[] = [
-  {
-    template: "inbox-sync-scheduler",
-    queue: "inbox-provider",
-    cronGenerator: (accountId: string) =>
-      generateQuarterDailyCronTag(accountId),
-    jobName: "sync-scheduler",
-    payloadGenerator: (accountId: string) => ({
-      id: accountId,
-      manualSync: false,
-    }),
-    jobKey: (accountId: string) => `inbox-sync-${accountId}`,
-    options: {
-      tz: "UTC",
-    },
-  },
 ];

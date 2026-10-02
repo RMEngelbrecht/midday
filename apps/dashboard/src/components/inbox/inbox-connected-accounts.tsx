@@ -41,13 +41,12 @@ type InboxAccount = NonNullable<RouterOutputs["inboxAccounts"]["get"]>[number];
 function InboxAccountItem({ account }: { account: InboxAccount }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [runId, setRunId] = useState<string | undefined>();
-  const [accessToken, setAccessToken] = useState<string | undefined>();
+  const [jobId, setJobId] = useState<string | undefined>();
   const [isSyncing, setSyncing] = useState(false);
   const { toast, dismiss } = useToast();
   const router = useRouter();
 
-  const { status, setStatus, result } = useSyncStatus({ runId, accessToken });
+  const { status, setStatus, result } = useSyncStatus({ jobId });
 
   const syncInboxAccountMutation = useMutation(
     trpc.inboxAccounts.sync.mutationOptions({
@@ -56,13 +55,12 @@ function InboxAccountItem({ account }: { account: InboxAccount }) {
       },
       onSuccess: (data) => {
         if (data) {
-          setRunId(data.id);
-          setAccessToken(data.publicAccessToken);
+          setJobId(data.id);
         }
       },
       onError: () => {
         setSyncing(false);
-        setRunId(undefined);
+        setJobId(undefined);
         setStatus("FAILED");
 
         toast({
@@ -89,11 +87,11 @@ function InboxAccountItem({ account }: { account: InboxAccount }) {
   useEffect(() => {
     if (status === "COMPLETED") {
       dismiss();
-      setRunId(undefined);
+      setJobId(undefined);
       setSyncing(false);
 
       // Show success toast with attachment count
-      const attachmentCount = result?.attachmentsProcessed || 0;
+      const attachmentCount = Number(result?.attachmentsProcessed ?? 0);
       const description =
         attachmentCount > 0
           ? `Found ${attachmentCount} new ${attachmentCount === 1 ? "attachment" : "attachments"}.`
@@ -119,7 +117,7 @@ function InboxAccountItem({ account }: { account: InboxAccount }) {
   useEffect(() => {
     if (status === "FAILED") {
       setSyncing(false);
-      setRunId(undefined);
+      setJobId(undefined);
 
       queryClient.invalidateQueries({
         queryKey: trpc.inboxAccounts.get.queryKey(),

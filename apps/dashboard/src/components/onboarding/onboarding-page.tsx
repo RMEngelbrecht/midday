@@ -320,7 +320,7 @@ export function OnboardingPage({
   }, []);
 
   const handleBankSyncStarted = useCallback(
-    (data: { runId: string; accessToken: string }) => {
+    (data: { runId: string }) => {
       setBankSync(data);
       trackEvent(LogEvents.OnboardingBankConnected);
     },

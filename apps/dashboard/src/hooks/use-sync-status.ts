@@ -1,48 +1,36 @@
-import { useRealtimeRun } from "@trigger.dev/react-hooks";
 import { useEffect, useState } from "react";
+import { useJobStatus } from "@/hooks/use-job-status";
 
-type UseSyncStatusProps = {
-  runId?: string;
-  accessToken?: string;
-};
+type SyncStatus = "FAILED" | "SYNCING" | "COMPLETED" | null;
 
-export function useSyncStatus({
-  runId: initialRunId,
-  accessToken: initialAccessToken,
-}: UseSyncStatusProps) {
-  const [accessToken, setAccessToken] = useState<string | undefined>(
-    initialAccessToken,
-  );
-  const [runId, setRunId] = useState<string | undefined>(initialRunId);
-  const [status, setStatus] = useState<
-    "FAILED" | "SYNCING" | "COMPLETED" | null
-  >(null);
-  const { run, error } = useRealtimeRun(runId, {
-    enabled: !!runId && !!accessToken,
-    accessToken,
-  });
+/**
+ * Track a background sync job (bank or inbox) by its composite job id.
+ */
+export function useSyncStatus({ jobId }: { jobId?: string }) {
+  const [status, setStatus] = useState<SyncStatus>(null);
+  const job = useJobStatus({ jobId, enabled: !!jobId });
 
   useEffect(() => {
-    if (initialRunId && initialAccessToken) {
-      setAccessToken(initialAccessToken);
-      setRunId(initialRunId);
+    if (jobId) {
       setStatus("SYNCING");
     }
-  }, [initialRunId, initialAccessToken]);
+  }, [jobId]);
 
   useEffect(() => {
-    if (error || run?.status === "FAILED") {
+    if (!jobId) return;
+
+    if (job.queryError || job.status === "failed") {
       setStatus("FAILED");
     }
 
-    if (run?.status === "COMPLETED") {
+    if (job.status === "completed") {
       setStatus("COMPLETED");
     }
-  }, [error, run]);
+  }, [jobId, job.status, job.queryError]);
 
   return {
     status,
     setStatus,
-    result: run?.output,
+    result: job.result as Record<string, unknown> | undefined,
   };
 }

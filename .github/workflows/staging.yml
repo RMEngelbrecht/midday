@@ -30,7 +30,6 @@ jobs:
       api: ${{ steps.affected.outputs.api }}
       dashboard: ${{ steps.affected.outputs.dashboard }}
       worker: ${{ steps.affected.outputs.worker }}
-      jobs: ${{ steps.affected.outputs.jobs }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,7 +45,6 @@ jobs:
           echo "api=$(echo "$AFFECTED" | grep -q '@midday/api' && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
           echo "dashboard=$(echo "$AFFECTED" | grep -q '@midday/dashboard' && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
           echo "worker=$(echo "$AFFECTED" | grep -q '@midday/worker' && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
-          echo "jobs=$(echo "$AFFECTED" | grep -q '@midday/jobs' && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
 
   # ---------------------------------------------------------------------------
   # Validate — runs in parallel with detect-changes
@@ -121,28 +119,3 @@ jobs:
       - name: Run tool selection evals
         run: bun run eval:run
         working-directory: apps/api
-
-  # ---------------------------------------------------------------------------
-  # Deploy Jobs to Trigger.dev staging
-  # ---------------------------------------------------------------------------
-  deploy-jobs-staging:
-    name: Deploy Jobs (staging)
-    needs: [detect-changes, validate]
-    if: >-
-      always() &&
-      (needs.validate.result == 'success' || needs.validate.result == 'skipped') &&
-      needs.detect-changes.outputs.jobs == 'true'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup
-
-      - name: Deploy to Trigger.dev
-        env:
-          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
-        run: |
-          TRIGGER_PROJECT_ID=${{ secrets.TRIGGER_PROJECT_ID }} bunx trigger.dev@4.1.2 deploy --env staging
-        working-directory: packages/jobs
-

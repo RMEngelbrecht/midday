@@ -1,6 +1,12 @@
 import { CancellationEmailFollowupProcessor } from "./cancellation-email-followup";
 import { CancellationEmailsProcessor } from "./cancellation-emails";
 import { DeleteTeamProcessor } from "./delete-team";
+import { InviteTeamMembersProcessor } from "./invite-team-members";
+import {
+  OnboardingActivationEmailProcessor,
+  OnboardingWelcomeEmailProcessor,
+  OnboardTeamProcessor,
+} from "./onboarding";
 import { PaymentIssueProcessor } from "./payment-issue";
 
 /**
@@ -20,4 +26,8 @@ export const teamProcessors = {
   "cancellation-email-immediate": new CancellationEmailsProcessor(),
   "cancellation-email-followup": new CancellationEmailFollowupProcessor(),
   "payment-issue": new PaymentIssueProcessor(),
+  "onboard-team": new OnboardTeamProcessor(),
+  "onboarding-welcome-email": new OnboardingWelcomeEmailProcessor(),
+  "onboarding-activation-email": new OnboardingActivationEmailProcessor(),
+  "invite-team-members": new InviteTeamMembersProcessor(),
 };

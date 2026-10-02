@@ -29,7 +29,8 @@ export const processAttachmentSchema = z.object({
   filePath: z.array(z.string()),
   referenceId: z.string().optional(),
   website: z.string().optional(),
-  senderEmail: z.string().email().optional(),
+  // Not .email(): Microsoft Graph returns non-standard addresses (#EXT#)
+  senderEmail: z.string().optional(),
   inboxAccountId: z.string().uuid().optional(),
 });
 
@@ -70,6 +71,8 @@ export type InboxProviderInitialSetupPayload = z.infer<
 export const inboxProviderSyncAccountSchema = z.object({
   id: z.string().uuid(), // Inbox account ID
   manualSync: z.boolean().optional(),
+  /** Lets the dashboard poll the job's status (team-scoped access check). */
+  teamId: z.string().uuid().optional(),
 });
 
 export type InboxProviderSyncAccountPayload = z.infer<

@@ -12,8 +12,6 @@ import {
   updateTeamMemberSchema,
 } from "@api/schemas/team";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
-import type { InviteTeamMembersPayload } from "@jobs/schema";
-
 import { teamCache } from "@midday/cache/team-cache";
 import {
   acceptTeamInvite,
@@ -37,7 +35,6 @@ import {
   updateTeamMember,
 } from "@midday/db/queries";
 import { triggerJob } from "@midday/job-client";
-import { tasks } from "@trigger.dev/sdk";
 import { TRPCError } from "@trpc/server";
 
 export const teamRouter = createTRPCRouter({
@@ -335,31 +332,38 @@ export const teamRouter = createTRPCRouter({
       const results = data?.results ?? [];
       const skippedInvites = data?.skippedInvites ?? [];
 
-      const invites: InviteTeamMembersPayload["invites"] = results.flatMap(
-        (invite) => {
-          if (!invite?.email) {
-            return [];
-          }
+      const invites: {
+        email: string;
+        invitedByName: string;
+        invitedByEmail: string;
+        teamName: string;
+      }[] = results.flatMap((invite) => {
+        if (!invite?.email) {
+          return [];
+        }
 
-          return [
-            {
-              email: invite.email,
-              invitedByName: session.user.full_name ?? "",
-              invitedByEmail,
-              teamName: invite.team?.name ?? "",
-            },
-          ];
-        },
-      );
+        return [
+          {
+            email: invite.email,
+            invitedByName: session.user.full_name ?? "",
+            invitedByEmail,
+            teamName: invite.team?.name ?? "",
+          },
+        ];
+      });
 
       // Only trigger email sending if there are valid invites
       if (invites.length > 0) {
-        await tasks.trigger("invite-team-members", {
-          teamId: teamId!,
-          invites,
-          ip,
-          locale: "en",
-        } satisfies InviteTeamMembersPayload);
+        await triggerJob(
+          "invite-team-members",
+          {
+            teamId: teamId!,
+            invites,
+            ip,
+            locale: "en",
+          },
+          "teams",
+        );
       }
 
       // Return information about the invitation process

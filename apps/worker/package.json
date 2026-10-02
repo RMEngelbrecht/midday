@@ -6,6 +6,7 @@
     "dev": "varlock run -- bun run --hot src/index.ts",
     "start": "varlock run -- bun src/index.ts",
     "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test src",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
   },
@@ -27,7 +28,6 @@
     "@midday/invoice": "workspace:*",
     "@midday/inbox": "workspace:*",
     "@midday/job-client": "workspace:*",
-    "@midday/jobs": "workspace:*",
     "@midday/location": "workspace:*",
     "@midday/logger": "workspace:*",
     "@midday/mailer": "workspace:*",

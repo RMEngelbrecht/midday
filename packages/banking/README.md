@@ -22,7 +22,7 @@ Provider Facade (packages/banking/src/index.ts)
 Redis Cache (packages/cache/src/banking-cache.ts)
     │
     ▼
-Trigger.dev Jobs (packages/jobs/src/tasks/bank/)
+BullMQ worker jobs (apps/worker/src/processors/banking/)
 ```
 
 ### Provider Facade (Strategy Pattern)
@@ -378,7 +378,7 @@ to 0. A fallback to the paid `/balances` endpoint could be added if needed.
 
 When a user reconnects a GoCardless, Teller, or EnableBanking connection, the provider
 issues new account identifiers. The `reconnect-connection` job
-(`packages/jobs/src/tasks/reconnect/connection.ts`) handles this by:
+(`apps/worker/src/processors/banking/reconnect-connection.ts`) handles this by:
 
 1. Fetching fresh accounts from the provider API
 2. Matching them to existing DB accounts via `findMatchingAccount`
@@ -469,19 +469,15 @@ cache for HTTP clients.
 | `banking-cache.ts` | `bankingCache` object, `getOrSet` helper, `CacheTTL` constants |
 | `redis-client.ts` | `RedisCache` class (generic Redis wrapper) |
 
-### Jobs (`packages/jobs/src/tasks/bank/`)
+### Jobs (`apps/worker/src/processors/banking/`, queue `banking`)
 
 | File | Purpose |
 |------|---------|
-| `setup/initial.ts` | Initial bank setup (schedule + first sync) |
-| `scheduler/bank-scheduler.ts` | Daily cron → fan-out to connections |
-| `sync/connection.ts` | Connection status check + fan-out to accounts |
-| `sync/account.ts` | Balance + transaction sync per account |
-| `transactions/upsert.ts` | DB upsert + trigger embeddings |
-| `notifications/transactions.ts` | New transaction notifications |
-
-### Reconnect (`packages/jobs/src/tasks/reconnect/`)
-
-| File | Purpose |
-|------|---------|
-| `connection.ts` | Account ID remapping after reconnect |
+| `initial-bank-setup.ts` | Register the team's sync scheduler + first (inline) sync |
+| `bank-sync-scheduler.ts` | Daily per-team scheduler → fan-out to connections |
+| `ensure-bank-schedulers.ts` | Daily reconcile of per-team schedulers |
+| `sync.ts` | Connection status check, account sync, transaction upsert |
+| `sync-connection.ts` / `sync-account.ts` | Job wrappers around `sync.ts` |
+| `transaction-notifications.ts` | New transaction notifications |
+| `reconnect-connection.ts` | Account ID remapping after reconnect |
+| `delete-connection.ts` | Revoke at provider, drop scheduler with the last connection |

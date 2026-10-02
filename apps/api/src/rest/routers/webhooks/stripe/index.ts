@@ -161,9 +161,6 @@ app.openapi(
             error: paymentIntent.last_payment_error?.message,
           });
 
-          // Optionally: Send notification to team about failed payment
-          // await tasks.trigger("notification", { ... });
-
           break;
         }
 

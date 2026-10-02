@@ -2,7 +2,6 @@ import {
   connectInboxAccountSchema,
   deleteInboxAccountSchema,
   exchangeCodeForAccountSchema,
-  // initialSetupInboxAccountSchema,
   syncInboxAccountSchema,
 } from "@api/schemas/inbox-accounts";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
@@ -13,8 +12,8 @@ import {
 } from "@midday/db/queries";
 import { InboxConnector } from "@midday/inbox/connector";
 import { encryptOAuthState } from "@midday/inbox/utils";
+import { removeJobScheduler, triggerJob } from "@midday/job-client";
 import { createLoggerWithContext } from "@midday/logger";
-import { schedules, tasks } from "@trigger.dev/sdk";
 import { TRPCError } from "@trpc/server";
 
 const logger = createLoggerWithContext("trpc:inbox-accounts");
@@ -88,7 +87,7 @@ export const inboxAccountsRouter = createTRPCRouter({
       });
 
       if (data?.scheduleId) {
-        await schedules.del(data.scheduleId);
+        await removeJobScheduler("inbox-provider", data.scheduleId);
       }
 
       return data;
@@ -110,25 +109,14 @@ export const inboxAccountsRouter = createTRPCRouter({
         });
       }
 
-      const event = await tasks.trigger("sync-inbox-account", {
-        id: input.id,
-        manualSync: input.manualSync || false,
-      });
-
-      return event;
+      return triggerJob(
+        "sync-scheduler",
+        {
+          id: input.id,
+          manualSync: input.manualSync || false,
+          teamId: teamId!,
+        },
+        "inbox-provider",
+      );
     }),
-
-  // initialSetup: protectedProcedure
-  //   .input(initialSetupInboxAccountSchema)
-  //   .mutation(async ({ input }) => {
-  //     const job = await triggerJob(
-  //       "initial-setup",
-  //       {
-  //         inboxAccountId: input.inboxAccountId,
-  //       },
-  //       "inbox-provider",
-  //     );
-
-  //     return { id: job.id };
-  //   }),
 });

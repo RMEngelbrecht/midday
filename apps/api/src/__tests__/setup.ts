@@ -696,6 +696,7 @@ export const mocks = {
 
   // Bank connections
   getBankConnections: mock(() => Promise.resolve([])) as MockFn,
+  getBankConnectionForSync: mock(() => Promise.resolve(null)) as MockFn,
   deleteBankConnection: mock(() => Promise.resolve(null)) as MockFn,
 
   // Inbox accounts (tRPC inbox-accounts router)
@@ -899,6 +900,7 @@ const dbQueriesMock = new Proxy(
     deleteTeamInvite: mocks.deleteTeamInvite,
     deleteTeamMember: mocks.deleteTeamMember,
     getBankConnections: mocks.getBankConnections,
+    getBankConnectionForSync: mocks.getBankConnectionForSync,
     getInvitesByEmail: mocks.getInvitesByEmail,
     getTeamInvites: mocks.getTeamInvites,
     getTeamMemberRole: mocks.getTeamMemberRole,
@@ -1142,6 +1144,7 @@ mock.module("@midday/db/vault", () => ({
 mock.module("@midday/job-client", () => ({
   triggerJob: mocks.triggerJob,
   getJobStatus: mocks.getJobStatus,
+  removeJobScheduler: mock(() => Promise.resolve(true)),
   getQueue: mock(() => ({
     getJob: mock(() => null),
     getJobs: mock(() => []),
@@ -1165,15 +1168,6 @@ mock.module("@midday/documents/embed", () => ({
         model: "gemini-embedding-001",
       };
     }
-  },
-}));
-
-mock.module("@trigger.dev/sdk", () => ({
-  tasks: {
-    trigger: mock(() => Promise.resolve({ id: "evt_trigger_test" })),
-  },
-  schedules: {
-    del: mock(() => Promise.resolve()),
   },
 }));
 

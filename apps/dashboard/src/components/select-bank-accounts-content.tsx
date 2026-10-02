@@ -96,7 +96,7 @@ type SelectBankAccountsContentProps = {
   enabled: boolean;
   onClose: () => void;
   onComplete?: () => void;
-  onSyncStarted?: (data: { runId: string; accessToken: string }) => void;
+  onSyncStarted?: (data: { runId: string }) => void;
   stickySubmit?: boolean;
   accountsListClassName?: string;
   fadeGradientClass?: string;
@@ -116,7 +116,6 @@ export function SelectBankAccountsContent({
   const t = useI18n();
 
   const [runId, setRunId] = useState<string>();
-  const [accessToken, setAccessToken] = useState<string>();
   const [activeTab, setActiveTab] = useState<"select-accounts" | "loading">(
     "select-accounts",
   );
@@ -172,15 +171,11 @@ export function SelectBankAccountsContent({
           });
 
           if (onSyncStarted && onComplete) {
-            onSyncStarted({
-              runId: data.id,
-              accessToken: data.publicAccessToken,
-            });
+            onSyncStarted({ runId: data.id });
             setParams(null);
             onComplete();
           } else {
             setRunId(data.id);
-            setAccessToken(data.publicAccessToken);
             setActiveTab("loading");
           }
         }
@@ -395,7 +390,6 @@ export function SelectBankAccountsContent({
 
       <TabsContent value="loading">
         <LoadingTransactionsEvent
-          accessToken={accessToken}
           runId={runId}
           setRunId={setRunId}
           onClose={onComplete ?? handleClose}

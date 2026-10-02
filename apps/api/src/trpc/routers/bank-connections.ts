@@ -4,6 +4,8 @@ import {
   deleteBankConnectionSchema,
   getBankConnectionsSchema,
   reconnectBankConnectionSchema,
+  reconnectSyncBankConnectionSchema,
+  syncBankConnectionSchema,
 } from "@api/schemas/bank-connections";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 
@@ -11,14 +13,11 @@ import {
   addProviderAccounts,
   createBankConnection,
   deleteBankConnection,
+  getBankConnectionForSync,
   getBankConnections,
   reconnectBankConnection,
 } from "@midday/db/queries";
-import type {
-  DeleteConnectionPayload,
-  InitialBankSetupPayload,
-} from "@midday/jobs/schema";
-import { tasks } from "@trigger.dev/sdk";
+import { triggerJob } from "@midday/job-client";
 import { TRPCError } from "@trpc/server";
 
 export const bankConnectionsRouter = createTRPCRouter({
@@ -47,12 +46,12 @@ export const bankConnectionsRouter = createTRPCRouter({
         });
       }
 
-      const event = await tasks.trigger("initial-bank-setup", {
-        connectionId: data.id,
-        teamId: teamId!,
-      } satisfies InitialBankSetupPayload);
-
-      return event;
+      // The dashboard polls this job until the first sync is done
+      return triggerJob(
+        "initial-bank-setup",
+        { connectionId: data.id, teamId: teamId! },
+        "banking",
+      );
     }),
 
   delete: protectedProcedure
@@ -67,11 +66,16 @@ export const bankConnectionsRouter = createTRPCRouter({
         throw new Error("Bank connection not found");
       }
 
-      await tasks.trigger("delete-connection", {
-        referenceId: data.referenceId,
-        provider: data.provider!,
-        accessToken: data.accessToken,
-      } satisfies DeleteConnectionPayload);
+      await triggerJob(
+        "delete-connection",
+        {
+          teamId: teamId!,
+          referenceId: data.referenceId,
+          provider: data.provider,
+          accessToken: data.accessToken,
+        },
+        "banking",
+      );
 
       return data;
     }),
@@ -108,4 +112,52 @@ export const bankConnectionsRouter = createTRPCRouter({
 
       return result;
     }),
+
+  /** Manual sync from the dashboard; returns the job id to poll. */
+  sync: protectedProcedure
+    .input(syncBankConnectionSchema)
+    .mutation(async ({ input, ctx: { db, teamId } }) => {
+      await assertConnectionInTeam(db, input.connectionId, teamId!);
+
+      return triggerJob(
+        "sync-connection",
+        { connectionId: input.connectionId, manualSync: true, teamId },
+        "banking",
+      );
+    }),
+
+  /**
+   * After the user re-authenticated with the provider: re-map account ids
+   * and sync. Returns the job id to poll.
+   */
+  reconnectSync: protectedProcedure
+    .input(reconnectSyncBankConnectionSchema)
+    .mutation(async ({ input, ctx: { db, teamId } }) => {
+      await assertConnectionInTeam(db, input.connectionId, teamId!);
+
+      return triggerJob(
+        "reconnect-connection",
+        {
+          teamId,
+          connectionId: input.connectionId,
+          provider: input.provider,
+        },
+        "banking",
+      );
+    }),
 });
+
+async function assertConnectionInTeam(
+  db: Parameters<typeof getBankConnectionForSync>[0],
+  connectionId: string,
+  teamId: string,
+) {
+  const connection = await getBankConnectionForSync(db, { id: connectionId });
+
+  if (!connection || connection.teamId !== teamId) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Bank connection not found",
+    });
+  }
+}

@@ -234,8 +234,8 @@ This means an API account couldn't be matched to any database account. Possible 
 | `apps/dashboard/src/app/api/enablebanking/session/route.ts` | EnableBanking OAuth callback - updates DB, redirects to frontend |
 | `apps/dashboard/src/app/api/gocardless/reconnect/route.ts` | GoCardless OAuth callback - updates DB, redirects to frontend |
 | `apps/dashboard/src/actions/transactions/reconnect-connection-action.ts` | Server action that triggers the reconnect job |
-| `packages/jobs/src/tasks/reconnect/connection.ts` | Main reconnect job - fetches accounts, matches, updates IDs |
-| `packages/jobs/src/utils/account-matching.ts` | Shared `matchAndUpdateAccountIds()` function |
+| `apps/worker/src/processors/banking/reconnect-connection.ts` | Main reconnect job - fetches accounts, matches, updates IDs |
+| `apps/worker/src/utils/account-matching.ts` | Pure `findMatchingAccount()` matching logic |
 
 ## useReconnect Hook
 

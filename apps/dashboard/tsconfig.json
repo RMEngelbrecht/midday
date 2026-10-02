@@ -3,8 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@api/*": ["../api/src/*"],
-      "@jobs/*": ["../../packages/jobs/src/*"]
+      "@api/*": ["../api/src/*"]
     },
     "strict": true
   },

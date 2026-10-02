@@ -195,22 +195,6 @@ export function stripeProbe(): Dependency {
   };
 }
 
-/** Trigger.dev: API reachability check */
-export function triggerDevProbe(): Dependency {
-  return {
-    name: "trigger_dev",
-    tier: 2,
-    cacheTtlMs: 60_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      const res = await fetch("https://api.trigger.dev/healthcheck", {
-        signal: AbortSignal.timeout(5_000),
-      });
-      return res.ok;
-    },
-  };
-}
-
 /** OpenAI: GET /v1/models (lightweight list) */
 export function openaiProbe(): Dependency {
   return {
@@ -376,7 +360,6 @@ export function apiDependencies(features = getFeatures()): Dependency[] {
     redisCacheProbe(),
     redisQueueProbe(),
     ...(ENV.SUPABASE_URL ? [supabaseProbe()] : []),
-    triggerDevProbe(),
     ...optionalProbes(features),
     ...(ENV.GOOGLE_GENERATIVE_AI_API_KEY ? [googleAiProbe()] : []),
   ];

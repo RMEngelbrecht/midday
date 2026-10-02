@@ -33,6 +33,7 @@ import {
   transactionCategories,
   type transactionFrequencyEnum,
   transactionMatchSuggestions,
+  type transactionMethodsEnum,
   transactions,
   transactionTags,
   users,
@@ -1924,7 +1925,7 @@ export async function createTransactions(
 export type UpsertTransactionData = {
   name: string;
   date: string;
-  method: "other" | "card_purchase" | "transfer";
+  method: (typeof transactionMethodsEnum.enumValues)[number];
   amount: number;
   currency: string;
   teamId: string;

@@ -200,14 +200,6 @@ export type CoercedEnvSchema = {
   GIT_COMMIT_SHA?: string;
   
   /**
-   * **TRIGGER_SECRET_KEY** 🔐 _sensitive_  
-   * Trigger.dev secret key.  
-   * deprecated: removed by S3 (BullMQ)  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  TRIGGER_SECRET_KEY?: string;
-  
-  /**
    * **MIDDAY_ENCRYPTION_KEY** 🔐 _sensitive_  
    * 32-byte hex key (64 chars) used to encrypt OAuth tokens and other secrets at  
    * rest. Generate with `openssl rand -hex 32`.  
@@ -775,7 +767,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_d2aa872f = CoercedEnvSchema;
+type _CoercedEnvSchema_7cd83280 = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -783,7 +775,7 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_d2aa872f = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_7cd83280 = EnvSchemaAsStrings;
 
 export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'BOARD_USERNAME' | 'DB_POOL_STATS_INTERVAL_MS' | 'INSIGHTS_ENABLED' | 'INSIGHTS_NOTIFICATIONS_ENABLED' | 'DISABLE_RECURRING_INVOICES' | 'DISABLE_UPCOMING_NOTIFICATIONS' | 'NODE_ENV' | 'APP_ENV' | 'IMAP_MAILBOX' | 'IMAP_PROCESSED_MAILBOX' | 'IMAP_POLL_INTERVAL' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'APP_URL' | 'API_URL' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'GOCARDLESS_SECRET_ID' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'SUPABASE_URL' | 'SUPABASE_PUBLISHABLE_KEY' | 'INSIGHTS_ENABLED_TEAM_IDS' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM' | 'API_INTERNAL_URL'>>;
 

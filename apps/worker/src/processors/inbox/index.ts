@@ -1,4 +1,5 @@
 import { BatchProcessMatchingProcessor } from "./batch-process-matching";
+import { EnsureInboxSchedulersProcessor } from "./ensure-inbox-schedulers";
 import { ImapPollProcessor } from "./imap-poll";
 import { InitialSetupProcessor } from "./initial-setup";
 import { MatchTransactionsBidirectionalProcessor } from "./match-transactions-bidirectional";
@@ -11,6 +12,7 @@ import { SyncSchedulerProcessor } from "./sync-scheduler";
  * Export all inbox processors (for type imports)
  */
 export { BatchProcessMatchingProcessor } from "./batch-process-matching";
+export { EnsureInboxSchedulersProcessor } from "./ensure-inbox-schedulers";
 export { ImapPollProcessor } from "./imap-poll";
 export { InitialSetupProcessor } from "./initial-setup";
 export { MatchTransactionsBidirectionalProcessor } from "./match-transactions-bidirectional";
@@ -33,4 +35,5 @@ export const inboxProcessors = {
   "no-match-scheduler": new NoMatchSchedulerProcessor(),
   "sync-scheduler": new SyncSchedulerProcessor(),
   "initial-setup": new InitialSetupProcessor(),
+  "ensure-inbox-schedulers": new EnsureInboxSchedulersProcessor(),
 };

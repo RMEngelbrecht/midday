@@ -1,6 +1,9 @@
-import { trpc } from "@midday/trpc";
 import type { Job } from "bullmq";
 import type { DeleteTeamPayload } from "../../schemas/teams";
+import {
+  type BankProvider,
+  getBankingClient,
+} from "../../utils/banking-client";
 import { BaseProcessor } from "../base";
 
 /**
@@ -65,13 +68,10 @@ export class DeleteTeamProcessor extends BaseProcessor<DeleteTeamPayload> {
       }
 
       try {
-        await trpc.banking.deleteConnection.mutate({
+        await getBankingClient(
+          connection.provider as BankProvider,
+        ).deleteConnection({
           id: connection.referenceId,
-          provider: connection.provider as
-            | "gocardless"
-            | "teller"
-            | "plaid"
-            | "enablebanking",
           accessToken: connection.accessToken ?? undefined,
         });
         return true;

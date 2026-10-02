@@ -211,6 +211,17 @@ export async function triggerJobAndWait(
 }
 
 /**
+ * Remove a job scheduler (repeatable job) from a queue. Idempotent: returns
+ * false when no scheduler with that id exists.
+ */
+export async function removeJobScheduler(
+  queueName: string,
+  schedulerId: string,
+): Promise<boolean> {
+  return getQueue(queueName).removeJobScheduler(schedulerId);
+}
+
+/**
  * Get job status by composite ID
  * The composite ID encodes both queue name and job ID (e.g., "accounting:21")
  * @param compositeJobId - The composite job ID (format: "queueName:jobId")

@@ -10,6 +10,7 @@ import {
   gt,
   inArray,
   isNotNull,
+  isNull,
   or,
   type SQL,
   sql,
@@ -580,6 +581,8 @@ export async function getTeamsForInsights(
   const conditions: SQL[] = [
     // Must have base currency set (indicates they have financial data)
     isNotNull(teams.baseCurrency),
+    // Skip teams scheduled for deletion
+    isNull(teams.canceledAt),
   ];
 
   // Filter by enabled team IDs if specified
