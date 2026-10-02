@@ -11,6 +11,7 @@ import type { McpContext } from "@api/mcp/types";
 import type { Context } from "@api/rest/types";
 import { getGeoContext } from "@api/utils/geo";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { isAIEnabled } from "@midday/ai";
 import {
   formatProcessedUploadSummary,
   getPlatformInstructions,
@@ -47,6 +48,13 @@ app.use(
 );
 
 app.post("/", async (c) => {
+  if (!isAIEnabled()) {
+    return c.json(
+      { code: "FEATURE_DISABLED", error: "AI is not configured" },
+      404,
+    );
+  }
+
   try {
     const db = c.get("db");
     const teamId = c.get("teamId");

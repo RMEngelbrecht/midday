@@ -11,6 +11,7 @@
     "test": "APP_ENV=test varlock run -- bun test --exit src"
   },
   "dependencies": {
+    "@midday/ai": "workspace:*",
     "varlock": "catalog:"
   },
   "devDependencies": {

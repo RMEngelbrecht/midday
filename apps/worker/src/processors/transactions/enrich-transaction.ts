@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { getModel, isAIEnabled } from "@midday/ai";
 import {
   getTransactionsForEnrichment,
   markTransactionsAsEnriched,
@@ -7,7 +7,6 @@ import {
 } from "@midday/db/queries";
 import { generateObject } from "ai";
 import type { Job } from "bullmq";
-import { ENV } from "../../env";
 import type { EnrichTransactionsPayload } from "../../schemas/transactions";
 import { getDb } from "../../utils/db";
 import {
@@ -21,13 +20,9 @@ import { BaseProcessor } from "../base";
 
 const BATCH_SIZE = 50;
 
-const google = createGoogleGenerativeAI({
-  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
-});
-
 /**
  * Enriches transactions with AI (merchant names, categories)
- * Uses Google Generative AI (Gemini) to extract merchant names and categorize transactions
+ * Uses the configured fast AI model to extract merchant names and categorize transactions
  */
 export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactionsPayload> {
   async process(job: Job<EnrichTransactionsPayload>): Promise<{
@@ -36,6 +31,12 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
   }> {
     const { transactionIds, teamId } = job.data;
     const db = getDb();
+
+    // Leave transactions un-enriched so they are picked up if AI is enabled later.
+    if (!isAIEnabled()) {
+      this.logger.info("AI not configured, skipping enrichment", { teamId });
+      return { enrichedCount: 0, teamId };
+    }
 
     this.logger.info("Starting enrich-transactions job", {
       jobId: job.id,
@@ -75,7 +76,7 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
 
         try {
           const { object } = await generateObject({
-            model: google("gemini-2.5-flash-lite"),
+            model: getModel("fast"),
             prompt,
             output: "array",
             schema: enrichmentSchema,

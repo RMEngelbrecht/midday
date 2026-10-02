@@ -10,10 +10,10 @@
  */
 import "dotenv/config";
 import { createMCPClient } from "@ai-sdk/mcp";
-import { openai } from "@ai-sdk/openai";
 import { createMcpServer } from "@api/mcp/server";
 import type { McpContext } from "@api/mcp/types";
 import { expandScopes } from "@api/utils/scopes";
+import { getEmbeddingModel } from "@midday/ai";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { evalite } from "evalite";
 import { createToolIndex, fileCache } from "toolpick";
@@ -57,7 +57,7 @@ async function bootstrapToolIndex() {
   await client.close();
 
   const index = await createToolIndex(tools, {
-    embeddingModel: openai.embeddingModel("text-embedding-3-small"),
+    embeddingModel: getEmbeddingModel(),
     embeddingCache: fileCache(".toolpick-cache.json"),
     relatedTools: {
       invoices_create: ["customers_list"],

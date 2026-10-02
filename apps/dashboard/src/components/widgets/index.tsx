@@ -10,6 +10,7 @@ import { ChatProvider } from "@/components/chat/chat-context";
 import { ChatTitle } from "@/components/chat/chat-title";
 import { ChatView } from "@/components/chat/chat-view";
 import { NewChatButton } from "@/components/chat/new-chat-button";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useInvoiceParams } from "@/hooks/use-invoice-params";
 import { AskMidday } from "./ask-midday";
 import { McpBanner } from "./mcp-banner";
@@ -23,7 +24,9 @@ export function OverviewView() {
   const { track } = useOpenPanel();
   const { setParams: setInvoiceParams } = useInvoiceParams();
 
-  const isChat = assistant === true;
+  const { features } = usePublicConfig();
+
+  const isChat = features.ai && assistant === true;
 
   const openChat = useCallback(() => {
     track(LogEvents.AssistantOpened.name);
@@ -61,8 +64,12 @@ export function OverviewView() {
               <WelcomeSummary />
             </Suspense>
           </div>
-          <AskMidday onChatOpen={openChat} />
-          <QuickActions onChatOpen={openChat} />
+          {features.ai && (
+            <>
+              <AskMidday onChatOpen={openChat} />
+              <QuickActions onChatOpen={openChat} />
+            </>
+          )}
           <Suspense fallback={<WidgetCardsSkeleton />}>
             <WidgetCards />
           </Suspense>

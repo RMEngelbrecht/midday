@@ -4,6 +4,7 @@ import {
 } from "@api/schemas/search";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 import { generateLLMFilters } from "@api/utils/search-filters";
+import { isAIEnabled } from "@midday/ai";
 import {
   getInboxSearch,
   getInvoices,
@@ -42,7 +43,7 @@ export const searchRouter = createTRPCRouter({
           : input.relevanceThreshold,
       });
 
-      if (shouldUseLLMFilters && !results.length) {
+      if (shouldUseLLMFilters && !results.length && isAIEnabled()) {
         const filters = await generateLLMFilters(searchTerm);
 
         const semanticResults = await globalSemanticSearchQuery(db, {

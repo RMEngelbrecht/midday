@@ -1,5 +1,6 @@
 import { CurrencyInput } from "@midday/ui/currency-input";
 import { useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { TaxRateAssistant } from "./tax-rate-assistant";
 
 type Props = {
@@ -17,6 +18,7 @@ export function TaxRateInput({
   value: defaultValue,
   isNewProduct = true,
 }: Props) {
+  const { features } = usePublicConfig();
   const [value, setValue] = useState(defaultValue);
 
   const handleOnSelect = (vat: number) => {
@@ -46,12 +48,14 @@ export function TaxRateInput({
         allowNegative={false}
       />
 
-      <TaxRateAssistant
-        name={name}
-        value={value?.toString() ?? ""}
-        onSelect={handleOnSelect}
-        isNewProduct={isNewProduct}
-      />
+      {features.ai && (
+        <TaxRateAssistant
+          name={name}
+          value={value?.toString() ?? ""}
+          onSelect={handleOnSelect}
+          isNewProduct={isNewProduct}
+        />
+      )}
     </div>
   );
 }

@@ -1,26 +1,13 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createMistral } from "@ai-sdk/mistral";
+import { getExtractionModels, type ModelHandle } from "@midday/ai";
 import { createLoggerWithContext } from "@midday/logger";
 import { generateObject } from "ai";
 import type { z } from "zod/v4";
-import type {
-  ExtractionConfig,
-  ModelConfig,
-} from "../config/extraction-config";
-import { ENV } from "../env";
+import type { ExtractionConfig } from "../config/extraction-config";
 import type { PromptComponents } from "../prompts/factory";
 import { createFieldSpecificPrompt } from "../prompts/field-specific";
 import type { DocumentFormat } from "../utils/format-detection";
 import { extractTextFromPdf } from "../utils/pdf-text-extract";
 import { retryCall } from "../utils/retry";
-
-const google = createGoogleGenerativeAI({
-  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
-});
-
-const mistral = createMistral({
-  apiKey: ENV.MISTRAL_API_KEY!,
-});
 
 /**
  * Check if an error is a rate limit error
@@ -37,6 +24,24 @@ function isRateLimitError(error: unknown): boolean {
     message.includes("429") ||
     message.includes("resource_exhausted")
   );
+}
+
+/** Inline \`data:\` URLs are passed as bytes; the AI SDK would otherwise try to download them. */
+function decodeImage(url: string): string | Uint8Array {
+  if (!url.startsWith("data:")) return url;
+  return new Uint8Array(Buffer.from(url.slice(url.indexOf(",") + 1), "base64"));
+}
+
+async function toDataUrl(url: string, fallbackType: string): Promise<string> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(
+      `Failed to download document: ${res.status} ${res.statusText}`,
+    );
+  }
+  const type = res.headers.get("content-type")?.split(";")[0] || fallbackType;
+  const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");
+  return `data:${type};base64,${base64}`;
 }
 
 export interface ExtractionResult<T> {
@@ -72,6 +77,21 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
       createLoggerWithContext(`BaseExtractionEngine:${this.getDocumentType()}`);
   }
 
+  /** Configured extraction models in order (extraction model, then vision model). */
+  protected getModels(): ModelHandle[] {
+    return getExtractionModels();
+  }
+
+  /** Self-hosted models on modest hardware are much slower than hosted APIs. */
+  protected timeoutFor(ms: number): number {
+    return this.getModels()[0]?.provider === "openai-compatible" ? ms * 15 : ms;
+  }
+
+  protected getFallbackModel(): ModelHandle {
+    const models = this.getModels();
+    return models[1] ?? models[0]!;
+  }
+
   protected getDocumentType(): string {
     return "unknown";
   }
@@ -82,24 +102,26 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
   protected async extractWithProvider(
     documentUrl: string,
     prompt: string,
-    modelConfig: ModelConfig,
+    modelConfig: ModelHandle,
   ): Promise<z.infer<T>> {
     const contentField =
       this.config.contentType === "file"
         ? {
             type: "file" as const,
-            data: documentUrl,
+            data: decodeImage(documentUrl),
             mediaType: this.config.mediaType,
           }
         : {
             type: "image" as const,
-            image: documentUrl,
+            image: decodeImage(documentUrl),
           };
 
-    const model =
-      modelConfig.provider === "mistral"
-        ? mistral(modelConfig.model)
-        : google(modelConfig.model);
+    const model = modelConfig.model;
+
+    // Servers that cannot take PDFs get the embedded text layer instead.
+    if (this.config.contentType === "file" && !modelConfig.pdfInput) {
+      return this.extractWithTextFallback(documentUrl, prompt, modelConfig);
+    }
 
     // Provider-specific options
     const providerOptions =
@@ -117,7 +139,9 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
           model,
           schema: this.config.schema,
           temperature: 0.1,
-          abortSignal: AbortSignal.timeout(this.config.timeout),
+          abortSignal: AbortSignal.timeout(
+            this.timeoutFor(this.config.timeout),
+          ),
           messages: [
             {
               role: "system",
@@ -144,12 +168,11 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
   protected async extractWithCascadingFallback(
     documentUrl: string,
     prompt: string,
-  ): Promise<{ result: z.infer<T>; usedModel: ModelConfig }> {
-    const models = [
-      { config: this.config.models.primary, name: "primary" },
-      { config: this.config.models.secondary, name: "secondary" },
-      { config: this.config.models.tertiary, name: "tertiary" },
-    ];
+  ): Promise<{ result: z.infer<T>; usedModel: ModelHandle }> {
+    const models = this.getModels().map((config, i) => ({
+      config,
+      name: i === 0 ? "primary" : `fallback-${i}`,
+    }));
 
     let lastError: Error | null = null;
 
@@ -157,7 +180,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
       try {
         this.logger.info(`Attempting extraction with ${name} model`, {
           provider: modelConfig.provider,
-          model: modelConfig.model,
+          model: modelConfig.modelId,
         });
 
         const result = await this.extractWithProvider(
@@ -168,7 +191,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
 
         this.logger.info(`Extraction succeeded with ${name} model`, {
           provider: modelConfig.provider,
-          model: modelConfig.model,
+          model: modelConfig.modelId,
         });
 
         return { result, usedModel: modelConfig };
@@ -178,7 +201,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
         const isRateLimit = isRateLimitError(error);
         this.logger.warn(`${name} model extraction failed`, {
           provider: modelConfig.provider,
-          model: modelConfig.model,
+          model: modelConfig.modelId,
           isRateLimit,
           error: lastError.message,
         });
@@ -211,23 +234,22 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
     documentUrl: string,
     prompt: string,
   ): Promise<z.infer<T>> {
-    // Try secondary first, then tertiary
-    try {
-      return await this.extractWithProvider(
-        documentUrl,
-        prompt,
-        this.config.models.secondary,
-      );
-    } catch (error) {
-      this.logger.warn("Secondary model failed, trying tertiary", {
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-      return await this.extractWithProvider(
-        documentUrl,
-        prompt,
-        this.config.models.tertiary,
-      );
+    // Skip the primary model; fall back to the last configured one.
+    const [, ...rest] = this.getModels();
+    const candidates = rest.length > 0 ? rest : this.getModels();
+    let lastError: unknown;
+    for (const candidate of candidates) {
+      try {
+        return await this.extractWithProvider(documentUrl, prompt, candidate);
+      } catch (error) {
+        lastError = error;
+        this.logger.warn("Fallback model failed", {
+          model: candidate.modelId,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
     }
+    throw lastError;
   }
 
   /**
@@ -237,7 +259,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
   protected async extractWithTextFallback(
     documentUrl: string,
     prompt: string,
-    modelConfig: ModelConfig,
+    modelConfig: ModelHandle,
   ): Promise<z.infer<T>> {
     // Extract text from PDF
     const extractedText = await extractTextFromPdf(documentUrl);
@@ -251,10 +273,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
     // Modify prompt to indicate text was extracted from PDF
     const modifiedPrompt = `${prompt}\n\nNOTE: The document content below was extracted as text from a PDF. Some formatting, layout, or visual elements may be missing. Please extract the requested information from the text content.`;
 
-    const model =
-      modelConfig.provider === "mistral"
-        ? mistral(modelConfig.model)
-        : google(modelConfig.model);
+    const model = modelConfig.model;
 
     // Send extracted text as text content (not file)
     const result = await retryCall(
@@ -263,7 +282,9 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
           model,
           schema: this.config.schema,
           temperature: 0.1,
-          abortSignal: AbortSignal.timeout(this.config.timeout),
+          abortSignal: AbortSignal.timeout(
+            this.timeoutFor(this.config.timeout),
+          ),
           messages: [
             {
               role: "system",
@@ -390,12 +411,9 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
                 fieldPrompt = `${fieldPrompt}\n\n${formatHints}`;
               }
             }
-            // Use secondary model (Google) for field re-extraction for reliability
-            const modelConfig = this.config.models.secondary;
-            const model =
-              modelConfig.provider === "mistral"
-                ? mistral(modelConfig.model)
-                : google(modelConfig.model);
+            // Use the fallback model for field re-extraction
+            const modelConfig = this.getFallbackModel();
+            const model = modelConfig.model;
 
             const result = await retryCall(
               () =>
@@ -403,7 +421,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
                   model,
                   schema: this.config.schema,
                   temperature: 0.1,
-                  abortSignal: AbortSignal.timeout(90000),
+                  abortSignal: AbortSignal.timeout(this.timeoutFor(90000)),
                   messages: [
                     {
                       role: "system",
@@ -415,12 +433,12 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
                         this.config.contentType === "file"
                           ? {
                               type: "file" as const,
-                              data: documentUrl,
+                              data: decodeImage(documentUrl),
                               mediaType: this.config.mediaType,
                             }
                           : {
                               type: "image" as const,
-                              image: documentUrl,
+                              image: decodeImage(documentUrl),
                             },
                       ],
                     },
@@ -478,12 +496,9 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
               }
             }
 
-            // Use secondary model (Google) for field re-extraction for reliability
-            const modelConfig = this.config.models.secondary;
-            const model =
-              modelConfig.provider === "mistral"
-                ? mistral(modelConfig.model)
-                : google(modelConfig.model);
+            // Use the fallback model for field re-extraction
+            const modelConfig = this.getFallbackModel();
+            const model = modelConfig.model;
 
             const result = await retryCall(
               () =>
@@ -491,7 +506,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
                   model,
                   schema: this.config.schema,
                   temperature: 0.1,
-                  abortSignal: AbortSignal.timeout(30000),
+                  abortSignal: AbortSignal.timeout(this.timeoutFor(30000)),
                   messages: [
                     {
                       role: "system",
@@ -503,12 +518,12 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
                         this.config.contentType === "file"
                           ? {
                               type: "file" as const,
-                              data: documentUrl,
+                              data: decodeImage(documentUrl),
                               mediaType: this.config.mediaType,
                             }
                           : {
                               type: "image" as const,
-                              image: documentUrl,
+                              image: decodeImage(documentUrl),
                             },
                       ],
                     },
@@ -558,6 +573,12 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
       throw new Error("Document URL is required");
     }
 
+    // Send bytes, not URLs: signed URLs may not be reachable from the model
+    // provider (self-hosted API) and local servers cannot fetch them at all.
+    if (!documentUrl.startsWith("data:")) {
+      documentUrl = await toDataUrl(documentUrl, this.config.mediaType);
+    }
+
     // Get prompt factory
     const promptFactory = this.config.promptFactory;
 
@@ -571,7 +592,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
 
       logger.info("Pass 1: Extracting with cascading fallback", {
         pass: 1,
-        primaryModel: `${this.config.models.primary.provider}:${this.config.models.primary.model}`,
+        primaryModel: `${this.getModels()[0]!.provider}:${this.getModels()[0]!.modelId}`,
       });
 
       result = await this.extractWithPrimaryModel(documentUrl, prompt);
@@ -604,7 +625,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
           result = await this.extractWithTextFallback(
             documentUrl,
             prompt,
-            this.config.models.secondary,
+            this.getFallbackModel(),
           );
 
           logger.info("Text extraction fallback succeeded", {
@@ -659,7 +680,7 @@ export abstract class BaseExtractionEngine<T extends z.ZodSchema> {
       "Pass 1 quality poor, running Pass 2 with fallback model and chain-of-thought",
       {
         pass: 2,
-        model: `${this.config.models.secondary.provider}:${this.config.models.secondary.model}`,
+        model: `${this.getFallbackModel().provider}:${this.getFallbackModel().modelId}`,
       },
     );
     try {

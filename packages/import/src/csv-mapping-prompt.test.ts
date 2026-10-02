@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { heuristicCsvMapping } from "./csv-mapping-heuristic";
 import {
   buildCsvMappingPrompt,
   compactSampleRows,
@@ -91,5 +92,40 @@ describe("selectPromptColumns", () => {
       "balance",
       "fts_vector",
     ]);
+  });
+});
+
+describe("heuristicCsvMapping", () => {
+  it("maps common headers without AI", () => {
+    expect(
+      heuristicCsvMapping([
+        "Booking Date",
+        "Text",
+        "Amount",
+        "Balance",
+        "Currency",
+      ]),
+    ).toEqual({
+      date: "Booking Date",
+      description: "Text",
+      amount: "Amount",
+      balance: "Balance",
+      currency: "Currency",
+    });
+  });
+
+  it("never reuses a column or maps the card holder", () => {
+    expect(
+      heuristicCsvMapping([
+        "Payment Date",
+        "Merchant",
+        "Cardholder",
+        "Transaction Amount",
+      ]),
+    ).toEqual({
+      date: "Payment Date",
+      amount: "Transaction Amount",
+      counterparty: "Merchant",
+    });
   });
 });

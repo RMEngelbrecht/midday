@@ -1,4 +1,3 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import {
   createTransactionSchema,
   deleteTransactionsSchema,
@@ -16,6 +15,7 @@ import {
   updateTransactionsSchema,
 } from "@api/schemas/transactions";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
+import { getModel, isAIEnabled } from "@midday/ai";
 import {
   createTransaction,
   deleteTransactions,
@@ -34,6 +34,7 @@ import {
   buildCsvMappingPrompt,
   compactSampleRows,
   formatAmountValue,
+  heuristicCsvMapping,
   selectPromptColumns,
 } from "@midday/import";
 import { triggerJob } from "@midday/job-client";
@@ -282,6 +283,11 @@ export const transactionsRouter = createTRPCRouter({
   generateCsvMapping: protectedProcedure
     .input(generateCsvMappingSchema)
     .mutation(async ({ input, ctx: { teamId } }) => {
+      // Without AI, map columns by header name only.
+      if (!isAIEnabled()) {
+        return heuristicCsvMapping(input.fieldColumns);
+      }
+
       const requestStartedAt = Date.now();
       const promptColumns = selectPromptColumns(input.fieldColumns);
       const sampleRows = compactSampleRows(input.firstRows, promptColumns);
@@ -305,7 +311,7 @@ export const transactionsRouter = createTRPCRouter({
       const mappingPromise = (async () => {
         try {
           const { object } = await generateObject({
-            model: anthropic("claude-3-haiku-20240307"),
+            model: getModel("fast"),
             schema: generateCsvMappingResponseSchema,
             prompt,
           });

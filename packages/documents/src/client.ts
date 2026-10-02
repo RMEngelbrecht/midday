@@ -1,3 +1,4 @@
+import { isAIEnabled } from "@midday/ai";
 import { InvoiceProcessor } from "./processors/invoice/invoice-processor";
 import { ReceiptProcessor } from "./processors/receipt/receipt-processor";
 import type { GetDocumentRequest, GetInvoiceOrReceiptResponse } from "./types";
@@ -8,6 +9,14 @@ export class DocumentClient {
     params: GetDocumentRequest,
   ): Promise<GetInvoiceOrReceiptResponse> {
     const documentType = getDocumentTypeFromMimeType(params.mimetype);
+
+    // No AI configured: the document is marked processed with no extracted fields.
+    if (!isAIEnabled()) {
+      return {
+        type: documentType,
+        document_type: documentType as "invoice" | "receipt",
+      };
+    }
 
     if (documentType === "invoice") {
       const processor = new InvoiceProcessor();

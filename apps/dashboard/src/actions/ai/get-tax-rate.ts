@@ -1,6 +1,6 @@
 "use server";
 
-import { openai } from "@ai-sdk/openai";
+import { getModel, isAIEnabled } from "@midday/ai";
 import { getCountry } from "@midday/location";
 import { generateObject } from "ai";
 import { z } from "zod";
@@ -16,10 +16,14 @@ export const getTaxRateAction = authActionClient
     name: "get-tax-rate",
   })
   .action(async ({ parsedInput: { name } }) => {
+    if (!isAIEnabled()) {
+      throw new Error("AI is not configured");
+    }
+
     const country = await getCountry();
 
     const { object } = await generateObject({
-      model: openai("gpt-5-nano"),
+      model: getModel("fast"),
       schema: z.object({
         taxRate: z.number().min(5).max(50),
       }),

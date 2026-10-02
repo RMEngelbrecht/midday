@@ -14,6 +14,7 @@ export {
 // Embeddings
 export {
   CategoryEmbeddings,
+  categoryEmbeddingsEnabled,
   generateCategoryEmbedding,
   generateCategoryEmbeddings,
 } from "./embeddings";

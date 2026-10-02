@@ -1,16 +1,12 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { TextLoader } from "@langchain/classic/document_loaders/fs/text";
 import { CSVLoader } from "@langchain/community/document_loaders/fs/csv";
 import { PPTXLoader } from "@langchain/community/document_loaders/fs/pptx";
+import { getModelHandle, isAIEnabled } from "@midday/ai";
 import { generateText } from "ai";
 import { parseOfficeAsync } from "officeparser";
-import { ENV } from "../env";
 import { cleanText, extractTextFromRtf } from "../utils";
+import { extractTextFromPdf } from "../utils/pdf-text-extract";
 import { retryCall } from "../utils/retry";
-
-const google = createGoogleGenerativeAI({
-  apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY!,
-});
 
 export async function loadDocument({
   content,
@@ -24,21 +20,30 @@ export async function loadDocument({
   switch (metadata.mimetype) {
     case "application/pdf":
     case "application/x-pdf": {
-      if (!google) {
-        throw new Error(
-          "GOOGLE_GENERATIVE_AI_API_KEY environment variable is required for PDF extraction",
-        );
-      }
-
       try {
         const arrayBuffer = await content.arrayBuffer();
+
+        // Embedded text layer first: free, and the only option for models that
+        // cannot take PDFs (openai-compatible servers). Scanned PDFs need a
+        // PDF-capable vision model.
+        const embeddedText = await extractTextFromPdf("", arrayBuffer);
+        const vision = isAIEnabled() ? getModelHandle("vision") : null;
+        if (embeddedText && !vision?.pdfInput) {
+          document = embeddedText;
+          break;
+        }
+        if (!vision?.pdfInput) {
+          document = null;
+          break;
+        }
+
         const base64Content = Buffer.from(arrayBuffer).toString("base64");
 
         // Use retry logic to handle transient failures (503 errors, timeouts)
         const result = await retryCall(
           () =>
             generateText({
-              model: google("gemini-3-flash-preview"),
+              model: vision.model,
               abortSignal: AbortSignal.timeout(60000), // 60s timeout for PDF extraction
               messages: [
                 {
@@ -71,10 +76,7 @@ export async function loadDocument({
         if (error instanceof Error && error.stack) {
           errorDetails.errorStack = error.stack;
         }
-        console.error(
-          "Gemini PDF extraction failed after retries:",
-          errorDetails,
-        );
+        console.error("PDF extraction failed after retries:", errorDetails);
         // Return null instead of throwing to allow the process to continue
         // The upstream code will handle null documents appropriately
         document = null;

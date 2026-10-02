@@ -27,7 +27,7 @@ export const documentTagsRouter = createTRPCRouter({
       });
 
       // If a tag is created, we need to embed it
-      if (data) {
+      if (data && Embed.isEnabled()) {
         const embedService = new Embed();
         const { embedding, model } = await embedService.embed(input.name);
 

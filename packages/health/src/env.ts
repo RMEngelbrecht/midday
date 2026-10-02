@@ -36,27 +36,6 @@ export type CoercedEnvSchema = {
   REDIS_QUEUE_URL: string;
   
   /**
-   * **OPENAI_API_KEY** 🔐 _sensitive_  
-   * OpenAI API key (chat, insights).  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  OPENAI_API_KEY?: string;
-  
-  /**
-   * **GOOGLE_GENERATIVE_AI_API_KEY** 🔐 _sensitive_  
-   * Google Gemini API key (extraction, embeddings, classification).  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  GOOGLE_GENERATIVE_AI_API_KEY?: string;
-  
-  /**
-   * **MISTRAL_API_KEY** 🔐 _sensitive_  
-   * Mistral API key (OCR fallback).  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  MISTRAL_API_KEY?: string;
-  
-  /**
    * **STRIPE_SECRET_KEY** 🔐 _sensitive_  
    * Stripe Connect (invoice payments).  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
@@ -69,6 +48,121 @@ export type CoercedEnvSchema = {
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   EXA_API_KEY?: string;
+  
+  /**
+   * **AI_PROVIDER**  
+   * AI is optional. With nothing configured, chat, insights, natural-language  
+   * search, AI tax-rate lookup, document extraction and transaction enrichment are  
+   * disabled (see packages/ai and packages/features).  
+   *   
+   * Chat/fast/vision/extraction models come from one provider:  
+   * openai             OpenAI (api.openai.com)  
+   * openai-compatible  any OpenAI-style server (Ollama, vLLM, LM Studio, LiteLLM,  
+   * OpenRouter ...); needs AI_BASE_URL and AI_MODEL_CHAT  
+   * google | anthropic | mistral  
+   * If AI_PROVIDER is unset it is inferred from the legacy key variables below  
+   * (OPENAI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, ANTHROPIC_API_KEY,  
+   * MISTRAL_API_KEY, in that order), so existing deployments keep working.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M7.885%2010.23L12%203.463l4.116%206.769zm9.606%2011q-1.558%200-2.64-1.081t-1.082-2.64t1.082-2.649t2.64-1.09t2.649%201.09t1.09%202.649t-1.09%202.64t-2.649%201.082m-13.722-.5v-6.462h6.462v6.462z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_PROVIDER?: "openai" | "openai-compatible" | "google" | "anthropic" | "mistral";
+  
+  /**
+   * **AI_BASE_URL**  
+   * Base URL for openai-compatible servers (e.g. http://ollama:11434/v1). Also  
+   * usable to point openai/anthropic/google/mistral at a proxy.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_BASE_URL?: string;
+  
+  /**
+   * **AI_API_KEY** 🔐 _sensitive_  
+   * API key for AI_PROVIDER. Optional for local openai-compatible servers.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_API_KEY?: string;
+  
+  /**
+   * **AI_MODEL_CHAT**  
+   * Model for chat and insights. Defaults per provider; required for openai-compatible.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_MODEL_CHAT?: string;
+  
+  /**
+   * **AI_MODEL_FAST**  
+   * Small/cheap model for titles, search filters, enrichment, CSV mapping. Defaults to the provider's fast model, else AI_MODEL_CHAT.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_MODEL_FAST?: string;
+  
+  /**
+   * **AI_MODEL_VISION**  
+   * Vision-capable model for receipt/invoice extraction, document classification and image input. Defaults to the provider's vision model, else AI_MODEL_CHAT.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_MODEL_VISION?: string;
+  
+  /**
+   * **AI_MODEL_EXTRACTION**  
+   * Optional dedicated extraction model, tried before AI_MODEL_VISION.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_MODEL_EXTRACTION?: string;
+  
+  /**
+   * **AI_EMBEDDING_PROVIDER**  
+   * Embeddings are fixed at 768 dimensions (the DB columns are vector(768)).  
+   * They default to AI_PROVIDER's embedding model but can come from another  
+   * provider, e.g. Ollama `nomic-embed-text` (768 native) while chat uses OpenAI.  
+   * Changing the embedding model makes existing embeddings stale; see docs.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M7.885%2010.23L12%203.463l4.116%206.769zm9.606%2011q-1.558%200-2.64-1.081t-1.082-2.64t1.082-2.649t2.64-1.09t2.649%201.09t1.09%202.649t-1.09%202.64t-2.649%201.082m-13.722-.5v-6.462h6.462v6.462z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_EMBEDDING_PROVIDER?: "openai" | "openai-compatible" | "google" | "anthropic" | "mistral";
+  
+  /**
+   * **AI_EMBEDDING_BASE_URL**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_EMBEDDING_BASE_URL?: string;
+  
+  /**
+   * **AI_EMBEDDING_API_KEY** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_EMBEDDING_API_KEY?: string;
+  
+  /**
+   * **AI_EMBEDDING_MODEL**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AI_EMBEDDING_MODEL?: string;
+  
+  /**
+   * **OPENAI_API_KEY** 🔐 _sensitive_  
+   * Legacy per-vendor keys. Only used to infer AI_PROVIDER / AI_API_KEY when those  
+   * are unset. Prefer the AI_* variables above.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  OPENAI_API_KEY?: string;
+  
+  /**
+   * **GOOGLE_GENERATIVE_AI_API_KEY** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  GOOGLE_GENERATIVE_AI_API_KEY?: string;
+  
+  /**
+   * **ANTHROPIC_API_KEY** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  ANTHROPIC_API_KEY?: string;
+  
+  /**
+   * **MISTRAL_API_KEY** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  MISTRAL_API_KEY?: string;
   
   /**
    * **APP_URL**  
@@ -601,7 +695,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_b79d9176 = CoercedEnvSchema;
+type _CoercedEnvSchema_86760aca = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -609,9 +703,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_b79d9176 = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_86760aca = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'AUTH_GOOGLE_CLIENT_ID' | 'AUTH_GITHUB_CLIENT_ID' | 'AUTH_APPLE_CLIENT_ID' | 'AUTH_MICROSOFT_CLIENT_ID' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'SLACK_CLIENT_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'AI_PROVIDER' | 'AI_BASE_URL' | 'AI_MODEL_CHAT' | 'AI_MODEL_FAST' | 'AI_MODEL_VISION' | 'AI_MODEL_EXTRACTION' | 'AI_EMBEDDING_PROVIDER' | 'AI_EMBEDDING_BASE_URL' | 'AI_EMBEDDING_MODEL' | 'APP_URL' | 'API_URL' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'AUTH_GOOGLE_CLIENT_ID' | 'AUTH_GITHUB_CLIENT_ID' | 'AUTH_APPLE_CLIENT_ID' | 'AUTH_MICROSOFT_CLIENT_ID' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'TELLER_APPLICATION_ID' | 'SLACK_CLIENT_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

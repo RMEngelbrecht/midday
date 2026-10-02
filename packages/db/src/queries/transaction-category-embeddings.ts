@@ -32,12 +32,7 @@ export const createCategoryEmbedding = async (
   db: Database,
   params: CreateCategoryEmbeddingParams,
 ) => {
-  const {
-    name,
-    embedding,
-    system = false,
-    model = "gemini-embedding-001",
-  } = params;
+  const { name, embedding, system = false, model = "unknown" } = params;
 
   const [result] = await db
     .insert(transactionCategoryEmbeddings)
@@ -63,12 +58,7 @@ export const upsertCategoryEmbedding = async (
   db: Database,
   params: UpsertCategoryEmbeddingParams,
 ) => {
-  const {
-    name,
-    embedding,
-    system = false,
-    model = "gemini-embedding-001",
-  } = params;
+  const { name, embedding, system = false, model = "unknown" } = params;
 
   const [result] = await db
     .insert(transactionCategoryEmbeddings)

@@ -1,0 +1,29 @@
+{
+  "name": "@midday/ai",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test --exit src"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.64",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/mistral": "^2.0.26",
+    "@ai-sdk/openai": "catalog:",
+    "ai": "catalog:",
+    "varlock": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config.ts"
+  }
+}

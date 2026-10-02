@@ -1,4 +1,7 @@
-import { CategoryEmbeddings } from "@midday/categories";
+import {
+  CategoryEmbeddings,
+  categoryEmbeddingsEnabled,
+} from "@midday/categories";
 import { logger } from "@midday/logger";
 import { eq, inArray } from "drizzle-orm";
 import type { Database } from "../client";
@@ -20,6 +23,10 @@ export async function generateCategoryEmbedding(
   params: GenerateCategoryEmbeddingParams,
 ) {
   const { name, system = false, model } = params;
+
+  if (!categoryEmbeddingsEnabled()) {
+    return { success: true, existed: false, skipped: true };
+  }
 
   try {
     // First check if embedding already exists
@@ -72,6 +79,10 @@ export async function generateCategoryEmbeddingsBatch(
   let skipped = 0;
   let errors = 0;
   const results: Array<{ name: string; success: boolean; error?: string }> = [];
+
+  if (!categoryEmbeddingsEnabled()) {
+    return { processed: 0, skipped: categories.length, errors: 0, results };
+  }
 
   try {
     // First, check which embeddings already exist

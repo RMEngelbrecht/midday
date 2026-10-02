@@ -7,6 +7,7 @@
  * - Fast timeout
  */
 
+import { getAIConfig } from "@midday/ai";
 import { Provider } from "@midday/banking";
 import { checkHealth as checkCacheHealth } from "@midday/cache/health";
 import { checkHealth as checkDbHealth } from "@midday/db/utils/health";
@@ -151,25 +152,6 @@ export function stripeProbe(): Dependency {
   };
 }
 
-/** OpenAI: GET /v1/models (lightweight list) */
-export function openaiProbe(): Dependency {
-  return {
-    name: "openai",
-    tier: 2,
-    cacheTtlMs: 60_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      const key = ENV.OPENAI_API_KEY;
-      if (!key) return false;
-      const res = await fetch("https://api.openai.com/v1/models?limit=1", {
-        headers: { Authorization: `Bearer ${key}` },
-        signal: AbortSignal.timeout(5_000),
-      });
-      return res.ok;
-    },
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Tier 3 — Integrations (check token endpoint reachability)
 // ---------------------------------------------------------------------------
@@ -216,25 +198,6 @@ export function fortnoxProbe(): Dependency {
 // Tier 4 — Optional services
 // ---------------------------------------------------------------------------
 
-/** Google AI: lightweight models list */
-export function googleAiProbe(): Dependency {
-  return {
-    name: "google_ai",
-    tier: 4,
-    cacheTtlMs: 300_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      const key = ENV.GOOGLE_GENERATIVE_AI_API_KEY;
-      if (!key) return false;
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=1`,
-        { signal: AbortSignal.timeout(5_000) },
-      );
-      return res.ok;
-    },
-  };
-}
-
 /** Exa: API reachability */
 export function exaProbe(): Dependency {
   return {
@@ -260,18 +223,35 @@ export function exaProbe(): Dependency {
   };
 }
 
-/** Mistral AI: models list */
-export function mistralProbe(): Dependency {
+/** Configured AI provider: GET the provider's models list (only registered when AI is configured). */
+export function aiProbe(): Dependency {
   return {
-    name: "mistral",
+    name: "ai",
     tier: 4,
     cacheTtlMs: 300_000,
     timeoutMs: 5_000,
     probe: async () => {
-      const key = ENV.MISTRAL_API_KEY;
-      if (!key) return false;
-      const res = await fetch("https://api.mistral.ai/v1/models", {
-        headers: { Authorization: `Bearer ${key}` },
+      const config = getAIConfig();
+      if (!config) return false;
+      const { provider, baseURL, apiKey } = config.language;
+      const headers: Record<string, string> = {};
+      let url: string;
+      switch (provider) {
+        case "google":
+          url = `${baseURL ?? "https://generativelanguage.googleapis.com/v1beta"}/models?pageSize=1`;
+          headers["x-goog-api-key"] = apiKey ?? "";
+          break;
+        case "anthropic":
+          url = `${baseURL ?? "https://api.anthropic.com/v1"}/models?limit=1`;
+          headers["x-api-key"] = apiKey ?? "";
+          headers["anthropic-version"] = "2023-06-01";
+          break;
+        default:
+          url = `${baseURL ?? (provider === "mistral" ? "https://api.mistral.ai/v1" : "https://api.openai.com/v1")}/models`;
+          if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+      }
+      const res = await fetch(url, {
+        headers,
         signal: AbortSignal.timeout(5_000),
       });
       return res.ok;
@@ -286,22 +266,18 @@ export function mistralProbe(): Dependency {
 type ProbeFeatures = Pick<Features, "ai" | "mail" | "banking" | "integrations">;
 
 /** Probes for the optional services that are configured; nothing else is probed. */
-export function optionalProbes(
-  features: ProbeFeatures,
-  env: { OPENAI_API_KEY?: string; MISTRAL_API_KEY?: string } = ENV,
-): Dependency[] {
+export function optionalProbes(features: ProbeFeatures): Dependency[] {
   const { banking, integrations } = features;
   const candidates: [boolean, () => Dependency][] = [
     [banking.plaid, plaidProbe],
     [banking.enablebanking, enableBankingProbe],
     [banking.teller, tellerProbe],
     [integrations.stripe, stripeProbe],
-    [Boolean(env.OPENAI_API_KEY), openaiProbe],
+    [features.ai, aiProbe],
     [integrations.slack, slackProbe],
     [integrations.xero, xeroProbe],
     [integrations.quickbooks, quickbooksProbe],
     [integrations.fortnox, fortnoxProbe],
-    [Boolean(env.MISTRAL_API_KEY), mistralProbe],
   ];
 
   return candidates.filter(([enabled]) => enabled).map(([, probe]) => probe());
@@ -315,7 +291,6 @@ export function apiDependencies(features = getFeatures()): Dependency[] {
     redisCacheProbe(),
     redisQueueProbe(),
     ...optionalProbes(features),
-    ...(ENV.GOOGLE_GENERATIVE_AI_API_KEY ? [googleAiProbe()] : []),
   ];
 }
 
@@ -329,7 +304,6 @@ export function workerDependencies(features = getFeatures()): Dependency[] {
       (d) =>
         !["stripe", "slack", "xero", "quickbooks", "fortnox"].includes(d.name),
     ),
-    ...(ENV.GOOGLE_GENERATIVE_AI_API_KEY ? [googleAiProbe()] : []),
     ...(ENV.EXA_API_KEY ? [exaProbe()] : []),
   ];
 }

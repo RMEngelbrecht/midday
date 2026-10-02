@@ -1,3 +1,5 @@
+import { AI_ENV_KEYS, isAIConfigured } from "@midday/ai/config";
+
 /**
  * Optional services are enabled by the presence of their env keys. This module
  * maps env presence to a typed `Features` object. It is pure so it can be
@@ -66,8 +68,7 @@ export const FEATURE_ENV_KEYS = [
   "AUTH_APPLE_CLIENT_SECRET",
   "AUTH_MICROSOFT_CLIENT_ID",
   "AUTH_MICROSOFT_CLIENT_SECRET",
-  "OPENAI_API_KEY",
-  "GOOGLE_GENERATIVE_AI_API_KEY",
+  ...AI_ENV_KEYS,
   "PLAID_CLIENT_ID",
   "PLAID_SECRET",
   "TELLER_APPLICATION_ID",
@@ -117,7 +118,7 @@ export function deriveFeatures(env: FeatureEnv): Features {
     keys.every((key) => Boolean(env[key]?.trim()));
 
   return {
-    ai: all("OPENAI_API_KEY") || all("GOOGLE_GENERATIVE_AI_API_KEY"),
+    ai: isAIConfigured(env),
     auth: {
       google: all("AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET"),
       github: all("AUTH_GITHUB_CLIENT_ID", "AUTH_GITHUB_CLIENT_SECRET"),

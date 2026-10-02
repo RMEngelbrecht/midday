@@ -1,54 +1,22 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { embed, embedMany } from "ai";
-import { ENV } from "./env";
+import { embed, embedMany, isEmbeddingEnabled } from "@midday/ai";
 
-const GOOGLE_API_KEY = ENV.GOOGLE_GENERATIVE_AI_API_KEY!;
-
-const google = createGoogleGenerativeAI({
-  apiKey: GOOGLE_API_KEY,
-});
-
-const EMBEDDING_CONFIG = {
-  model: google.textEmbedding("gemini-embedding-001"),
-  providerOptions: {
-    google: {
-      outputDimensionality: 768,
-      taskType: "SEMANTIC_SIMILARITY",
-    },
-  },
-  modelName: "gemini-embedding-001",
-};
+/** False when no embedding model is configured; callers should skip embedding work. */
+export function categoryEmbeddingsEnabled(): boolean {
+  return isEmbeddingEnabled();
+}
 
 /**
  * Generate a single embedding for a category name
  */
 export async function generateCategoryEmbedding(categoryName: string) {
-  const { embedding } = await embed({
-    model: EMBEDDING_CONFIG.model,
-    value: categoryName,
-    providerOptions: EMBEDDING_CONFIG.providerOptions,
-  });
-
-  return {
-    embedding,
-    model: EMBEDDING_CONFIG.modelName,
-  };
+  return embed(categoryName);
 }
 
 /**
  * Generate embeddings for multiple category names
  */
 export async function generateCategoryEmbeddings(categoryNames: string[]) {
-  const { embeddings } = await embedMany({
-    model: EMBEDDING_CONFIG.model,
-    values: categoryNames,
-    providerOptions: EMBEDDING_CONFIG.providerOptions,
-  });
-
-  return {
-    embeddings,
-    model: EMBEDDING_CONFIG.modelName,
-  };
+  return embedMany(categoryNames);
 }
 
 /**

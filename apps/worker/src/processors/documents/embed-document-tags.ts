@@ -28,6 +28,7 @@ export class EmbedDocumentTagsProcessor extends BaseProcessor<EmbedDocumentTagsP
     });
 
     const embed = new Embed();
+    const embeddingsEnabled = Embed.isEnabled();
 
     // 1. Generate slugs for all incoming tags
     const tagsWithSlugs = tags.map((tag) => ({
@@ -53,7 +54,7 @@ export class EmbedDocumentTagsProcessor extends BaseProcessor<EmbedDocumentTagsP
     const newTagNames = tagsToEmbed.map((t) => t.name);
 
     // 4. Generate and insert new embeddings if any
-    if (newTagNames.length > 0) {
+    if (newTagNames.length > 0 && embeddingsEnabled) {
       this.logger.info("Generating embeddings for new tags", {
         documentId,
         newTagsCount: newTagNames.length,

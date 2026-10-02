@@ -1,10 +1,10 @@
 import type { MCPClient } from "@ai-sdk/mcp";
 import { createMCPClient } from "@ai-sdk/mcp";
-import { openai } from "@ai-sdk/openai";
 import { ENV } from "@api/env";
 import { createMcpServer } from "@api/mcp/server";
 import type { McpContext } from "@api/mcp/types";
 import { expandScopes } from "@api/utils/scopes";
+import { getEmbeddingModel, isAIEnabled, isEmbeddingEnabled } from "@midday/ai";
 import { logger } from "@midday/logger";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { PrepareStepFunction, Tool } from "ai";
@@ -46,8 +46,13 @@ export function ensureToolIndex(ctx: McpContext): Promise<ToolIndex<any>> {
     cachedDefinitions = definitions;
 
     const index = await createToolIndex(tools, {
-      embeddingModel: openai.embeddingModel("text-embedding-3-small"),
-      embeddingCache: fileCache(".toolpick-cache.json"),
+      // Without an embedding model toolpick falls back to keyword search.
+      ...(isEmbeddingEnabled()
+        ? {
+            embeddingModel: getEmbeddingModel(),
+            embeddingCache: fileCache(".toolpick-cache.json"),
+          }
+        : {}),
       relatedTools: {
         invoices_create: ["customers_list"],
         invoices_create_from_tracker: ["customers_list"],
@@ -126,6 +131,8 @@ export function getSearchTool() {
  * times — subsequent calls are no-ops once the index is cached.
  */
 export function warmToolIndex(): void {
+  if (!isAIEnabled()) return;
+
   const stubCtx: McpContext = {
     db: {} as McpContext["db"],
     teamId: "warmup",

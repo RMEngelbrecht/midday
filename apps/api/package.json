@@ -16,9 +16,7 @@
     "./trpc/routers/_app": "./src/trpc/routers/_app.ts"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.64",
     "@ai-sdk/mcp": "^1.0.30",
-    "@ai-sdk/openai": "catalog:",
     "@composio/core": "^0.6.7",
     "@composio/vercel": "^0.6.7",
     "@date-fns/tz": "catalog:",
@@ -26,6 +24,7 @@
     "@hono/trpc-server": "^0.4.2",
     "@hono/zod-openapi": "1.2.3",
     "@midday/accounting": "workspace:*",
+    "@midday/ai": "workspace:*",
     "@midday/app-store": "workspace:*",
     "@midday/banking": "workspace:*",
     "@midday/bot": "workspace:*",

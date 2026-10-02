@@ -1159,10 +1159,14 @@ mock.module("@midday/notifications", () => ({
 
 mock.module("@midday/documents/embed", () => ({
   Embed: class {
+    static isEnabled() {
+      return true;
+    }
+
     async embed(_content: string) {
       return {
         embedding: [0, 0, 0],
-        model: "gemini-embedding-001",
+        model: "test-embedding-model",
       };
     }
   },
@@ -1176,6 +1180,7 @@ mock.module("@midday/import", () => ({
   ),
   selectPromptColumns: mock((cols: string[]) => cols ?? []),
   buildCsvMappingPrompt: mock(() => "mock-csv-mapping-prompt"),
+  heuristicCsvMapping: mock(() => ({})),
 }));
 
 // Mock @midday/invoice

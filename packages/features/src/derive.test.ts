@@ -64,6 +64,17 @@ describe("deriveFeatures", () => {
   it("enables AI with either provider key", () => {
     expect(deriveFeatures({ OPENAI_API_KEY: "sk" }).ai).toBe(true);
     expect(deriveFeatures({ GOOGLE_GENERATIVE_AI_API_KEY: "g" }).ai).toBe(true);
+    expect(deriveFeatures({ AI_PROVIDER: "openai", AI_API_KEY: "k" }).ai).toBe(
+      true,
+    );
+    expect(
+      deriveFeatures({
+        AI_PROVIDER: "openai-compatible",
+        AI_BASE_URL: "http://localhost:11434/v1",
+        AI_MODEL_CHAT: "qwen2.5vl",
+      }).ai,
+    ).toBe(true);
+    expect(deriveFeatures({ AI_PROVIDER: "openai" }).ai).toBe(false);
   });
 
   it("uses SMTP when configured and falls back to console", () => {

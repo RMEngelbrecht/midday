@@ -3,9 +3,8 @@
  *
  * Only scorers that catch real quality problems
  */
-import { ENV } from "../src/env";
 import "dotenv/config";
-import { createOpenAI } from "@ai-sdk/openai";
+import { getModel } from "@midday/ai";
 import { generateText } from "ai";
 import { createScorer } from "evalite";
 import type { InsightSlots } from "../src/content/prompts/slots";
@@ -307,10 +306,6 @@ export const noFalseGrowthInLoss = createScorer<InsightSlots, InsightOutput>({
 // LLM-as-judge scorer - more expensive, checks subjective quality
 // ============================================================================
 
-const openai = createOpenAI({
-  apiKey: ENV.OPENAI_API_KEY!,
-});
-
 /**
  * Tone should match the week type
  * - great: confident, acknowledging
@@ -360,7 +355,7 @@ VERDICT: [PASS or FAIL]`;
 
     try {
       const result = await generateText({
-        model: openai("gpt-4o-mini"),
+        model: getModel("fast"),
         prompt,
         temperature: 0,
       });

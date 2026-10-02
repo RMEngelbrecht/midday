@@ -54,9 +54,7 @@ import type {
   PreviousPredictionsContext,
 } from "./types";
 
-export type InsightsServiceOptions = {
-  model?: string;
-};
+export type InsightsServiceOptions = Record<string, never>;
 
 /**
  * Main service class for generating business insights
@@ -65,11 +63,9 @@ export class InsightsService {
   private db: Database;
   private contentGenerator: ContentGenerator;
 
-  constructor(db: Database, options: InsightsServiceOptions = {}) {
+  constructor(db: Database, _options: InsightsServiceOptions = {}) {
     this.db = db;
-    this.contentGenerator = new ContentGenerator({
-      model: options.model,
-    });
+    this.contentGenerator = new ContentGenerator();
   }
 
   /**
@@ -773,7 +769,6 @@ export {
 export {
   type AnomalySlot,
   ContentGenerator,
-  type ContentGeneratorOptions,
   createContentGenerator,
 } from "./content";
 

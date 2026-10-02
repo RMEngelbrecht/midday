@@ -1,3 +1,4 @@
+import { isAIEnabled } from "@midday/ai";
 import { getInsightByPeriod, getTeamsForInsights } from "@midday/db/queries";
 import {
   getEnabledTeamIds,
@@ -59,6 +60,13 @@ const TARGET_LOCAL_HOUR = 7;
 export class DispatchInsightsProcessor extends BaseProcessor<DispatchInsightsPayload> {
   async process(job: Job<DispatchInsightsPayload>): Promise<ProcessResult> {
     const { periodType } = job.data;
+
+    if (!isAIEnabled()) {
+      this.logger.info("Insights generation skipped (AI not configured)", {
+        periodType,
+      });
+      return emptyResult();
+    }
 
     if (ENV.INSIGHTS_ENABLED !== true) {
       this.logger.info(
