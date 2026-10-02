@@ -46,30 +46,6 @@ export function redisCacheProbe(): Dependency {
   };
 }
 
-/** Supabase: GET auth health (requires apikey header) */
-export function supabaseProbe(): Dependency {
-  return {
-    name: "supabase",
-    tier: 1,
-    cacheTtlMs: 30_000,
-    timeoutMs: 3_000,
-    probe: async () => {
-      const url = ENV.SUPABASE_URL;
-      if (!url) throw new Error("SUPABASE_URL not set");
-      const apikey = ENV.SUPABASE_SECRET_KEY || ENV.SUPABASE_PUBLISHABLE_KEY;
-      const headers: Record<string, string> = {};
-      if (apikey) {
-        headers.apikey = apikey;
-      }
-      const res = await fetch(`${url}/auth/v1/health`, {
-        headers,
-        signal: AbortSignal.timeout(3_000),
-      });
-      return res.ok;
-    },
-  };
-}
-
 /** Redis queue: PING using Bun's RedisClient */
 export function redisQueueProbe(): Dependency {
   const { RedisClient } = require("bun");
@@ -338,7 +314,6 @@ export function apiDependencies(features = getFeatures()): Dependency[] {
     databaseProbe(),
     redisCacheProbe(),
     redisQueueProbe(),
-    ...(ENV.SUPABASE_URL ? [supabaseProbe()] : []),
     ...optionalProbes(features),
     ...(ENV.GOOGLE_GENERATIVE_AI_API_KEY ? [googleAiProbe()] : []),
   ];
@@ -350,7 +325,6 @@ export function workerDependencies(features = getFeatures()): Dependency[] {
     // Tier 1 — Core
     databaseProbe(),
     redisQueueProbe(),
-    ...(ENV.SUPABASE_URL ? [supabaseProbe()] : []),
     ...optionalProbes(features).filter(
       (d) =>
         !["stripe", "slack", "xero", "quickbooks", "fortnox"].includes(d.name),

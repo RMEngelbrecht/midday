@@ -1,7 +1,6 @@
 "use client";
 
 import { LogEvents } from "@midday/events/events";
-import { createClient } from "@midday/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,10 +27,10 @@ import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { redirectAfterAccountDeletion } from "@/actions/revalidate-action";
+import { signOut } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
 
 export function DeleteAccount() {
-  const supabase = createClient();
   const trpc = useTRPC();
   const { track } = useOpenPanel();
 
@@ -39,7 +38,8 @@ export function DeleteAccount() {
     trpc.user.delete.mutationOptions({
       onSuccess: async () => {
         track(LogEvents.AccountDeleted.name);
-        await supabase.auth.signOut();
+        // The account (and its sessions) are gone; clear local auth state.
+        await signOut().catch(() => {});
         await redirectAfterAccountDeletion();
       },
     }),

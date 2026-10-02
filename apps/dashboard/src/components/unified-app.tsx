@@ -1,7 +1,6 @@
 import type { UnifiedApp } from "@midday/app-store/types";
 import { openUrl } from "@midday/desktop-client/core";
 import { isDesktopApp } from "@midday/desktop-client/platform";
-import { createClient } from "@midday/supabase/client";
 import {
   Accordion,
   AccordionContent,
@@ -22,6 +21,7 @@ import { parseAsBoolean, parseAsString, useQueryStates } from "nuqs";
 import { useState } from "react";
 import { usePublicConfig } from "@/components/public-config-provider";
 import { useAppOAuth } from "@/hooks/use-app-oauth";
+import { getAccessToken } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
 import { getScopeDescription } from "@/utils/scopes";
 import { AppSettings } from "./app-settings";
@@ -426,12 +426,9 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
       }
 
       if (app.onInitialize) {
-        const supabase = createClient();
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const accessToken = await getAccessToken();
 
-        if (!session?.access_token) {
+        if (!accessToken) {
           throw new Error("Not authenticated");
         }
 
@@ -442,7 +439,7 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
 
         await app.onInitialize({
           apiUrl,
-          accessToken: session.access_token,
+          accessToken,
           onComplete: () => {
             clearTimeout(timeoutId);
             // Invalidate queries to refresh the app status

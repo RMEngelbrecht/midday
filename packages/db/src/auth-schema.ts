@@ -16,7 +16,14 @@
  * - Plugins in use: twoFactor (`two_factor`, `user.two_factor_enabled`)
  *   and jwt (`jwks`).
  */
-import { boolean, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgSchema,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const authPgSchema = pgSchema("auth");
 
@@ -90,6 +97,10 @@ export const authTwoFactor = authPgSchema.table("two_factor", {
     .references(() => authUser.id, { onDelete: "cascade" }),
   secret: text("secret").notNull(),
   backupCodes: text("backup_codes").notNull(),
+  // false until the first TOTP code confirms enrollment.
+  verified: boolean("verified").default(true),
+  failedVerificationCount: integer("failed_verification_count").default(0),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
 });
 
 export const authJwks = authPgSchema.table("jwks", {
@@ -99,6 +110,8 @@ export const authJwks = authPgSchema.table("jwks", {
   createdAt: createdAt(),
   // Optional in better-auth's jwt plugin (key rotation); nullable here.
   expiresAt: timestamp("expires_at", { withTimezone: true }),
+  alg: text("alg"),
+  crv: text("crv"),
 });
 
 /** Keyed by better-auth model name, ready for `drizzleAdapter({ schema })`. */

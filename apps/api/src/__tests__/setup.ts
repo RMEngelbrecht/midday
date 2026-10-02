@@ -301,9 +301,6 @@ export const mocks = {
     }),
   ) as MockFn,
   deleteUser: mock(() => Promise.resolve({ id: "test-user-id" })) as MockFn,
-  supabaseAdminDeleteUser: mock(() =>
-    Promise.resolve({ data: {}, error: null }),
-  ) as MockFn,
   mailerSend: mock(() => Promise.resolve()) as MockFn,
 
   // Tracker queries
@@ -1228,19 +1225,6 @@ mock.module("@midday/invoice", () => ({
   ),
 }));
 
-// Mock @api/services/supabase
-mock.module("@api/services/supabase", () => ({
-  createClient: mock(async () => ({})),
-  createAdminClient: mock(async () => ({
-    auth: {
-      admin: {
-        deleteUser: (...args: unknown[]) =>
-          mocks.supabaseAdminDeleteUser(...args),
-      },
-    },
-  })),
-}));
-
 mock.module("@midday/mailer", () => ({
   send: (...args: unknown[]) => mocks.mailerSend(...args),
   sendMany: mock(() => Promise.resolve({ sent: 0, failed: 0, results: [] })),
@@ -1253,16 +1237,8 @@ mock.module("@api/utils/auth", () => ({
     user: {
       id: "test-user-id",
       email: "test@example.com",
-      user_metadata: {},
-      app_metadata: {},
-      aud: "authenticated",
-      created_at: new Date().toISOString(),
+      full_name: "Test User",
     },
-    access_token: "test-access-token",
-    token_type: "bearer",
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: "test-refresh-token",
   })),
 }));
 

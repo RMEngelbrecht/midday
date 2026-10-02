@@ -1,143 +1,63 @@
-import { createClient } from "@midday/supabase/server";
+import { getFeatures } from "@midday/features";
 import { Icons } from "@midday/ui/icons";
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { userAgent } from "next/server";
 import { LoginAccordion } from "@/components/login-accordion";
 import { LoginVideoBackground } from "@/components/login-video-background";
 import { OAuthSignIn } from "@/components/oauth-sign-in";
 import { OTPSignIn } from "@/components/otp-sign-in";
+import { PasswordSignIn } from "@/components/password-sign-in";
+import type { OAuthProvider } from "@/hooks/use-oauth-sign-in";
 import { Cookies } from "@/utils/constants";
-import { isBlockedNewUser } from "@/utils/new-user-gate";
 
 export const metadata: Metadata = {
   title: "Login | Midday",
 };
 
-type Props = {
-  searchParams: Promise<{ waitlist?: string }>;
-};
+const PROVIDER_ORDER: OAuthProvider[] = [
+  "google",
+  "apple",
+  "microsoft",
+  "github",
+];
 
-export default async function Page({ searchParams }: Props) {
-  const { waitlist: waitlistParam } = await searchParams;
+export default async function Page() {
   const cookieStore = await cookies();
-  const preferred = cookieStore.get(Cookies.PreferredSignInProvider);
-  const { device } = userAgent({ headers: await headers() });
+  const preferred = cookieStore.get(Cookies.PreferredSignInProvider)?.value;
 
-  const supabase = await createClient();
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-  const showQueueNotice =
-    waitlistParam === "1" || isBlockedNewUser(authUser?.created_at);
+  // Only providers configured on the API (AUTH_<PROVIDER>_CLIENT_ID/SECRET).
+  const { auth } = getFeatures();
+  const providers = PROVIDER_ORDER.filter((provider) => auth[provider]);
 
-  let moreSignInOptions = null;
-  let preferredSignInOption =
-    device?.vendor === "Apple" ? (
-      <div className="flex flex-col space-y-3 w-full">
-        <OAuthSignIn
-          provider="google"
-          showLastUsed={preferred?.value === "google"}
-        />
-        <OAuthSignIn
-          provider="apple"
-          showLastUsed={preferred?.value === "apple"}
-        />
-      </div>
-    ) : (
-      <div className="flex flex-col space-y-3 w-full">
-        <OAuthSignIn
-          provider="google"
-          showLastUsed={!preferred?.value || preferred?.value === "google"}
-        />
-        <OAuthSignIn
-          provider="azure"
-          showLastUsed={preferred?.value === "azure"}
-        />
-      </div>
-    );
+  // The last-used method goes first; email + password is the default.
+  const preferredProvider = providers.find(
+    (provider) => provider === preferred,
+  );
 
-  switch (preferred?.value) {
-    case "apple":
-      preferredSignInOption = <OAuthSignIn provider="apple" showLastUsed />;
-      moreSignInOptions = (
-        <>
-          <OAuthSignIn provider="google" />
-          <OAuthSignIn provider="azure" />
-          <OAuthSignIn provider="github" />
-          <OTPSignIn className="border-t-[1px] border-border pt-8" />
-        </>
-      );
-      break;
+  const preferredSignInOption = preferredProvider ? (
+    <OAuthSignIn provider={preferredProvider} showLastUsed />
+  ) : preferred === "otp" ? (
+    <OTPSignIn />
+  ) : (
+    <PasswordSignIn />
+  );
 
-    case "github":
-      preferredSignInOption = <OAuthSignIn provider="github" showLastUsed />;
-      moreSignInOptions = (
-        <>
-          <OAuthSignIn provider="google" />
-          <OAuthSignIn provider="apple" />
-          <OAuthSignIn provider="azure" />
-          <OTPSignIn className="border-t-[1px] border-border pt-8" />
-        </>
-      );
-      break;
-
-    case "google":
-      preferredSignInOption = <OAuthSignIn provider="google" showLastUsed />;
-      moreSignInOptions = (
-        <>
-          <OAuthSignIn provider="apple" />
-          <OAuthSignIn provider="azure" />
-          <OAuthSignIn provider="github" />
-          <OTPSignIn className="border-t-[1px] border-border pt-8" />
-        </>
-      );
-      break;
-
-    case "azure":
-      preferredSignInOption = <OAuthSignIn provider="azure" showLastUsed />;
-      moreSignInOptions = (
-        <>
-          <OAuthSignIn provider="google" />
-          <OAuthSignIn provider="apple" />
-          <OAuthSignIn provider="github" />
-          <OTPSignIn className="border-t-[1px] border-border pt-8" />
-        </>
-      );
-      break;
-
-    case "otp":
-      preferredSignInOption = <OTPSignIn />;
-      moreSignInOptions = (
-        <>
-          <OAuthSignIn provider="google" />
-          <OAuthSignIn provider="apple" />
-          <OAuthSignIn provider="azure" />
-          <OAuthSignIn provider="github" />
-        </>
-      );
-      break;
-
-    default:
-      if (device?.vendor === "Apple") {
-        moreSignInOptions = (
-          <>
-            <OAuthSignIn provider="azure" />
-            <OAuthSignIn provider="github" />
-            <OTPSignIn className="border-t-[1px] border-border pt-8" />
-          </>
-        );
-      } else {
-        moreSignInOptions = (
-          <>
-            <OAuthSignIn provider="apple" />
-            <OAuthSignIn provider="github" />
-            <OTPSignIn className="border-t-[1px] border-border pt-8" />
-          </>
-        );
-      }
-  }
+  const moreSignInOptions = (
+    <>
+      {providers
+        .filter((provider) => provider !== preferredProvider)
+        .map((provider) => (
+          <OAuthSignIn key={provider} provider={provider} />
+        ))}
+      {(preferredProvider || preferred === "otp") && (
+        <PasswordSignIn className="border-t-[1px] border-border pt-8" />
+      )}
+      {preferred !== "otp" && (
+        <OTPSignIn className="border-t-[1px] border-border pt-8" />
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-background flex relative">
@@ -164,50 +84,35 @@ export default async function Page({ searchParams }: Props) {
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-12 pb-2">
         <div className="w-full max-w-md flex flex-col h-full">
           <div className="space-y-8 flex-1 flex flex-col justify-center">
-            {showQueueNotice ? (
-              <div className="text-center space-y-2">
-                <h1 className="text-lg lg:text-xl mb-4 font-serif">
-                  You're on the waitlist
-                </h1>
-                <p className="font-sans text-sm text-[#878787]">
-                  Midday is not accepting new sign-ups right now. You've been
-                  added to our queue and we'll email you as soon as a spot opens
-                  up.
-                </p>
+            {/* Header */}
+            <div className="text-center space-y-2">
+              <h1 className="text-lg lg:text-xl mb-4 font-serif">
+                Welcome to Midday
+              </h1>
+              <p className="font-sans text-sm text-[#878787]">
+                Sign in or create an account
+              </p>
+            </div>
+
+            {/* Sign In Options */}
+            <div className="space-y-3 flex items-center justify-center w-full">
+              {preferredSignInOption}
+            </div>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
               </div>
-            ) : (
-              <>
-                {/* Header */}
-                <div className="text-center space-y-2">
-                  <h1 className="text-lg lg:text-xl mb-4 font-serif">
-                    Welcome to Midday
-                  </h1>
-                  <p className="font-sans text-sm text-[#878787]">
-                    Sign in or create an account
-                  </p>
-                </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-background font-sans text-[#878787]">
+                  or
+                </span>
+              </div>
+            </div>
 
-                {/* Sign In Options */}
-                <div className="space-y-3 flex items-center justify-center w-full">
-                  {preferredSignInOption}
-                </div>
-
-                {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-background font-sans text-[#878787]">
-                      or
-                    </span>
-                  </div>
-                </div>
-
-                {/* More Options Accordion */}
-                <LoginAccordion>{moreSignInOptions}</LoginAccordion>
-              </>
-            )}
+            {/* More Options Accordion */}
+            <LoginAccordion>{moreSignInOptions}</LoginAccordion>
           </div>
 
           {/* Terms and Privacy Policy - Bottom aligned */}

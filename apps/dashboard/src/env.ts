@@ -52,8 +52,8 @@ export type CoercedEnvSchema = {
   
   /**
    * **SUPABASE_URL**  
-   * Supabase project URL (auth, realtime).  
-   * deprecated: removed by S1; dashboard realtime still uses it  
+   * Supabase project URL (dashboard realtime only).  
+   * deprecated: removed by S7  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
    */
   SUPABASE_URL?: string;
@@ -61,18 +61,10 @@ export type CoercedEnvSchema = {
   /**
    * **SUPABASE_PUBLISHABLE_KEY**  
    * Supabase publishable (anon) key, sent to browsers.  
-   * deprecated: removed by S1; dashboard realtime still uses it  
+   * deprecated: removed by S7  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   SUPABASE_PUBLISHABLE_KEY?: string;
-  
-  /**
-   * **WEBHOOK_SECRET_KEY** 🔐 _sensitive_  
-   * Secret for the Supabase "user registered" database webhook.  
-   * deprecated: removed by S1  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  WEBHOOK_SECRET_KEY?: string;
   
   /**
    * **PLAID_ENVIRONMENT**  
@@ -205,6 +197,57 @@ export type CoercedEnvSchema = {
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   OPENPANEL_SECRET_KEY?: string;
+  
+  /**
+   * **AUTH_GOOGLE_CLIENT_ID**  
+   * Social sign-in providers; each is enabled when its id and secret are set.  
+   * Redirect URL: API_URL/auth/callback/<provider>.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GOOGLE_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_GOOGLE_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GOOGLE_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_GITHUB_CLIENT_ID**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GITHUB_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_GITHUB_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GITHUB_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_APPLE_CLIENT_ID**  
+   * Apple Services ID and the signed client-secret JWT.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_APPLE_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_APPLE_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_APPLE_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_MICROSOFT_CLIENT_ID**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_MICROSOFT_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_MICROSOFT_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_MICROSOFT_CLIENT_SECRET?: string;
   
   /**
    * **STORAGE_DRIVER**  
@@ -665,14 +708,6 @@ export type CoercedEnvSchema = {
   MAIL_FROM?: string;
   
   /**
-   * **SUPABASE_SECRET_KEY** 🔐 _sensitive_  
-   * Supabase secret (service role) key.  
-   * deprecated: removed by S1  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  SUPABASE_SECRET_KEY?: string;
-  
-  /**
    * **INTERNAL_API_KEY** 🔐 _sensitive_  
    * Shared key for service-to-service calls (worker/dashboard -> API).  
    * Generate with `openssl rand -hex 32`.  
@@ -682,7 +717,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_be402bde = CoercedEnvSchema;
+type _CoercedEnvSchema_ae8562d2 = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -690,9 +725,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_be402bde = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_ae8562d2 = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'API_INTERNAL_URL' | 'DESKTOP_SCHEME' | 'SUPABASE_URL' | 'SUPABASE_PUBLISHABLE_KEY' | 'PLAID_ENVIRONMENT' | 'TELLER_APPLICATION_ID' | 'TELLER_ENVIRONMENT' | 'LOGO_DEV_TOKEN' | 'STRIPE_PUBLISHABLE_KEY' | 'WHATSAPP_NUMBER' | 'TELEGRAM_BOT_USERNAME' | 'SENDBLUE_FROM_NUMBER' | 'GOOGLE_MAPS_API_KEY' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'GIT_COMMIT_SHA' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'ENABLEBANKING_REDIRECT_URL' | 'EXCHANGE_RATES_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'MAIL_FROM'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'API_INTERNAL_URL' | 'DESKTOP_SCHEME' | 'SUPABASE_URL' | 'SUPABASE_PUBLISHABLE_KEY' | 'PLAID_ENVIRONMENT' | 'TELLER_APPLICATION_ID' | 'TELLER_ENVIRONMENT' | 'LOGO_DEV_TOKEN' | 'STRIPE_PUBLISHABLE_KEY' | 'WHATSAPP_NUMBER' | 'TELEGRAM_BOT_USERNAME' | 'SENDBLUE_FROM_NUMBER' | 'GOOGLE_MAPS_API_KEY' | 'SENTRY_DSN' | 'OPENPANEL_CLIENT_ID' | 'GIT_COMMIT_SHA' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'AUTH_GOOGLE_CLIENT_ID' | 'AUTH_GITHUB_CLIENT_ID' | 'AUTH_APPLE_CLIENT_ID' | 'AUTH_MICROSOFT_CLIENT_ID' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'XERO_CLIENT_ID' | 'QUICKBOOKS_CLIENT_ID' | 'FORTNOX_CLIENT_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'STRIPE_CONNECT_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'ENABLEBANKING_REDIRECT_URL' | 'EXCHANGE_RATES_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'MAIL_FROM'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

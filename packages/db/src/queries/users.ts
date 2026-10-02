@@ -1,4 +1,5 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { authUser } from "../auth-schema";
 import type { Database } from "../client";
 import { teams, users, usersOnTeam } from "../schema";
 
@@ -121,29 +122,28 @@ export const getUserTeamId = async (db: Database, userId: string) => {
 };
 
 export const deleteUser = async (db: Database, id: string) => {
-  // Find teams where this user is a member
-  const teamsWithUser = await db
-    .select({
-      teamId: usersOnTeam.teamId,
-      memberCount: sql<number>`count(${usersOnTeam.userId})`.as("member_count"),
-    })
+  // Teams where this user is the only member are deleted with them.
+  const userTeamIds = db
+    .select({ teamId: usersOnTeam.teamId })
     .from(usersOnTeam)
-    .where(eq(usersOnTeam.userId, id))
-    .groupBy(usersOnTeam.teamId);
+    .where(eq(usersOnTeam.userId, id));
 
-  // Extract team IDs with only one member (this user)
-  const teamIdsToDelete = teamsWithUser
-    .filter((team) => team.memberCount === 1)
-    .map((team) => team.teamId);
+  const soleMemberTeams = await db
+    .select({ teamId: usersOnTeam.teamId })
+    .from(usersOnTeam)
+    .where(inArray(usersOnTeam.teamId, userTeamIds))
+    .groupBy(usersOnTeam.teamId)
+    .having(sql`count(*) = 1`);
 
-  // Delete the user and teams with only this user as a member
-  // Foreign key constraints with cascade delete will handle related records
-  await Promise.all([
-    db.delete(users).where(eq(users.id, id)),
-    teamIdsToDelete.length > 0
-      ? db.delete(teams).where(inArray(teams.id, teamIdsToDelete))
-      : Promise.resolve(),
-  ]);
+  const teamIdsToDelete = soleMemberTeams.map((team) => team.teamId);
+
+  if (teamIdsToDelete.length > 0) {
+    await db.delete(teams).where(inArray(teams.id, teamIdsToDelete));
+  }
+
+  // Deleting the better-auth user cascades to sessions, accounts, 2FA and
+  // public.users (and from there to related records).
+  await db.delete(authUser).where(eq(authUser.id, id));
 
   return { id };
 };

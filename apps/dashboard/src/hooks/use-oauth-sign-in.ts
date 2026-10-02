@@ -1,28 +1,24 @@
 "use client";
 
 import { isDesktopApp } from "@midday/desktop-client/platform";
-import { createClient } from "@midday/supabase/client";
-import type { Provider } from "@supabase/supabase-js";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { usePublicConfig } from "@/components/public-config-provider";
+import { getAuthClient } from "@/lib/auth-client";
 
-export type OAuthProvider = "google" | "apple" | "github" | "azure";
+export type OAuthProvider = "google" | "apple" | "github" | "microsoft";
 
 type ProviderConfig = {
   name: string;
   icon: "Google" | "Apple" | "Github" | "Microsoft";
-  scopes?: string;
-  queryParams?: Record<string, string>;
   variant: "primary" | "secondary";
   supportsReturnTo: boolean;
 };
 
-const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
+export const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
   google: {
     name: "Google",
     icon: "Google",
-    queryParams: { prompt: "select_account" },
     variant: "secondary",
     supportsReturnTo: true,
   },
@@ -38,10 +34,9 @@ const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
     variant: "secondary",
     supportsReturnTo: true,
   },
-  azure: {
+  microsoft: {
     name: "Microsoft",
     icon: "Microsoft",
-    scopes: "email profile openid",
     variant: "secondary",
     supportsReturnTo: true,
   },
@@ -50,7 +45,6 @@ const OAUTH_PROVIDERS: Record<OAuthProvider, ProviderConfig> = {
 export function useOAuthSignIn(provider: OAuthProvider) {
   const { appUrl } = usePublicConfig();
   const [isLoading, setLoading] = useState(false);
-  const supabase = createClient();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("return_to");
   const config = OAUTH_PROVIDERS[provider];
@@ -58,28 +52,23 @@ export function useOAuthSignIn(provider: OAuthProvider) {
   const handleSignIn = async () => {
     setLoading(true);
 
-    const redirectTo = new URL("/api/auth/callback", appUrl);
-    redirectTo.searchParams.append("provider", provider);
+    const callbackURL = new URL("/api/auth/callback", appUrl);
+    callbackURL.searchParams.append("provider", provider);
 
-    const isDesktop = isDesktopApp();
-
-    if (isDesktop) {
-      redirectTo.searchParams.append("client", "desktop");
+    if (isDesktopApp()) {
+      callbackURL.searchParams.append("client", "desktop");
     } else if (config.supportsReturnTo && returnTo) {
-      redirectTo.searchParams.append("return_to", returnTo);
+      callbackURL.searchParams.append("return_to", returnTo);
     }
 
-    const queryParams = isDesktop
-      ? { ...config.queryParams, client: "desktop" }
-      : config.queryParams;
+    const errorCallbackURL = new URL("/login", appUrl);
 
-    await supabase.auth.signInWithOAuth({
-      provider: provider as Provider,
-      options: {
-        redirectTo: redirectTo.toString(),
-        scopes: config.scopes,
-        queryParams,
-      },
+    // Redirects the browser to the provider; the API's callback sets the
+    // session cookie and redirects to `callbackURL` (or /mfa/verify).
+    await getAuthClient().signIn.social({
+      provider,
+      callbackURL: callbackURL.toString(),
+      errorCallbackURL: errorCallbackURL.toString(),
     });
 
     setTimeout(() => {

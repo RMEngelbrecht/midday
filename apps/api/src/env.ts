@@ -84,6 +84,13 @@ export type CoercedEnvSchema = {
   ALLOWED_API_ORIGINS?: string;
   
   /**
+   * **DESKTOP_SCHEME**  
+   * Deep-link scheme registered by the desktop app (midday, midday-dev, ...).  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  DESKTOP_SCHEME: string;
+  
+  /**
    * **INTERNAL_API_KEY** 🔐 _sensitive_  
    * Shared key for service-to-service calls (worker/dashboard -> API).  
    * Generate with `openssl rand -hex 32`.  
@@ -92,28 +99,88 @@ export type CoercedEnvSchema = {
   INTERNAL_API_KEY: string;
   
   /**
-   * **SUPABASE_URL**  
-   * Supabase project URL (auth, realtime).  
-   * deprecated: removed by S1; dashboard realtime still uses it  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  SUPABASE_URL?: string;
-  
-  /**
-   * **SUPABASE_SECRET_KEY** 🔐 _sensitive_  
-   * Supabase secret (service role) key.  
-   * deprecated: removed by S1  
+   * **AUTH_SECRET** 🔐 _sensitive_  
+   * Secret used to sign sessions, cookies and encrypt 2FA secrets.  
+   * Generate with `openssl rand -hex 32`.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
-  SUPABASE_SECRET_KEY?: string;
+  AUTH_SECRET: string;
   
   /**
-   * **SUPABASE_JWT_SECRET** 🔐 _sensitive_  
-   * Legacy HS256 JWT secret fallback for Supabase access tokens.  
-   * deprecated: removed by S1  
+   * **ALLOW_SIGNUP**  
+   * Who may create an account:  
+   * - first-user: the first account can sign up, then only invited emails  
+   * - invite-only: only emails with a pending team invite  
+   * - open: anyone  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M7.885%2010.23L12%203.463l4.116%206.769zm9.606%2011q-1.558%200-2.64-1.081t-1.082-2.64t1.082-2.649t2.64-1.09t2.649%201.09t1.09%202.649t-1.09%202.64t-2.649%201.082m-13.722-.5v-6.462h6.462v6.462z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  ALLOW_SIGNUP: "first-user" | "invite-only" | "open";
+  
+  /**
+   * **AUTH_COOKIE_DOMAIN**  
+   * Cookie domain shared by the dashboard and the API (e.g. `example.com` for  
+   * app.example.com + api.example.com). Derived from APP_URL/API_URL when unset.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
-  SUPABASE_JWT_SECRET?: string;
+  AUTH_COOKIE_DOMAIN?: string;
+  
+  /**
+   * **AUTH_GOOGLE_CLIENT_ID**  
+   * Social sign-in providers; each is enabled when its id and secret are set.  
+   * Redirect URL: API_URL/auth/callback/<provider>.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GOOGLE_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_GOOGLE_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GOOGLE_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_GITHUB_CLIENT_ID**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GITHUB_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_GITHUB_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_GITHUB_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_APPLE_CLIENT_ID**  
+   * Apple Services ID and the signed client-secret JWT.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_APPLE_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_APPLE_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_APPLE_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_MICROSOFT_CLIENT_ID**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_MICROSOFT_CLIENT_ID?: string;
+  
+  /**
+   * **AUTH_MICROSOFT_CLIENT_SECRET** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_MICROSOFT_CLIENT_SECRET?: string;
+  
+  /**
+   * **AUTH_MICROSOFT_TENANT_ID**  
+   * Entra tenant id; `common` allows any Microsoft account.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  AUTH_MICROSOFT_TENANT_ID: string;
   
   /**
    * **INBOX_WEBHOOK_USERNAME**  
@@ -729,14 +796,6 @@ export type CoercedEnvSchema = {
   REDIS_QUEUE_URL: string;
   
   /**
-   * **SUPABASE_PUBLISHABLE_KEY**  
-   * Supabase publishable (anon) key, sent to browsers.  
-   * deprecated: removed by S1; dashboard realtime still uses it  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  SUPABASE_PUBLISHABLE_KEY?: string;
-  
-  /**
    * **EXA_API_KEY** 🔐 _sensitive_  
    * Exa search API key (AI web research).  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
@@ -771,7 +830,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_54f38d09 = CoercedEnvSchema;
+type _CoercedEnvSchema_883a9788 = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -779,9 +838,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_54f38d09 = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_883a9788 = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'API_RATE_LIMIT' | 'MCP_API_RATE_LIMIT' | 'CHAT_RATE_LIMIT' | 'DB_POOL_STATS_INTERVAL_MS' | 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'ALLOWED_API_ORIGINS' | 'SUPABASE_URL' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STRIPE_CONNECT_CLIENT_ID' | 'TELEGRAM_BOT_USERNAME' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'SUPABASE_PUBLISHABLE_KEY' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'API_RATE_LIMIT' | 'MCP_API_RATE_LIMIT' | 'CHAT_RATE_LIMIT' | 'DB_POOL_STATS_INTERVAL_MS' | 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'ALLOWED_API_ORIGINS' | 'DESKTOP_SCHEME' | 'ALLOW_SIGNUP' | 'AUTH_COOKIE_DOMAIN' | 'AUTH_GOOGLE_CLIENT_ID' | 'AUTH_GITHUB_CLIENT_ID' | 'AUTH_APPLE_CLIENT_ID' | 'AUTH_MICROSOFT_CLIENT_ID' | 'AUTH_MICROSOFT_TENANT_ID' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STRIPE_CONNECT_CLIENT_ID' | 'TELEGRAM_BOT_USERNAME' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

@@ -1,15 +1,17 @@
-import { createClient } from "@midday/supabase/client";
+import { Input } from "@midday/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@midday/ui/input-otp";
 import { Spinner } from "@midday/ui/spinner";
-import { useRouter, useSearchParams } from "next/navigation";
+import { sanitizeRedirectPath } from "@midday/utils/sanitize-redirect";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { getAuthClient } from "@/lib/auth-client";
 
 export function VerifyMfa() {
   const [isValidating, setValidating] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState(false);
-  const supabase = createClient();
-  const router = useRouter();
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [backupCode, setBackupCode] = useState("");
   const searchParams = useSearchParams();
 
   const onComplete = async (code: string) => {
@@ -18,54 +20,23 @@ export function VerifyMfa() {
     if (!isValidating) {
       setValidating(true);
 
-      const factors = await supabase.auth.mfa.listFactors();
+      // Completes the pending sign-in (two_factor cookie) and sets the
+      // session cookie.
+      const client = getAuthClient();
+      const { error } = useBackupCode
+        ? await client.twoFactor.verifyBackupCode({ code })
+        : await client.twoFactor.verifyTotp({ code });
 
-      if (factors.error) {
-        setValidating(false);
-        setError(true);
-      }
-
-      if (!factors.data) {
-        setValidating(false);
-        setError(true);
-        return;
-      }
-
-      const totpFactor = factors.data.totp[0];
-
-      if (!totpFactor) {
-        setValidating(false);
-        setError(true);
-        return;
-      }
-
-      const factorId = totpFactor.id;
-
-      const challenge = await supabase.auth.mfa.challenge({ factorId });
-
-      if (challenge.error) {
-        setValidating(false);
-        setError(true);
-        return;
-      }
-
-      const challengeId = challenge.data.id;
-
-      const verify = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId,
-        code,
-      });
-
-      if (verify.error) {
+      if (error) {
         setValidating(false);
         setError(true);
         return;
       }
 
       setIsRedirecting(true);
-      router.push(
-        `${window.location.origin}/${searchParams.get("return_to") || ""}`,
+      // Full navigation so server components see the new session cookie.
+      window.location.assign(
+        sanitizeRedirectPath(`/${searchParams.get("return_to") || ""}`),
       );
     }
   };
@@ -94,6 +65,22 @@ export function VerifyMfa() {
                 </span>
               </div>
             </div>
+          ) : useBackupCode ? (
+            <form
+              className="w-full"
+              onSubmit={(event) => {
+                event.preventDefault();
+                onComplete(backupCode.trim());
+              }}
+            >
+              <Input
+                autoFocus
+                placeholder="Backup code"
+                value={backupCode}
+                onChange={(event) => setBackupCode(event.target.value)}
+                className={error ? "border-destructive" : undefined}
+              />
+            </form>
           ) : (
             <InputOTP
               onComplete={onComplete}
@@ -117,6 +104,17 @@ export function VerifyMfa() {
         Open your authenticator apps like 1Password, Authy, etc. to verify your
         identity.
       </p>
+
+      <button
+        type="button"
+        className="mt-4 w-full text-center text-xs text-[#878787] underline"
+        onClick={() => {
+          setError(false);
+          setUseBackupCode(!useBackupCode);
+        }}
+      >
+        {useBackupCode ? "Use authenticator app" : "Use a backup code"}
+      </button>
     </>
   );
 }

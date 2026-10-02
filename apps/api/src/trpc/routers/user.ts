@@ -1,5 +1,4 @@
 import { updateUserSchema } from "@api/schemas/users";
-import { createAdminClient } from "@api/services/supabase";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 import { withRetryOnPrimary } from "@api/utils/db-retry";
 import { teamCache } from "@midday/cache/team-cache";
@@ -71,14 +70,8 @@ export const userRouter = createTRPCRouter({
     }),
 
   delete: protectedProcedure.mutation(async ({ ctx: { db, session } }) => {
-    const supabaseAdmin = await createAdminClient();
-
-    const [data] = await Promise.all([
-      deleteUser(db, session.user.id),
-      supabaseAdmin.auth.admin.deleteUser(session.user.id),
-    ]);
-
-    return data;
+    // Deletes auth.user too; sessions, accounts and public.users cascade.
+    return deleteUser(db, session.user.id);
   }),
 
   invites: protectedProcedure.query(async ({ ctx: { db, session } }) => {

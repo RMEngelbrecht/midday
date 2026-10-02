@@ -1,5 +1,4 @@
 import { ENV } from "@api/env";
-import { createClient } from "@api/services/supabase";
 import type { Session } from "@api/utils/auth";
 import { verifyAccessToken } from "@api/utils/auth";
 import { getGeoContext } from "@api/utils/geo";
@@ -8,7 +7,6 @@ import { safeCompare } from "@api/utils/safe-compare";
 import type { Database } from "@midday/db/client";
 import { db } from "@midday/db/client";
 import { createLoggerWithContext } from "@midday/logger";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { Context } from "hono";
 import superjson from "superjson";
@@ -20,7 +18,6 @@ const perfLogger = createLoggerWithContext("perf:trpc");
 
 type TRPCContext = {
   session: Session | null;
-  supabase: SupabaseClient;
   db: Database;
   geo: ReturnType<typeof getGeoContext>;
   teamId?: string;
@@ -49,10 +46,6 @@ export const createTRPCContext = async (
   const session = await verifyAccessToken(accessToken);
   const jwtMs = DEBUG_PERF ? performance.now() - jwtStart : 0;
 
-  const supaStart = DEBUG_PERF ? performance.now() : 0;
-  const supabase = await createClient(accessToken);
-  const supaMs = DEBUG_PERF ? performance.now() - supaStart : 0;
-
   const geo = getGeoContext(c.req);
   const forcePrimary = c.req.header("x-force-primary") === "true";
 
@@ -60,7 +53,6 @@ export const createTRPCContext = async (
     perfLogger.info("context", {
       totalMs: +(performance.now() - ctxStart).toFixed(2),
       jwtVerifyMs: +jwtMs.toFixed(2),
-      supabaseClientMs: +supaMs.toFixed(2),
       hasSession: !!session,
       forcePrimary,
       requestId,
@@ -70,7 +62,6 @@ export const createTRPCContext = async (
 
   return {
     session,
-    supabase,
     db,
     geo,
     forcePrimary,

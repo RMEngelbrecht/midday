@@ -1,5 +1,4 @@
 import { setupAnalytics } from "@midday/events/server";
-import { createClient } from "@midday/supabase/server";
 import {
   createSafeActionClient,
   DEFAULT_SERVER_ERROR_MESSAGE,
@@ -58,8 +57,6 @@ export const authActionClient = actionClientWithMeta
     const queryClient = getQueryClient();
     const user = await queryClient.fetchQuery(trpc.user.me.queryOptions());
 
-    const supabase = await createClient();
-
     if (!user) {
       throw new Error("Unauthorized");
     }
@@ -72,7 +69,6 @@ export const authActionClient = actionClientWithMeta
 
     return next({
       ctx: {
-        supabase,
         analytics,
         user,
         teamId: user.teamId,

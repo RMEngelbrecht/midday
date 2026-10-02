@@ -29,6 +29,13 @@
       "when": 1791023901852,
       "tag": "0003_simplefin_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791034143603,
+      "tag": "0004_auth_plugin_columns",
+      "breakpoints": true
     }
   ]
 }

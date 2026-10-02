@@ -36,8 +36,17 @@ export type IntegrationFeatures = {
   sendblue: boolean;
 };
 
+/** Social sign-in providers configured on the API's better-auth instance. */
+export type AuthProviderFeatures = {
+  google: boolean;
+  github: boolean;
+  apple: boolean;
+  microsoft: boolean;
+};
+
 export type Features = {
   ai: boolean;
+  auth: AuthProviderFeatures;
   banking: BankingFeatures;
   mail: MailDriver;
   storage: StorageDriver;
@@ -49,6 +58,14 @@ export type Features = {
 };
 
 export const FEATURE_ENV_KEYS = [
+  "AUTH_GOOGLE_CLIENT_ID",
+  "AUTH_GOOGLE_CLIENT_SECRET",
+  "AUTH_GITHUB_CLIENT_ID",
+  "AUTH_GITHUB_CLIENT_SECRET",
+  "AUTH_APPLE_CLIENT_ID",
+  "AUTH_APPLE_CLIENT_SECRET",
+  "AUTH_MICROSOFT_CLIENT_ID",
+  "AUTH_MICROSOFT_CLIENT_SECRET",
   "OPENAI_API_KEY",
   "GOOGLE_GENERATIVE_AI_API_KEY",
   "PLAID_CLIENT_ID",
@@ -101,6 +118,15 @@ export function deriveFeatures(env: FeatureEnv): Features {
 
   return {
     ai: all("OPENAI_API_KEY") || all("GOOGLE_GENERATIVE_AI_API_KEY"),
+    auth: {
+      google: all("AUTH_GOOGLE_CLIENT_ID", "AUTH_GOOGLE_CLIENT_SECRET"),
+      github: all("AUTH_GITHUB_CLIENT_ID", "AUTH_GITHUB_CLIENT_SECRET"),
+      apple: all("AUTH_APPLE_CLIENT_ID", "AUTH_APPLE_CLIENT_SECRET"),
+      microsoft: all(
+        "AUTH_MICROSOFT_CLIENT_ID",
+        "AUTH_MICROSOFT_CLIENT_SECRET",
+      ),
+    },
     banking: {
       plaid: all("PLAID_CLIENT_ID", "PLAID_SECRET"),
       teller: all(

@@ -4,7 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { getClientPublicConfig } from "@/components/public-config-provider";
-import { getAccessToken } from "@/utils/session";
+import { getAccessToken } from "@/lib/auth-client";
 
 export type RateLimitInfo = { limit: number; remaining: number };
 

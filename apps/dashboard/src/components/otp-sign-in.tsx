@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createClient } from "@midday/supabase/client";
 import { cn } from "@midday/ui/cn";
 import {
   Form,
@@ -15,19 +14,14 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@midday/ui/input-otp";
 import { Spinner } from "@midday/ui/spinner";
 import { SubmitButton } from "@midday/ui/submit-button";
 import { useSearchParams } from "next/navigation";
-import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v3";
-import { verifyOtpAction } from "@/actions/verify-otp-action";
+import { getAuthClient } from "@/lib/auth-client";
+import { afterSignIn } from "@/utils/after-sign-in";
 
 const formSchema = z.object({
-  email: z
-    .string()
-    .email()
-    .refine((email) => !email.includes("+"), {
-      message: "Email addresses with '+' are not allowed",
-    }),
+  email: z.string().email(),
 });
 
 type Props = {
@@ -35,12 +29,11 @@ type Props = {
 };
 
 export function OTPSignIn({ className }: Props) {
-  const verifyOtp = useAction(verifyOtpAction);
   const [isLoading, setLoading] = useState(false);
   const [isSent, setSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [email, setEmail] = useState<string>();
-  const supabase = createClient();
+  const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -54,22 +47,45 @@ export function OTPSignIn({ className }: Props) {
     setLoading(true);
 
     setEmail(email);
+    setError(null);
 
-    await supabase.auth.signInWithOtp({ email });
+    const { error } = await getAuthClient().emailOtp.sendVerificationOtp({
+      email,
+      type: "sign-in",
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message ?? "Could not send a sign-in code");
+      return;
+    }
 
     setSent(true);
-    setLoading(false);
   }
 
   async function onComplete(token: string) {
     if (!email) return;
 
     setIsVerifying(true);
+    setError(null);
 
-    verifyOtp.execute({
-      token,
+    const { data, error } = await getAuthClient().signIn.emailOtp({
       email,
-      redirectTo: `${window.location.origin}/${searchParams.get("return_to") || ""}`,
+      otp: token,
+    });
+
+    if (error || !data) {
+      setIsVerifying(false);
+      setError(error?.message ?? "Invalid code");
+      return;
+    }
+
+    afterSignIn({
+      method: "otp",
+      twoFactorRedirect:
+        "twoFactorRedirect" in data && Boolean(data.twoFactorRedirect),
+      returnTo: searchParams.get("return_to"),
     });
   }
 
@@ -77,7 +93,7 @@ export function OTPSignIn({ className }: Props) {
     return (
       <div className={cn("flex flex-col space-y-4 items-center", className)}>
         <div className="h-[62px] w-full flex items-center justify-center">
-          {verifyOtp.isExecuting || isVerifying ? (
+          {isVerifying ? (
             <div className="flex items-center justify-center h-full bg-background/95 border border-input w-full">
               <div className="flex items-center space-x-2 bg-background px-4 py-2 rounded-md shadow-sm">
                 <Spinner size={16} className="text-primary" />
@@ -91,7 +107,7 @@ export function OTPSignIn({ className }: Props) {
               maxLength={6}
               autoFocus
               onComplete={onComplete}
-              disabled={verifyOtp.isExecuting || isVerifying}
+              disabled={isVerifying}
               render={({ slots }) => (
                 <InputOTPGroup>
                   {slots.map((slot, index) => (
@@ -107,6 +123,8 @@ export function OTPSignIn({ className }: Props) {
           )}
         </div>
 
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
         <div className="flex space-x-2">
           <span className="text-sm text-[#878787]">
             Didn't receive the email?
@@ -115,7 +133,7 @@ export function OTPSignIn({ className }: Props) {
             onClick={() => setSent(false)}
             type="button"
             className="text-sm text-primary underline font-medium"
-            disabled={verifyOtp.isExecuting || isVerifying}
+            disabled={isVerifying}
           >
             Resend code
           </button>
@@ -146,6 +164,8 @@ export function OTPSignIn({ className }: Props) {
               </FormItem>
             )}
           />
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <SubmitButton
             type="submit"

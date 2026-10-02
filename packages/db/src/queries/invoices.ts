@@ -1108,6 +1108,7 @@ export type UpdateInvoiceParams = {
   refundedAt?: string | null;
   sentTo?: string | null;
   sentAt?: string | null;
+  viewedAt?: string | null;
   filePath?: string[] | null;
   fileSize?: number | null;
   invoiceRecurringId?: string | null;

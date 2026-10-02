@@ -1,6 +1,6 @@
 import { stripSpecialCharacters } from "@midday/utils";
 import { getClientPublicConfig } from "@/components/public-config-provider";
-import { getAccessToken } from "@/utils/session";
+import { getAccessToken } from "@/lib/auth-client";
 
 export type StorageBucket = "vault" | "avatars" | "apps";
 

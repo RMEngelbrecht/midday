@@ -44,6 +44,7 @@ import {
   searchInvoiceNumber,
   updateInvoice,
 } from "@midday/db/queries";
+import { decrypt } from "@midday/encryption";
 import { DEFAULT_TEMPLATE } from "@midday/invoice";
 import { verify } from "@midday/invoice/token";
 import { transformCustomerToContent } from "@midday/invoice/utils";
@@ -99,6 +100,47 @@ export const invoiceRouter = createTRPCRouter({
       return getInvoiceById(db, {
         id,
       });
+    }),
+
+  // Called by the public invoice page when the customer (identified by the
+  // encrypted `viewer` email in their link) opens it.
+  markViewed: publicProcedure
+    .input(z.object({ token: z.string(), viewer: z.string() }))
+    .mutation(async ({ input, ctx: { db } }) => {
+      let id: string | undefined;
+
+      try {
+        const payload = (await verify(decodeURIComponent(input.token))) as {
+          id?: string;
+        };
+        id = payload.id;
+      } catch {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      if (!id) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const invoice = await getInvoiceById(db, { id });
+      if (!invoice?.teamId) throw new TRPCError({ code: "NOT_FOUND" });
+
+      let viewerEmail: string | undefined;
+      try {
+        viewerEmail = decrypt(input.viewer);
+      } catch {
+        return { viewed: false };
+      }
+
+      if (!viewerEmail || viewerEmail !== invoice.customer?.email) {
+        return { viewed: false };
+      }
+
+      await updateInvoice(db, {
+        id,
+        teamId: invoice.teamId,
+        viewedAt: new Date().toISOString(),
+      });
+
+      return { viewed: true };
     }),
 
   paymentStatus: protectedProcedure.query(async ({ ctx: { db, teamId } }) => {

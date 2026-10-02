@@ -30,6 +30,7 @@
     "./queries": "./src/queries/index.ts",
     "./errors": "./src/errors.ts",
     "./schema": "./src/schema.ts",
+    "./auth-schema": "./src/auth-schema.ts",
     "./sql": "./src/sql.ts",
     "./utils/api-keys": "./src/utils/api-keys.ts",
     "./utils/search-query": "./src/utils/search-query.ts",

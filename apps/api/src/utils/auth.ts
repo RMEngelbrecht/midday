@@ -1,5 +1,12 @@
+import { auth } from "@api/auth";
 import { ENV } from "@api/env";
-import { createRemoteJWKSet, type JWTPayload, jwtVerify } from "jose";
+import {
+  createLocalJWKSet,
+  errors,
+  type JSONWebKeySet,
+  type JWTPayload,
+  jwtVerify,
+} from "jose";
 
 export type Session = {
   user: {
@@ -10,57 +17,60 @@ export type Session = {
   teamId?: string;
 };
 
-type SupabaseJWTPayload = JWTPayload & {
-  user_metadata?: {
-    email?: string;
-    full_name?: string;
-    [key: string]: string | undefined;
-  };
+type AuthJWTPayload = JWTPayload & {
+  email?: string;
+  name?: string;
 };
 
-// Primary: verify via JWKS (asymmetric ES256/RS256). jose caches the
-// keyset in memory so only the first call hits the network.
-const JWKS = createRemoteJWKSet(
-  new URL(`${ENV.SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
-);
+// The signing keys live in auth.jwks (better-auth jwt plugin). Load them
+// in-process and reload once when a token names an unknown key (rotation).
+let keySet: ReturnType<typeof createLocalJWKSet> | null = null;
 
-// Fallback: HS256 shared secret for tokens issued before key rotation.
-// Remove this once the legacy JWT secret is revoked in Supabase.
-const HS256_SECRET = ENV.SUPABASE_JWT_SECRET
-  ? new TextEncoder().encode(ENV.SUPABASE_JWT_SECRET)
-  : null;
-
-function extractSession(payload: JWTPayload): Session {
-  const p = payload as SupabaseJWTPayload;
-  return {
-    user: {
-      id: p.sub!,
-      email: p.user_metadata?.email,
-      full_name: p.user_metadata?.full_name,
-    },
-  };
+async function loadKeySet() {
+  const jwks = (await auth.api.getJwks()) as JSONWebKeySet;
+  keySet = createLocalJWKSet(jwks);
+  return keySet;
 }
 
+async function verify(token: string, reload: boolean): Promise<JWTPayload> {
+  const keys = keySet && !reload ? keySet : await loadKeySet();
+  try {
+    const { payload } = await jwtVerify(token, keys, {
+      issuer: ENV.API_URL,
+      audience: ENV.API_URL,
+    });
+    return payload;
+  } catch (error) {
+    if (!reload && error instanceof errors.JWKSNoMatchingKey) {
+      return verify(token, true);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Verifies a better-auth JWT (issued by API_URL/auth/token or the
+ * `set-auth-jwt` header of get-session) and returns the user it names.
+ * Team membership is resolved from the database by the callers.
+ */
 export async function verifyAccessToken(
   accessToken?: string,
 ): Promise<Session | null> {
-  if (!accessToken) return null;
+  // Midday API keys / OAuth tokens are opaque, never JWTs.
+  if (!accessToken || accessToken.split(".").length !== 3) return null;
 
   try {
-    const { payload } = await jwtVerify(accessToken, JWKS);
-    return extractSession(payload);
+    const payload = (await verify(accessToken, false)) as AuthJWTPayload;
+    if (!payload.sub) return null;
+
+    return {
+      user: {
+        id: payload.sub,
+        email: payload.email,
+        full_name: payload.name || undefined,
+      },
+    };
   } catch {
-    // JWKS verification failed -- try HS256 fallback if configured.
+    return null;
   }
-
-  if (HS256_SECRET) {
-    try {
-      const { payload } = await jwtVerify(accessToken, HS256_SECRET);
-      return extractSession(payload);
-    } catch {
-      // Both methods failed.
-    }
-  }
-
-  return null;
 }

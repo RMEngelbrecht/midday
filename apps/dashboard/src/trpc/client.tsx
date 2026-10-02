@@ -12,8 +12,8 @@ import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
 import { usePublicConfig } from "@/components/public-config-provider";
+import { getAccessToken } from "@/lib/auth-client";
 import { Cookies } from "@/utils/constants";
-import { getAccessToken } from "@/utils/session";
 import { makeQueryClient } from "./query-client";
 
 function getCookie(name: string): string | null {

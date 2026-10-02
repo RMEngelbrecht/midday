@@ -10,26 +10,14 @@
     "db:generate": "supabase gen types --lang=typescript --project-id $PROJECT_ID --schema public > src/types/db.ts"
   },
   "dependencies": {
-    "@supabase/postgrest-js": "^2.101.1",
     "@supabase/ssr": "^0.10.0",
-    "@supabase/supabase-js": "^2.101.1",
-    "date-fns": "catalog:",
-    "react": "catalog:",
-    "server-only": "^0.0.1",
-    "supabase": "^2.84.6",
-    "varlock": "catalog:"
+    "@supabase/supabase-js": "^2.101.1"
   },
   "devDependencies": {
     "typescript": "catalog:"
   },
   "exports": {
-    "./server": "./src/client/server.ts",
     "./client": "./src/client/client.ts",
-    "./client-query": "./src/queries/client.ts",
-    "./job": "./src/client/job.ts",
-    "./middleware": "./src/client/middleware.ts",
-    "./queries": "./src/queries/index.ts",
-    "./cached-queries": "./src/queries/cached-queries.ts",
     "./types": "./src/types/index.ts"
   }
 }

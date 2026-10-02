@@ -194,10 +194,6 @@ describe("tRPC: user.delete", () => {
     mocks.deleteUser.mockImplementation(() =>
       Promise.resolve({ id: "test-user-id" }),
     );
-    mocks.supabaseAdminDeleteUser.mockReset();
-    mocks.supabaseAdminDeleteUser.mockImplementation(() =>
-      Promise.resolve({ data: {}, error: null }),
-    );
   });
 
   test("deletes user and calls deleteUser", async () => {
@@ -209,6 +205,5 @@ describe("tRPC: user.delete", () => {
       expect.anything(),
       "test-user-id",
     );
-    expect(mocks.supabaseAdminDeleteUser).toHaveBeenCalledWith("test-user-id");
   });
 });

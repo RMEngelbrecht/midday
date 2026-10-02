@@ -19,6 +19,7 @@ import * as Sentry from "@sentry/bun";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { secureHeaders } from "hono/secure-headers";
+import { AUTH_BASE_PATH, auth } from "./auth";
 import { routers } from "./rest/routers";
 import { wellKnownRouter } from "./rest/routers/well-known";
 import type { Context } from "./rest/types";
@@ -45,6 +46,8 @@ app.use(
         .map((origin) => origin.trim())
         .filter(Boolean) ?? []),
     ],
+    // better-auth session cookies (dashboard + desktop webview)
+    credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowHeaders: [
       "Authorization",
@@ -69,6 +72,8 @@ app.use(
       "Cache-Control",
       "Cross-Origin-Resource-Policy",
       "Server-Timing",
+      "set-auth-jwt",
+      "set-auth-token",
     ],
     maxAge: 86400,
   }),
@@ -130,6 +135,8 @@ app.use(
     },
   }),
 );
+
+app.on(["GET", "POST"], `${AUTH_BASE_PATH}/*`, (c) => auth.handler(c.req.raw));
 
 app.get("/favicon.ico", (c) => c.body(null, 204));
 app.get("/robots.txt", (c) => c.body(null, 204));

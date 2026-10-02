@@ -1,9 +1,9 @@
 "use client";
 
 import type { OAuthErrorCode } from "@midday/app-store/oauth-errors";
-import { createClient } from "@midday/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { usePublicConfig } from "@/components/public-config-provider";
+import { getAccessToken } from "@/lib/auth-client";
 import { isOAuthMessage, OAUTH_CHANNEL_NAME } from "@/utils/oauth-message";
 
 interface UseAppOAuthOptions {
@@ -100,18 +100,15 @@ export function useAppOAuth({
     popup = window.open("about:blank", "", popupFeatures);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const accessToken = await getAccessToken();
 
-      if (!session?.access_token) {
+      if (!accessToken) {
         popup?.close();
         throw new Error("Not authenticated");
       }
       const response = await fetch(`${apiUrl}${installUrlEndpoint}`, {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

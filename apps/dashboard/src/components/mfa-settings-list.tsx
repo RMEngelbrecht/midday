@@ -1,4 +1,3 @@
-import { createClient } from "@midday/supabase/server";
 import { Button } from "@midday/ui/button";
 import {
   Card,
@@ -9,12 +8,12 @@ import {
   CardTitle,
 } from "@midday/ui/card";
 import Link from "next/link";
+import { getServerSession } from "@/utils/auth.server";
 import { UnenrollMFA } from "./unenroll-mfa";
 
 export async function MfaSettingsList() {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.mfa.listFactors();
-  const hasMfaFactors = data?.all && data.all.length > 0;
+  const session = await getServerSession();
+  const hasMfaFactors = !!session?.user.twoFactorEnabled;
 
   return (
     <Card>
@@ -38,9 +37,11 @@ export async function MfaSettingsList() {
 
       <CardFooter className="flex justify-between">
         <div />
-        <Link href="?add=device">
-          <Button>{hasMfaFactors ? "Add new device" : "Enable MFA"}</Button>
-        </Link>
+        {!hasMfaFactors && (
+          <Link href="?add=device">
+            <Button>Enable MFA</Button>
+          </Link>
+        )}
       </CardFooter>
     </Card>
   );

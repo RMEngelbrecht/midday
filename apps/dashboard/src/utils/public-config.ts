@@ -16,7 +16,7 @@ export type PublicConfig = {
   /** Where inbound email is received; null when forwarding is not configured. */
   inboxEmail: { domain: string; localPart: string | null } | null;
   desktopScheme: string;
-  /** Supabase auth/storage (until S1/S2 replace it). */
+  /** Supabase storage/realtime (until S2/S7 replace it). Auth is better-auth on the API. */
   supabase: { url: string; publishableKey: string } | null;
   sentry: { dsn: string; environment: string; release?: string } | null;
   openpanelClientId: string | null;

@@ -5,6 +5,7 @@ describe("deriveFeatures", () => {
   it("disables every optional service when nothing is configured", () => {
     expect(deriveFeatures({})).toEqual({
       ai: false,
+      auth: { google: false, github: false, apple: false, microsoft: false },
       banking: {
         plaid: false,
         teller: false,
@@ -46,6 +47,18 @@ describe("deriveFeatures", () => {
     expect(
       deriveFeatures({ TELEGRAM_BOT_TOKEN: "  " }).integrations.telegram,
     ).toBe(false);
+  });
+
+  it("enables a social sign-in provider only with id and secret", () => {
+    expect(deriveFeatures({ AUTH_GITHUB_CLIENT_ID: "id" }).auth.github).toBe(
+      false,
+    );
+    expect(
+      deriveFeatures({
+        AUTH_GITHUB_CLIENT_ID: "id",
+        AUTH_GITHUB_CLIENT_SECRET: "secret",
+      }).auth,
+    ).toEqual({ google: false, github: true, apple: false, microsoft: false });
   });
 
   it("enables AI with either provider key", () => {

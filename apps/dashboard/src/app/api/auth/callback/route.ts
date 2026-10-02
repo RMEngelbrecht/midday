@@ -1,100 +1,98 @@
 import { LogEvents } from "@midday/events/events";
 import { setupAnalytics } from "@midday/events/server";
-import { getSession } from "@midday/supabase/cached-queries";
-import { createClient } from "@midday/supabase/server";
 import { sanitizeRedirectPath } from "@midday/utils/sanitize-redirect";
 import { addSeconds, addYears } from "date-fns";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { ENV } from "@/env";
-import { getTRPCClient } from "@/trpc/server";
+import { callAuthApi } from "@/utils/auth.server";
 import { Cookies } from "@/utils/constants";
-import { isBlockedNewUser } from "@/utils/new-user-gate";
 
+/**
+ * Where sign-ins land (social callbacks redirect here with the session
+ * cookie already set by the API).
+ *
+ * Desktop handoff:
+ * 1. The system browser finishes signing in and arrives with
+ *    `client=desktop`. We mint a one-time token for its session and show
+ *    /verify, which opens `midday://api/auth/callback?code=<token>`.
+ * 2. The desktop webview loads this route with `code`; we redeem the token
+ *    with the API and pass its session cookie on to the webview.
+ */
 export async function GET(req: NextRequest) {
-  const cookieStore = await cookies();
-  const requestUrl = new URL(req.url);
   const origin = ENV.APP_URL;
+  const requestUrl = new URL(req.url);
   const code = requestUrl.searchParams.get("code");
   const client = requestUrl.searchParams.get("client");
   const returnTo = requestUrl.searchParams.get("return_to");
   const provider = requestUrl.searchParams.get("provider");
 
   if (client === "desktop") {
-    return NextResponse.redirect(`${origin}/verify?code=${code}`);
+    const res = await callAuthApi("/one-time-token/generate");
+    const data = res.ok ? ((await res.json()) as { token?: string }) : null;
+
+    if (!data?.token) {
+      return NextResponse.redirect(`${origin}/login`);
+    }
+
+    return NextResponse.redirect(
+      `${origin}/verify?code=${encodeURIComponent(data.token)}`,
+    );
+  }
+
+  let target = origin;
+
+  if (returnTo?.startsWith("teams/invite/")) {
+    // Accept/decline the invite on the teams page.
+    target = `${origin}/teams`;
+  } else if (returnTo) {
+    // The proxy strips the leading "/" (e.g. "settings/accounts"),
+    // but sanitizeRedirectPath requires a root-relative path.
+    const normalized = returnTo.startsWith("/") ? returnTo : `/${returnTo}`;
+    target = `${origin}${sanitizeRedirectPath(normalized)}`;
+  }
+
+  const response = NextResponse.redirect(target);
+  let sessionCookies: string[] = [];
+
+  if (code) {
+    const res = await callAuthApi("/one-time-token/verify", {
+      method: "POST",
+      body: { token: code },
+    });
+
+    if (!res.ok) {
+      return NextResponse.redirect(`${origin}/login`);
+    }
+
+    sessionCookies = res.headers.getSetCookie();
   }
 
   if (provider) {
-    cookieStore.set(Cookies.PreferredSignInProvider, provider, {
+    response.cookies.set(Cookies.PreferredSignInProvider, provider, {
       expires: addYears(new Date(), 1),
+    });
+
+    const analytics = await setupAnalytics();
+    analytics.track({
+      event: LogEvents.SignIn.name,
+      channel: LogEvents.SignIn.channel,
+      provider,
     });
   }
 
-  if (code) {
-    const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+  // Force primary database reads for the first requests after sign-in, so
+  // a just-created user is visible even with read replicas.
+  response.cookies.set(Cookies.ForcePrimary, "true", {
+    expires: addSeconds(new Date(), 30),
+    httpOnly: false, // Needs to be readable by client-side tRPC
+    sameSite: "lax",
+  });
 
-    const {
-      data: { session },
-    } = await getSession();
-
-    if (session) {
-      if (isBlockedNewUser(session.user.created_at)) {
-        await supabase.auth.signOut();
-        return NextResponse.redirect(`${origin}/login?waitlist=1`);
-      }
-
-      // Set cookie to force primary database reads for subsequent client-side
-      // requests after redirect. This prevents replication lag issues when the
-      // user record hasn't replicated to read replicas yet.
-      cookieStore.set(Cookies.ForcePrimary, "true", {
-        expires: addSeconds(new Date(), 30),
-        httpOnly: false, // Needs to be readable by client-side tRPC
-        sameSite: "lax",
-      });
-
-      // If user is redirected from an invite, redirect to teams page to accept/decline the invite
-      if (returnTo?.startsWith("teams/invite/")) {
-        const analytics = await setupAnalytics();
-        analytics.track({
-          event: LogEvents.SignIn.name,
-          channel: LogEvents.SignIn.channel,
-          provider: provider ?? "unknown",
-          destination: "teams",
-        });
-
-        return NextResponse.redirect(`${origin}/teams`);
-      }
-
-      // Explicitly force primary reads for this query -- the user may have
-      // just been created and not yet replicated to read replicas.
-      const trpcClient = await getTRPCClient({ forcePrimary: true });
-      const user = await trpcClient.user.me.query();
-
-      const isOnboarding = !user?.fullName || !user.teamId;
-      const analytics = await setupAnalytics();
-
-      analytics.track({
-        event: LogEvents.SignIn.name,
-        channel: LogEvents.SignIn.channel,
-        provider: provider ?? "unknown",
-        destination: isOnboarding ? "onboarding" : "dashboard",
-      });
-
-      if (isOnboarding) {
-        return NextResponse.redirect(`${origin}/onboarding`);
-      }
-    }
+  // Appended last: `response.cookies.set` rewrites the set-cookie header.
+  for (const cookie of sessionCookies) {
+    response.headers.append("set-cookie", cookie);
   }
 
-  if (returnTo) {
-    // The middleware strips the leading "/" (e.g. "settings/accounts"),
-    // but sanitizeRedirectPath requires a root-relative path starting with "/".
-    const normalized = returnTo.startsWith("/") ? returnTo : `/${returnTo}`;
-    const safePath = sanitizeRedirectPath(normalized);
-    return NextResponse.redirect(`${origin}${safePath}`);
-  }
-
-  return NextResponse.redirect(origin);
+  return response;
 }
