@@ -47,7 +47,8 @@ export async function cleanDatabase(): Promise<void> {
       inbox,
       reports,
       teams,
-      users
+      users,
+      auth."user"
     CASCADE
   `);
 }

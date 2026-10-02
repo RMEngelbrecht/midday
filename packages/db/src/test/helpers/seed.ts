@@ -2,6 +2,7 @@ import { UTCDate } from "@date-fns/utc";
 import { format, subMonths } from "date-fns";
 import type { Database } from "../../client";
 import {
+  authUser,
   bankAccounts,
   bankConnections,
   exchangeRates,
@@ -106,14 +107,25 @@ export async function seedAll(db: Database): Promise<void> {
 }
 
 async function seedUsers(db: Database): Promise<void> {
-  await db.insert(users).values([
-    {
+  // public.users.id references auth.user; the on_auth_user_created trigger
+  // creates the profile row, which we then fill in.
+  await db.insert(authUser).values({
+    id: TEST_USER_ID,
+    name: "Test User",
+    email: "test@midday.ai",
+  });
+  await db
+    .insert(users)
+    .values({
       id: TEST_USER_ID,
       fullName: "Test User",
       email: "test@midday.ai",
       teamId: null,
-    },
-  ]);
+    })
+    .onConflictDoUpdate({
+      target: users.id,
+      set: { fullName: "Test User", email: "test@midday.ai", teamId: null },
+    });
 }
 
 async function seedTeams(db: Database): Promise<void> {

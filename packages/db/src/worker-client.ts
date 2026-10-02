@@ -2,33 +2,25 @@ import { createLoggerWithContext } from "@midday/logger";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import type { Database } from "./client";
+import { getDatabaseSsl, getPrimaryDatabaseUrl } from "./env";
 import * as schema from "./schema";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const logger = createLoggerWithContext("db:worker");
 const DB_POOL_EVENT_LOGGING = process.env.DB_POOL_EVENT_LOGGING === "true";
 
-const connectionString =
-  process.env.DATABASE_PRIMARY_POOLER_URL ?? process.env.DATABASE_PRIMARY_URL;
-
-if (!connectionString) {
-  throw new Error(
-    "Missing database connection string: set DATABASE_PRIMARY_POOLER_URL or DATABASE_PRIMARY_URL",
-  );
-}
-
 /**
  * Worker database client with connection pool optimized for BullMQ concurrent jobs
  */
 const workerPool = new Pool({
-  connectionString,
+  connectionString: getPrimaryDatabaseUrl(),
   max: isDevelopment ? 10 : 50,
   idleTimeoutMillis: isDevelopment ? 5000 : 60000,
   connectionTimeoutMillis: 15000,
   maxUses: isDevelopment ? 200 : 3000,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10_000,
-  ssl: isDevelopment ? false : { rejectUnauthorized: false },
+  ssl: getDatabaseSsl(),
   allowExitOnIdle: true,
 });
 

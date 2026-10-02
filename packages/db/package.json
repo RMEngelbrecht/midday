@@ -4,6 +4,8 @@
   "scripts": {
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
+    "migrate": "bun run src/scripts/migrate.ts",
+    "db:generate": "drizzle-kit generate",
     "test": "bun test --exit",
     "eval:matching:db": "bun run src/scripts/matching-eval-db.ts",
     "eval:progress": "bun run src/scripts/matching-progress.ts",
@@ -15,10 +17,11 @@
     "test:all-matching": "bun test src/test/transaction-matching*.test.ts",
     "test:reports": "bun test src/test/reports.test.ts",
     "test:e2e": "bun test src/test/calculations-e2e.test.ts --exit --timeout 30000",
-    "test:e2e:setup": "PGPASSWORD=postgres psql -h ${TEST_DB_HOST:-localhost} -p ${TEST_DB_PORT:-5433} -U postgres -d midday_test -f src/test/helpers/setup-test-db.sql && bunx drizzle-kit push --config=drizzle.config.test.ts --force",
+    "test:e2e:setup": "DATABASE_URL=${TEST_DATABASE_URL:-postgres://postgres:postgres@localhost:5433/midday_test} bun run src/scripts/migrate.ts",
     "test:watch": "bun test --watch",
     "validate-golden": "bun run src/test/validate-golden-dataset.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:functions": "bun test src/test/sql-functions.test.ts"
   },
   "exports": {
     "./client": "./src/client.ts",
@@ -34,7 +37,8 @@
     "./utils/currency": "./src/utils/currency.ts",
     "./utils/tax": "./src/utils/tax.ts",
     "./utils/blocklist": "./src/utils/blocklist.ts",
-    "./utils/invoice-recurring": "./src/utils/invoice-recurring.ts"
+    "./utils/invoice-recurring": "./src/utils/invoice-recurring.ts",
+    "./migrate": "./src/migrate.ts"
   },
   "dependencies": {
     "@date-fns/tz": "catalog:",

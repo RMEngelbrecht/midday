@@ -4,6 +4,11 @@ import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
 import type { PgTransaction } from "drizzle-orm/pg-core";
 import { Pool } from "pg";
+import {
+  getDatabaseSsl,
+  getPrimaryDatabaseUrl,
+  getReplicaDatabaseUrls,
+} from "./env";
 import { createDrizzleLogger, instrumentPool } from "./instrument";
 import { withReplicas } from "./replicas";
 import * as schema from "./schema";
@@ -11,20 +16,19 @@ import * as schema from "./schema";
 const logger = createLoggerWithContext("db");
 
 const isDevelopment = process.env.NODE_ENV === "development";
-const isProduction = process.env.RAILWAY_ENVIRONMENT_NAME === "production";
 const DEBUG_PERF = process.env.DEBUG_PERF === "true";
 const DB_POOL_EVENT_LOGGING = process.env.DB_POOL_EVENT_LOGGING === "true";
 
 const connectionConfig = {
-  max: isDevelopment ? 8 : isProduction ? 40 : 6,
-  min: isDevelopment ? 0 : isProduction ? 8 : 1,
-  idleTimeoutMillis: isDevelopment ? 5000 : isProduction ? 30000 : 10000,
+  max: Number(process.env.DATABASE_POOL_MAX) || (isDevelopment ? 8 : 20),
+  min: isDevelopment ? 0 : 2,
+  idleTimeoutMillis: isDevelopment ? 5000 : 30000,
   connectionTimeoutMillis: 5000,
   maxUses: isDevelopment ? 100 : 7500,
-  allowExitOnIdle: !isProduction,
+  allowExitOnIdle: isDevelopment,
   keepAlive: true,
   keepAliveInitialDelayMillis: 10_000,
-  ssl: isDevelopment ? false : { rejectUnauthorized: false },
+  ssl: getDatabaseSsl(),
 };
 
 const drizzleLogger = DEBUG_PERF ? createDrizzleLogger() : undefined;
@@ -100,9 +104,10 @@ function attachPoolMonitoring(pool: Pool, poolName: "primary" | "replica") {
   });
 }
 
-// Primary pool — DATABASE_PRIMARY_URL
+const primaryUrl = getPrimaryDatabaseUrl();
+
 const primaryPool = new Pool({
-  connectionString: process.env.DATABASE_PRIMARY_URL!,
+  connectionString: primaryUrl,
   ...connectionConfig,
 });
 
@@ -115,14 +120,24 @@ export const primaryDb = drizzle(primaryPool, {
   logger: drizzleLogger,
 });
 
-// Single-database setup: reads and writes both go to DATABASE_PRIMARY_URL.
-// Read replicas are reintroduced by the DB scope via an optional replica URL.
-const replicaDb = primaryDb;
+// Optional read replicas from DATABASE_REPLICA_URLS; reads use the primary
+// when none are configured.
+const replicaPools = getReplicaDatabaseUrls(primaryUrl).map((url) => {
+  const pool = new Pool({ connectionString: url, ...connectionConfig });
+  if (DEBUG_PERF) instrumentPool(pool, "replica");
+  attachPoolMonitoring(pool, "replica");
+  return pool;
+});
+
+const replicaDbs = replicaPools.map((pool) =>
+  drizzle(pool, { schema, casing: "snake_case", logger: drizzleLogger }),
+);
 
 export const db = withReplicas(
   primaryDb,
-  [replicaDb],
-  (replicas) => replicas[0]!,
+  replicaDbs.length > 0
+    ? [replicaDbs[0]!, ...replicaDbs.slice(1)]
+    : [primaryDb],
 );
 
 export const connectDb = async () => {
@@ -145,14 +160,16 @@ export type DatabaseWithPrimary = Database & {
   usePrimaryOnly?: () => Database;
 };
 
+const poolStats = (pool: Pool) => ({
+  total: pool.totalCount,
+  idle: pool.idleCount,
+  waiting: pool.waitingCount,
+});
+
 export function getPoolStats() {
   return {
-    primary: {
-      total: primaryPool.totalCount,
-      idle: primaryPool.idleCount,
-      waiting: primaryPool.waitingCount,
-    },
-    replica: null,
+    primary: poolStats(primaryPool),
+    replicas: replicaPools.map(poolStats),
   };
 }
 
@@ -160,5 +177,5 @@ export function getPoolStats() {
  * Close all database pools gracefully
  */
 export const closeDb = async (): Promise<void> => {
-  await primaryPool.end();
+  await Promise.all([primaryPool.end(), ...replicaPools.map((p) => p.end())]);
 };
