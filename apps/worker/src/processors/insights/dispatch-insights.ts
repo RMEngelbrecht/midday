@@ -33,11 +33,6 @@ type ProcessResult = {
 const BATCH_SIZE = 100;
 
 /**
- * Number of days a trial team remains eligible for insights
- */
-const TRIAL_ELIGIBILITY_DAYS = 30;
-
-/**
  * Stagger delay between jobs (milliseconds).
  * 15 seconds between each team = prevents rate limit issues.
  */
@@ -128,7 +123,6 @@ export class DispatchInsightsProcessor extends BaseProcessor<DispatchInsightsPay
         enabledTeamIds,
         cursor,
         limit: BATCH_SIZE,
-        trialEligibilityDays: TRIAL_ELIGIBILITY_DAYS,
         targetLocalHour: TARGET_LOCAL_HOUR,
       });
 

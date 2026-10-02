@@ -211,29 +211,6 @@ export function resendProbe(): Dependency {
   };
 }
 
-/** Polar: GET /v1/products (lightweight authenticated check) */
-export function polarProbe(): Dependency {
-  return {
-    name: "polar",
-    tier: 2,
-    cacheTtlMs: 60_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      const token = process.env.POLAR_ACCESS_TOKEN;
-      if (!token) return false;
-      const baseUrl =
-        process.env.POLAR_ENVIRONMENT === "sandbox"
-          ? "https://sandbox-api.polar.sh"
-          : "https://api.polar.sh";
-      const res = await fetch(`${baseUrl}/v1/products?limit=1`, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(5_000),
-      });
-      return res.ok;
-    },
-  };
-}
-
 /** Trigger.dev: API reachability check */
 export function triggerDevProbe(): Dependency {
   return {
@@ -359,30 +336,6 @@ export function exaProbe(): Dependency {
   };
 }
 
-/** Plain: API reachability */
-export function plainProbe(): Dependency {
-  return {
-    name: "plain",
-    tier: 4,
-    cacheTtlMs: 300_000,
-    timeoutMs: 5_000,
-    probe: async () => {
-      const key = process.env.PLAIN_API_KEY;
-      if (!key) return false;
-      const res = await fetch("https://core-api.uk.plain.com/graphql/v1", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: "{ myWorkspace { id } }" }),
-        signal: AbortSignal.timeout(5_000),
-      });
-      return res.ok;
-    },
-  };
-}
-
 /** Mistral AI: models list */
 export function mistralProbe(): Dependency {
   return {
@@ -420,7 +373,6 @@ export function apiDependencies(): Dependency[] {
     enableBankingProbe(),
     tellerProbe(),
     stripeProbe(),
-    polarProbe(),
     resendProbe(),
     triggerDevProbe(),
     openaiProbe(),
@@ -432,7 +384,6 @@ export function apiDependencies(): Dependency[] {
     // Tier 4 — Optional
     googleAiProbe(),
     mistralProbe(),
-    plainProbe(),
   ];
 }
 

@@ -480,7 +480,6 @@ export const mcpTeamSchema = z.object({
   name: z.string().nullable().optional(),
   logoUrl: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
-  plan: z.string().nullable().optional(),
   baseCurrency: z.string().nullable().optional(),
   countryCode: z.string().nullable().optional(),
   fiscalYearStartMonth: z.number().nullable().optional(),

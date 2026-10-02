@@ -9,17 +9,9 @@ process.env.SUPABASE_SECRET_KEY =
 process.env.DATABASE_PRIMARY_URL =
   process.env.DATABASE_PRIMARY_URL ||
   "postgres://test:test@localhost:5432/test";
-process.env.DATABASE_FRA_URL =
-  process.env.DATABASE_FRA_URL || "postgres://test:test@localhost:5432/test";
-process.env.DATABASE_SJC_URL =
-  process.env.DATABASE_SJC_URL || "postgres://test:test@localhost:5432/test";
-process.env.DATABASE_IAD_URL =
-  process.env.DATABASE_IAD_URL || "postgres://test:test@localhost:5432/test";
 process.env.MIDDAY_DASHBOARD_URL =
   process.env.MIDDAY_DASHBOARD_URL || "https://app.midday.ai";
 process.env.RESEND_API_KEY = process.env.RESEND_API_KEY || "re_test_key";
-process.env.RESEND_AUDIENCE_ID =
-  process.env.RESEND_AUDIENCE_ID || "aud_test_resend_audience";
 process.env.FILE_KEY_SECRET = process.env.FILE_KEY_SECRET || "test-secret";
 process.env.INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || "test-internal";
 process.env.PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID || "test";
@@ -329,7 +321,6 @@ export const mocks = {
       skippedInvites: [],
     }),
   ) as MockFn,
-  getAvailablePlans: mock(() => Promise.resolve([])) as MockFn,
   hasTeamAccess: mock(() => Promise.resolve(true)) as MockFn,
   getTeamMemberRole: mock(() => Promise.resolve(null)) as MockFn,
   getTeamMembersByTeamId: mock(() => Promise.resolve([])) as MockFn,
@@ -343,9 +334,6 @@ export const mocks = {
   ) as MockFn,
   deleteUser: mock(() => Promise.resolve({ id: "test-user-id" })) as MockFn,
   supabaseAdminDeleteUser: mock(() =>
-    Promise.resolve({ data: {}, error: null }),
-  ) as MockFn,
-  resendContactsRemove: mock(() =>
     Promise.resolve({ data: {}, error: null }),
   ) as MockFn,
   resendEmailsSend: mock(() => Promise.resolve()) as MockFn,
@@ -657,12 +645,6 @@ export const mocks = {
     }),
   ) as MockFn,
 
-  // Polar (billing)
-  polarSubscriptionsList: mock(() =>
-    Promise.resolve({ result: { items: [] as unknown[] } }),
-  ) as MockFn,
-  polarSubscriptionsUpdate: mock(() => Promise.resolve({})) as MockFn,
-
   // Notifications (activities)
   getActivities: mock(() =>
     Promise.resolve({
@@ -948,7 +930,6 @@ const dbQueriesMock = new Proxy(
     deleteTeam: mocks.deleteTeam,
     deleteTeamInvite: mocks.deleteTeamInvite,
     deleteTeamMember: mocks.deleteTeamMember,
-    getAvailablePlans: mocks.getAvailablePlans,
     getBankConnections: mocks.getBankConnections,
     getInvitesByEmail: mocks.getInvitesByEmail,
     getTeamInvites: mocks.getTeamInvites,
@@ -1297,45 +1278,10 @@ mock.module("@api/services/resend", () => ({
     emails: {
       send: (...args: unknown[]) => mocks.resendEmailsSend(...args),
     },
-    contacts: {
-      remove: (...args: unknown[]) => mocks.resendContactsRemove(...args),
-    },
   },
 }));
 
 // Mock @api/utils/auth - needed by tRPC init
-mock.module("@api/utils/polar", () => ({
-  api: {
-    checkouts: {
-      create: mock(() =>
-        Promise.resolve({ url: "https://polar.test/checkout" }),
-      ),
-    },
-    customers: {
-      getExternal: mock(() => Promise.resolve({ id: "polar-customer-id" })),
-      create: mock(() => Promise.resolve({ id: "polar-customer-id" })),
-      list: mock(() =>
-        Promise.resolve({ result: { items: [{ id: "polar-customer-id" }] } }),
-      ),
-    },
-    orders: {
-      list: mock(() => Promise.reject(new Error("polar not configured"))),
-      get: mock(() => Promise.reject(new Error("polar not configured"))),
-      generateInvoice: mock(() => Promise.resolve({})),
-      invoice: mock(() => Promise.reject(new Error("polar not configured"))),
-    },
-    customerSessions: {
-      create: mock(() =>
-        Promise.resolve({ customerPortalUrl: "https://polar.test/portal" }),
-      ),
-    },
-    subscriptions: {
-      list: mocks.polarSubscriptionsList,
-      update: mocks.polarSubscriptionsUpdate,
-    },
-  },
-}));
-
 mock.module("@api/utils/auth", () => ({
   verifyAccessToken: mock(async () => ({
     user: {

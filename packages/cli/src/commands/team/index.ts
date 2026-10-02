@@ -11,7 +11,6 @@ interface Team {
   name: string;
   logoUrl?: string;
   createdAt?: string;
-  plan?: string;
 }
 
 interface Member {
@@ -54,7 +53,6 @@ Examples:
         } else {
           printDetail(team.name, [
             ["ID", team.id],
-            ["Plan", team.plan],
             ["Created", team.createdAt],
           ]);
         }

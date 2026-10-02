@@ -30,7 +30,6 @@ async function registerBankSchedulers() {
     console.log("Teams that will get bank sync schedulers:");
     eligibleTeams.forEach((team, index) => {
       console.log(`${index + 1}. ${team.name || "Unnamed"} (${team.id})`);
-      console.log(`   Plan: ${team.plan}`);
       console.log(`   Bank connections: ${team.bankConnectionCount}`);
       console.log(`   Bank accounts: ${team.bankAccountCount}`);
       console.log(

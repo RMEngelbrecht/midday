@@ -73,10 +73,6 @@ export function UserMenu({ onlySignOut }: Props) {
                 <DropdownMenuItem className="text-xs">Account</DropdownMenuItem>
               </Link>
 
-              <Link href="/account/support">
-                <DropdownMenuItem className="text-xs">Support</DropdownMenuItem>
-              </Link>
-
               <Link href="/account/teams">
                 <DropdownMenuItem className="text-xs">Teams</DropdownMenuItem>
               </Link>

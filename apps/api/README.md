@@ -35,9 +35,6 @@ Two separate Redis instances are used:
 #### Database Configuration
 ```bash
 DATABASE_PRIMARY_URL=postgresql://...
-DATABASE_FRA_URL=postgresql://...  # EU replica
-DATABASE_IAD_URL=postgresql://...  # US East replica
-DATABASE_SJC_URL=postgresql://...  # US West replica
 ```
 
 ### Development

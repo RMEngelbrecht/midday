@@ -30,8 +30,8 @@ async function getRegisteredTeamIds(): Promise<Set<string>> {
   return registeredIds;
 }
 
-// Daily verification job that ensures every eligible team (pro/starter/active trial
-// with at least one bank connection) has a registered bank-sync-scheduler.
+// Daily verification job that ensures every team
+// with at least one bank connection has a registered bank-sync-scheduler.
 // Compares eligible teams against existing schedules and only creates missing ones.
 export const ensureBankSchedulers = schedules.task({
   id: "ensure-bank-schedulers",

@@ -1,5 +1,4 @@
 import type { Context } from "@api/rest/types";
-import { isTeamEligibleForSync } from "@api/utils/check-team-eligibility";
 import { validateTellerSignature } from "@api/utils/teller";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
@@ -121,18 +120,6 @@ app.openapi(
         status: "disconnected",
       });
 
-      return c.json({ success: true });
-    }
-
-    if (
-      !isTeamEligibleForSync({
-        plan: connectionData.team.plan,
-        createdAt: connectionData.team.createdAt,
-      })
-    ) {
-      logger.info("Teller webhook: team not eligible for sync", {
-        teamId: connectionData.team.id,
-      });
       return c.json({ success: true });
     }
 

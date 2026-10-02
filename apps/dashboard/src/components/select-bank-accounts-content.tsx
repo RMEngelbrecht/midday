@@ -1,10 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { track } from "@midday/events/client";
 import { LogEvents } from "@midday/events/events";
 import { Avatar, AvatarFallback } from "@midday/ui/avatar";
-import { Button } from "@midday/ui/button";
 import {
   Form,
   FormControl,
@@ -12,21 +10,15 @@ import {
   FormItem,
   FormLabel,
 } from "@midday/ui/form";
-import { Icons } from "@midday/ui/icons";
 import { Skeleton } from "@midday/ui/skeleton";
 import { SubmitButton } from "@midday/ui/submit-button";
 import { Switch } from "@midday/ui/switch";
 import { Tabs, TabsContent } from "@midday/ui/tabs";
-import { Textarea } from "@midday/ui/textarea";
 import { useToast } from "@midday/ui/use-toast";
 import { getInitials } from "@midday/utils/format";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import z from "zod/v3";
-import { sendSupportAction } from "@/actions/send-support-action";
 import { useConnectParams } from "@/hooks/use-connect-params";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useI18n } from "@/locales/client";
@@ -56,82 +48,6 @@ function RowsSkeleton() {
         </div>
       ))}
     </div>
-  );
-}
-
-function SupportForm() {
-  const form = useForm({
-    resolver: zodResolver(z.object({ message: z.string() })),
-    defaultValues: {
-      message: "",
-    },
-  });
-
-  const sendSupport = useAction(sendSupportAction, {
-    onSuccess: () => {
-      form.reset();
-    },
-  });
-
-  const handleOnSubmit = form.handleSubmit((values) => {
-    sendSupport.execute({
-      message: values.message,
-      type: "bank-connection",
-      priority: "3",
-      subject: "Select bank accounts",
-      url: document.URL,
-    });
-  });
-
-  if (sendSupport.status === "hasSucceeded") {
-    return (
-      <div className="h-[250px] flex items-center justify-center flex-col space-y-1">
-        <p className="font-medium text-sm">Thank you!</p>
-        <p className="text-sm text-[#4C4C4C]">
-          We will be back with you as soon as possible.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={handleOnSubmit}>
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Message</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describe the issue you're facing, along with any relevant information. Please be as detailed and specific as possible."
-                  className="resize-none min-h-[150px]"
-                  autoFocus
-                  {...field}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={
-              sendSupport.status === "executing" || !form.formState.isValid
-            }
-            className="mt-4"
-          >
-            {sendSupport.status === "executing" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Submit"
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
   );
 }
 
@@ -201,9 +117,9 @@ export function SelectBankAccountsContent({
 
   const [runId, setRunId] = useState<string>();
   const [accessToken, setAccessToken] = useState<string>();
-  const [activeTab, setActiveTab] = useState<
-    "select-accounts" | "loading" | "support"
-  >("select-accounts");
+  const [activeTab, setActiveTab] = useState<"select-accounts" | "loading">(
+    "select-accounts",
+  );
 
   const {
     error,
@@ -472,16 +388,6 @@ export function SelectBankAccountsContent({
               >
                 Save
               </SubmitButton>
-
-              <div className="flex justify-center mt-4">
-                <button
-                  type="button"
-                  className="text-xs text-[#878787]"
-                  onClick={() => setActiveTab("support")}
-                >
-                  Need support
-                </button>
-              </div>
             </div>
           </form>
         </Form>
@@ -495,20 +401,6 @@ export function SelectBankAccountsContent({
           onClose={onComplete ?? handleClose}
           setActiveTab={setActiveTab}
         />
-      </TabsContent>
-
-      <TabsContent value="support">
-        <div className="flex items-center space-x-3 mb-6">
-          <button
-            type="button"
-            className="items-center border bg-accent p-1"
-            onClick={() => setActiveTab("select-accounts")}
-          >
-            <Icons.ArrowBack />
-          </button>
-          <h2>Support</h2>
-        </div>
-        <SupportForm />
       </TabsContent>
     </Tabs>
   );

@@ -578,26 +578,6 @@ describe("tRPC: team.deleteInvite", () => {
   });
 });
 
-describe("tRPC: team.availablePlans", () => {
-  beforeEach(() => {
-    mocks.getAvailablePlans.mockReset();
-    mocks.getAvailablePlans.mockImplementation(() =>
-      Promise.resolve({ starter: true, pro: true }),
-    );
-  });
-
-  test("returns available plans from getAvailablePlans", async () => {
-    const caller = createCaller(createTestContext());
-    const result = await caller.availablePlans();
-
-    expect(result).toEqual({ starter: true, pro: true });
-    expect(mocks.getAvailablePlans).toHaveBeenCalledWith(
-      expect.anything(),
-      "test-team-id",
-    );
-  });
-});
-
 describe("tRPC: team.connectionStatus", () => {
   beforeEach(() => {
     mocks.getBankConnections.mockReset();

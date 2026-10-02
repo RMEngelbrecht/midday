@@ -13,10 +13,6 @@ export const teamResponseSchema = z.object({
     description: "URL to the team's logo image",
     example: "https://cdn.midday.ai/logos/acme-corp.png",
   }),
-  plan: z.enum(["trial", "starter", "pro"]).openapi({
-    description: "Current subscription plan of the team",
-    example: "pro",
-  }),
   email: z.string().email().nullable().optional().openapi({
     description: "Primary contact email address for the team",
     example: "team@acme.com",

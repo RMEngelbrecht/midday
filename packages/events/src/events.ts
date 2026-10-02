@@ -87,14 +87,6 @@ export const LogEvents = {
     name: "Import Transactions",
     channel: "import",
   },
-  SupportTicket: {
-    name: "Support Ticket",
-    channel: "support",
-  },
-  SendFeedback: {
-    name: "Send Feedback",
-    channel: "feedback",
-  },
   UpdateBaseCurrency: {
     name: "Update Base Currency",
     channel: "transaction",
@@ -174,18 +166,6 @@ export const LogEvents = {
   CTA: {
     name: "CTA Clicked",
     channel: "website",
-  },
-  CheckoutStarted: {
-    name: "Checkout Started",
-    channel: "billing",
-  },
-  CheckoutCompleted: {
-    name: "Checkout Completed",
-    channel: "billing",
-  },
-  SubscriptionCanceled: {
-    name: "Subscription Canceled",
-    channel: "billing",
   },
 
   // Assistant

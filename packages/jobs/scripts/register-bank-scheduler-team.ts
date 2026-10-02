@@ -95,7 +95,6 @@ async function getTeamBankContext(teamId: string) {
       columns: {
         id: true,
         name: true,
-        plan: true,
       },
       with: {
         bankConnections: {
@@ -197,7 +196,6 @@ async function registerBankSchedulerForTeam(options: RegisterOptions = {}) {
       "Dry run enabled. Scheduler does not exist and would be created.",
     );
     console.log(`  Team: ${team.name ?? "Unnamed"} (${team.id})`);
-    console.log(`  Plan: ${team.plan}`);
     console.log(`  Bank connections: ${team.bankConnections.length}`);
     console.log(`  Task: ${bankSyncScheduler.id}`);
     console.log(`  Cron: ${cron}`);
@@ -218,7 +216,6 @@ async function registerBankSchedulerForTeam(options: RegisterOptions = {}) {
 
   console.log("Created bank scheduler successfully.");
   console.log(`  Team: ${team.name ?? "Unnamed"} (${team.id})`);
-  console.log(`  Plan: ${team.plan}`);
   console.log(`  Bank connections: ${team.bankConnections.length}`);
   console.log(`  Scheduler ID: ${schedule.id}`);
   console.log(`  Cron: ${generateCronTag(teamId)}`);

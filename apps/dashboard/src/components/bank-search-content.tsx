@@ -131,7 +131,7 @@ export function BankSearchContent({
   emptyState,
 }: BankSearchContentProps) {
   const trpc = useTRPC();
-  const router = useRouter();
+  const _router = useRouter();
   const [plaidToken, setPlaidToken] = useState<string | undefined>();
   const teamCountryCode = defaultCountryCode || "";
 
@@ -285,7 +285,7 @@ export function BankSearchContent({
                 <p className="font-medium mb-2">No banks found</p>
                 <p className="text-sm text-center text-[#878787]">
                   We couldn't find a bank matching your criteria.
-                  <br /> Let us know, or start with manual import.
+                  <br /> Start with manual import.
                 </p>
 
                 <div className="mt-4 flex space-x-2">
@@ -294,14 +294,6 @@ export function BankSearchContent({
                     onClick={() => setParams({ step: "import" })}
                   >
                     Import
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      router.push("/account/support");
-                    }}
-                  >
-                    Contact us
                   </Button>
                 </div>
               </div>

@@ -1,5 +1,4 @@
 import type { Context } from "@api/rest/types";
-import { isTeamEligibleForSync } from "@api/utils/check-team-eligibility";
 import { validatePlaidWebhook } from "@api/utils/plaid";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
@@ -176,18 +175,6 @@ app.openapi(
         }
       }
 
-      return c.json({ success: true });
-    }
-
-    if (
-      !isTeamEligibleForSync({
-        plan: connectionData.team.plan,
-        createdAt: connectionData.team.createdAt,
-      })
-    ) {
-      logger.info("Plaid webhook: team not eligible for sync", {
-        teamId: connectionData.team.id,
-      });
       return c.json({ success: true });
     }
 

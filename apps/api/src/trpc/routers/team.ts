@@ -23,7 +23,6 @@ import {
   deleteTeam,
   deleteTeamInvite,
   deleteTeamMember,
-  getAvailablePlans,
   getBankConnections,
   getInboxAccounts,
   getInvitesByEmail,
@@ -379,10 +378,6 @@ export const teamRouter = createTRPCRouter({
         id: input.id,
       });
     }),
-
-  availablePlans: protectedProcedure.query(async ({ ctx: { db, teamId } }) => {
-    return getAvailablePlans(db, teamId!);
-  }),
 
   updateBaseCurrency: protectedProcedure
     .input(updateBaseCurrencySchema)

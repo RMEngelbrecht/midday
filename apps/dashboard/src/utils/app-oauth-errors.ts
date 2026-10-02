@@ -23,7 +23,7 @@ const ERROR_TITLES: Record<AppOAuthErrorCode, string> = {
 const ERROR_DESCRIPTIONS: Record<AppOAuthErrorCode, string> = {
   access_denied: "You cancelled the connection or denied access.",
   missing_license:
-    "Your account doesn't have the required license for this integration. Please upgrade your plan or contact support.",
+    "Your account doesn't have the required license for this integration. Please check your integration account permissions.",
   missing_permissions:
     "You need administrator permissions to connect this integration. Please contact your account admin or try with an admin account.",
   invalid_state:

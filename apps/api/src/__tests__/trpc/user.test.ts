@@ -202,10 +202,6 @@ describe("tRPC: user.delete", () => {
     mocks.supabaseAdminDeleteUser.mockImplementation(() =>
       Promise.resolve({ data: {}, error: null }),
     );
-    mocks.resendContactsRemove.mockReset();
-    mocks.resendContactsRemove.mockImplementation(() =>
-      Promise.resolve({ data: {}, error: null }),
-    );
   });
 
   test("deletes user and calls deleteUser", async () => {
@@ -218,11 +214,5 @@ describe("tRPC: user.delete", () => {
       "test-user-id",
     );
     expect(mocks.supabaseAdminDeleteUser).toHaveBeenCalledWith("test-user-id");
-    expect(mocks.resendContactsRemove).toHaveBeenCalledWith(
-      expect.objectContaining({
-        email: "test@example.com",
-        audienceId: process.env.RESEND_AUDIENCE_ID,
-      }),
-    );
   });
 });

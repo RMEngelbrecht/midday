@@ -144,10 +144,6 @@ export const userSchema = z.object({
         description: "URL to the team's logo image",
         example: "https://cdn.midday.ai/logos/acme-corp.png",
       }),
-      plan: z.string().openapi({
-        description: "Current subscription plan of the team",
-        example: "pro",
-      }),
     })
     .nullable()
     .openapi({

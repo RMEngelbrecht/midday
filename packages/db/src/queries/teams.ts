@@ -4,16 +4,14 @@ import {
   getTaxTypeForCountry,
 } from "@midday/categories";
 import { createLoggerWithContext } from "@midday/logger";
-import { subDays } from "date-fns";
 import {
   and,
   eq,
   gt,
-  gte,
   inArray,
   isNotNull,
-  isNull,
   or,
+  type SQL,
   sql,
 } from "drizzle-orm";
 import type { Database } from "../client";
@@ -49,8 +47,6 @@ export const getTeamById = async (db: Database, id: string) => {
       logoUrl: teams.logoUrl,
       email: teams.email,
       inboxId: teams.inboxId,
-      plan: teams.plan,
-      subscriptionStatus: teams.subscriptionStatus,
       canceledAt: teams.canceledAt,
       baseCurrency: teams.baseCurrency,
       countryCode: teams.countryCode,
@@ -126,8 +122,6 @@ export const updateTeamById = async (
       logoUrl: teams.logoUrl,
       email: teams.email,
       inboxId: teams.inboxId,
-      plan: teams.plan,
-      subscriptionStatus: teams.subscriptionStatus,
       baseCurrency: teams.baseCurrency,
       countryCode: teams.countryCode,
       fiscalYearStartMonth: teams.fiscalYearStartMonth,
@@ -486,21 +480,6 @@ export async function updateTeamMember(
   return updated;
 }
 
-type GetAvailablePlansResult = {
-  starter: boolean;
-  pro: boolean;
-};
-
-export async function getAvailablePlans(
-  _db: Database,
-  _teamId: string,
-): Promise<GetAvailablePlansResult> {
-  return {
-    starter: true,
-    pro: true,
-  };
-}
-
 /**
  * Owner info returned from getTeamOwnerInfo
  */
@@ -566,8 +545,6 @@ export type GetTeamsForInsightsParams = {
   cursor?: string | null;
   /** Number of teams to fetch per batch */
   limit?: number;
-  /** Number of days a trial team can be eligible (default: 30) */
-  trialEligibilityDays?: number;
   /** Only return teams where it's currently this hour (0-23) in their local time */
   targetLocalHour?: number;
 };
@@ -585,8 +562,6 @@ export type InsightEligibleTeam = {
  * Get teams eligible for insights generation.
  *
  * Eligible teams are:
- * - Paying customers (starter/pro plans)
- * - Active trial users (created within past N days, not canceled)
  * - Must have baseCurrency set (indicates they have financial data)
  * - If targetLocalHour is set, only teams where it's that hour locally
  *
@@ -600,38 +575,11 @@ export async function getTeamsForInsights(
   db: Database,
   params: GetTeamsForInsightsParams = {},
 ): Promise<InsightEligibleTeam[]> {
-  const {
-    enabledTeamIds,
-    cursor,
-    limit = 100,
-    trialEligibilityDays = 30,
-    targetLocalHour,
-  } = params;
+  const { enabledTeamIds, cursor, limit = 100, targetLocalHour } = params;
 
-  // Calculate trial eligibility cutoff
-  const trialCutoffDate = subDays(
-    new Date(),
-    trialEligibilityDays,
-  ).toISOString();
-
-  // Build plan condition:
-  // - Paying: plan is 'starter' or 'pro'
-  // - Active trial: plan is 'trial' AND not canceled AND created within eligibility period
-  const planCondition = or(
-    eq(teams.plan, "starter"),
-    eq(teams.plan, "pro"),
-    and(
-      eq(teams.plan, "trial"),
-      isNull(teams.canceledAt),
-      gte(teams.createdAt, trialCutoffDate),
-    ),
-  )!;
-
-  // Build where conditions
-  const conditions: (typeof planCondition)[] = [
+  const conditions: SQL[] = [
     // Must have base currency set (indicates they have financial data)
     isNotNull(teams.baseCurrency),
-    planCondition,
   ];
 
   // Filter by enabled team IDs if specified
@@ -723,22 +671,10 @@ export async function isTeamStillCanceled(db: Database, teamId: string) {
 }
 
 export async function getTeamsWithBankConnections(db: Database) {
-  const fourteenDaysAgo = subDays(new Date(), 14).toISOString();
-
   return db
     .selectDistinct({ id: teams.id })
     .from(teams)
-    .innerJoin(bankConnections, eq(bankConnections.teamId, teams.id))
-    .where(
-      or(
-        inArray(teams.plan, ["pro", "starter"]),
-        and(
-          eq(teams.plan, "trial"),
-          isNull(teams.canceledAt),
-          gte(teams.createdAt, fourteenDaysAgo),
-        ),
-      ),
-    );
+    .innerJoin(bankConnections, eq(bankConnections.teamId, teams.id));
 }
 
 export async function hasTeamData(db: Database, teamId: string) {

@@ -389,7 +389,6 @@ export const getBankConnectionByEnrollmentId = async (
       team: {
         columns: {
           id: true,
-          plan: true,
           createdAt: true,
         },
       },
@@ -411,7 +410,6 @@ export const getBankConnectionByReferenceId = async (
       team: {
         columns: {
           id: true,
-          plan: true,
           createdAt: true,
         },
       },

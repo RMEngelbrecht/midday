@@ -56,19 +56,17 @@ We are working on the documentation to get started with Midday for local develop
 
 - Supabase (database, storage, realtime, auth)
 - Railway (API, Worker, Dashboard)
-- Vercel (Website)
 - Cloudflare (Engine, CDN/Proxy)
 
 ### Services
 
 - Trigger.dev (background jobs)
-- Resend (Transactional & Marketing)
+- Resend (Transactional email)
 - Github Actions (CI/CD)
 - GoCardLess (Bank connection EU)
 - Plaid (Bank connection in Canada and US)
 - Teller (Bank connection in the US)
 - OpenPanel (Events and Analytics)
-- Polar (Payment processing)
 - Typesense (Search)
 - Gemini
 - OpenAI

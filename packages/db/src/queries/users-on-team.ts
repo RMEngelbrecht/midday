@@ -30,7 +30,6 @@ export async function getTeamsByUserId(db: Database, userId: string) {
       team: {
         id: teams.id,
         name: teams.name,
-        plan: teams.plan,
         role: usersOnTeam.role,
         createdAt: teams.createdAt,
         canceledAt: teams.canceledAt,
@@ -49,7 +48,6 @@ export async function getTeamsByUserId(db: Database, userId: string) {
   return result.map((row) => ({
     id: row?.team?.id,
     name: row?.team?.name,
-    plan: row?.team?.plan,
     role: row?.role,
     createdAt: row?.team?.createdAt,
     canceledAt: row?.team?.canceledAt,

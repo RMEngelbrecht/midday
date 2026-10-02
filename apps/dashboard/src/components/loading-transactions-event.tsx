@@ -20,7 +20,7 @@ type Props = {
   runId?: string;
   setRunId: (runId?: string) => void;
   onClose: () => void;
-  setActiveTab: (value: "support" | "loading" | "select-accounts") => void;
+  setActiveTab: (value: "loading" | "select-accounts") => void;
 };
 
 export function LoadingTransactionsEvent({
@@ -85,16 +85,6 @@ export function LoadingTransactionsEvent({
           >
             Try again
           </Button>
-
-          <div className="flex justify-center mt-4">
-            <button
-              type="button"
-              className="text-xs text-[#878787]"
-              onClick={() => setActiveTab("support")}
-            >
-              Need support
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -159,16 +149,6 @@ export function LoadingTransactionsEvent({
         <Button className="w-full" onClick={onClose}>
           Close
         </Button>
-
-        <div className="flex justify-center mt-4">
-          <button
-            type="button"
-            className="text-xs text-[#878787]"
-            onClick={() => setActiveTab("support")}
-          >
-            Need support
-          </button>
-        </div>
       </div>
     </div>
   );
