@@ -93,8 +93,8 @@ export type CoercedEnvSchema = {
   
   /**
    * **SUPABASE_URL**  
-   * Supabase project URL (auth, storage, realtime).  
-   * deprecated: removed by S1/S2  
+   * Supabase project URL (auth, realtime).  
+   * deprecated: removed by S1; dashboard realtime still uses it  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
    */
   SUPABASE_URL?: string;
@@ -102,7 +102,7 @@ export type CoercedEnvSchema = {
   /**
    * **SUPABASE_SECRET_KEY** 🔐 _sensitive_  
    * Supabase secret (service role) key.  
-   * deprecated: removed by S1/S2  
+   * deprecated: removed by S1  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   SUPABASE_SECRET_KEY?: string;
@@ -356,35 +356,6 @@ export type CoercedEnvSchema = {
   SLACK_STATE_SECRET?: string;
   
   /**
-   * **R2_ENDPOINT**  
-   * Cloudflare R2 bucket for institution logos.  
-   * deprecated: removed by S2 (storage driver)  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  R2_ENDPOINT?: string;
-  
-  /**
-   * **R2_ACCESS_KEY_ID** 🔐 _sensitive_  
-   * deprecated: removed by S2  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  R2_ACCESS_KEY_ID?: string;
-  
-  /**
-   * **R2_SECRET_ACCESS_KEY** 🔐 _sensitive_  
-   * deprecated: removed by S2  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  R2_SECRET_ACCESS_KEY?: string;
-  
-  /**
-   * **R2_BUCKET_NAME**  
-   * deprecated: removed by S2  
-   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
-   */
-  R2_BUCKET_NAME?: string;
-  
-  /**
    * **GOCARDLESS_SECRET_ID**  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
@@ -450,6 +421,23 @@ export type CoercedEnvSchema = {
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
    */
   REDIS_URL: string;
+  
+  /**
+   * **STORAGE_DRIVER**  
+   * Where files live: `local` (a directory, the default) or `s3` (any  
+   * S3-compatible store: AWS, R2, Garage, MinIO). Inferred as `s3` when  
+   * S3_BUCKET is set. Buckets (vault, avatars, apps, institutions) are key  
+   * prefixes inside the one store.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M7.885%2010.23L12%203.463l4.116%206.769zm9.606%2011q-1.558%200-2.64-1.081t-1.082-2.64t1.082-2.649t2.64-1.09t2.649%201.09t1.09%202.649t-1.09%202.64t-2.649%201.082m-13.722-.5v-6.462h6.462v6.462z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  STORAGE_DRIVER?: "local" | "s3";
+  
+  /**
+   * **S3_BUCKET**  
+   * Bucket holding every Midday object. Setting it selects the s3 driver.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_BUCKET?: string;
   
   /**
    * **SMTP_URL** 🔐 _sensitive_  
@@ -585,6 +573,71 @@ export type CoercedEnvSchema = {
   DEFAULT_TIMEZONE?: string;
   
   /**
+   * **STORAGE_LOCAL_DIR**  
+   * Directory for the local driver. Relative paths resolve against the repo root,  
+   * so the API and worker share it in development. Mount a volume here in Docker.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  STORAGE_LOCAL_DIR: string;
+  
+  /**
+   * **STORAGE_MAX_UPLOAD_MB**  
+   * Largest file accepted by POST /files/upload, in megabytes.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M26%2012h-4v2h4v2h-3v2h3v2h-4v2h4a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-7%2010h-6v-4a2%202%200%200%201%202-2h2v-2h-4v-2h4a2%202%200%200%201%202%202v2a2%202%200%200%201-2%202h-2v2h4ZM8%2020v-8H6v1H4v2h2v5H4v2h6v-2z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  STORAGE_MAX_UPLOAD_MB: number;
+  
+  /**
+   * **S3_ENDPOINT**  
+   * S3 API endpoint. Leave empty for AWS; set for R2/Garage/MinIO,  
+   * e.g. https://<account>.r2.cloudflarestorage.com or http://garage:3900  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_ENDPOINT?: string;
+  
+  /**
+   * **S3_REGION**  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_REGION: string;
+  
+  /**
+   * **S3_ACCESS_KEY_ID** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_ACCESS_KEY_ID?: string;
+  
+  /**
+   * **S3_SECRET_ACCESS_KEY** 🔐 _sensitive_  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_SECRET_ACCESS_KEY?: string;
+  
+  /**
+   * **S3_FORCE_PATH_STYLE**  
+   * Path-style addressing (http://host/bucket/key). Needed for Garage and MinIO.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M23%2023a7%207%200%201%201%207-7a7.01%207.01%200%200%201-7%207m0-12a5%205%200%201%200%205%205a5.006%205.006%200%200%200-5-5%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23808080%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_FORCE_PATH_STYLE: boolean;
+  
+  /**
+   * **S3_PUBLIC_ENDPOINT**  
+   * Endpoint browsers can reach for presigned URLs. When unset, signed URLs are  
+   * served through the API (use this when S3_ENDPOINT is a private address).  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_PUBLIC_ENDPOINT?: string;
+  
+  /**
+   * **S3_PUBLIC_URL**  
+   * Public base URL of the bucket (e.g. an R2 custom domain) used for public  
+   * objects (avatars, app logos, institution logos). When unset, they are served  
+   * by the API at /files/public/<key>.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  S3_PUBLIC_URL?: string;
+  
+  /**
    * **TELEGRAM_API_BASE_URL**  
    * Self-hosted Telegram Bot API gateway.  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M24%2021V9h-2v14h8v-2zm-4-6v-4c0-1.103-.897-2-2-2h-6v14h2v-6h1.48l2.335%206h2.145l-2.333-6H18c1.103%200%202-.897%202-2m-6-4h4v4h-4zM8%2023H4c-1.103%200-2-.897-2-2V9h2v12h4V9h2v12c0%201.103-.897%202-2%202%22%2F%3E%3C%2Fsvg%3E)   
@@ -686,7 +739,7 @@ export type CoercedEnvSchema = {
   /**
    * **SUPABASE_PUBLISHABLE_KEY**  
    * Supabase publishable (anon) key, sent to browsers.  
-   * deprecated: removed by S1/S2  
+   * deprecated: removed by S1; dashboard realtime still uses it  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
    */
   SUPABASE_PUBLISHABLE_KEY?: string;
@@ -726,7 +779,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_6785d8b7 = CoercedEnvSchema;
+type _CoercedEnvSchema_0bff1743 = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -734,9 +787,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_6785d8b7 = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_0bff1743 = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'API_RATE_LIMIT' | 'MCP_API_RATE_LIMIT' | 'CHAT_RATE_LIMIT' | 'DB_POOL_STATS_INTERVAL_MS' | 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'ALLOWED_API_ORIGINS' | 'SUPABASE_URL' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STRIPE_CONNECT_CLIENT_ID' | 'TELEGRAM_BOT_USERNAME' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'R2_ENDPOINT' | 'R2_BUCKET_NAME' | 'GOCARDLESS_SECRET_ID' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'INBOX_EMAIL_DOMAIN' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'SUPABASE_PUBLISHABLE_KEY' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'API_RATE_LIMIT' | 'MCP_API_RATE_LIMIT' | 'CHAT_RATE_LIMIT' | 'DB_POOL_STATS_INTERVAL_MS' | 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'ALLOWED_API_ORIGINS' | 'SUPABASE_URL' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STRIPE_CONNECT_CLIENT_ID' | 'TELEGRAM_BOT_USERNAME' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'GOCARDLESS_SECRET_ID' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'SUPABASE_PUBLISHABLE_KEY' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

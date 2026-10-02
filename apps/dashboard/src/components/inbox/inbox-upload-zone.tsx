@@ -1,6 +1,5 @@
 "use client";
 
-import { createClient } from "@midday/supabase/client";
 import { cn } from "@midday/ui/cn";
 import { useToast } from "@midday/ui/use-toast";
 import { stripSpecialCharacters } from "@midday/utils";
@@ -9,7 +8,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useUserQuery } from "@/hooks/use-user";
 import { useTRPC } from "@/trpc/client";
-import { resumableUpload } from "@/utils/upload";
+import { uploadFile } from "@/utils/upload";
 
 type UploadResult = {
   filename: string;
@@ -30,7 +29,6 @@ type Props = {
 export function UploadZone({ children, onUploadComplete }: Props) {
   const trpc = useTRPC();
   const { data: user } = useUserQuery();
-  const supabase = createClient();
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
@@ -83,7 +81,7 @@ export function UploadZone({ children, onUploadComplete }: Props) {
       // First, create inbox items immediately for instant feedback
       const inboxItems = await Promise.all(
         files.map(async (file: File) => {
-          // Use the same filename processing as resumableUpload
+          // Use the same filename processing as uploadFile
           const processedFilename = stripSpecialCharacters(file.name);
           const filePath = [...path, processedFilename];
           return createInboxItemMutation.mutateAsync({
@@ -106,7 +104,7 @@ export function UploadZone({ children, onUploadComplete }: Props) {
 
       const results = (await Promise.all(
         files.map(async (file: File, idx: number) =>
-          resumableUpload(supabase, {
+          uploadFile({
             bucket: "vault",
             path,
             file,

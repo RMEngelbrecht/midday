@@ -5,6 +5,7 @@ import { Spinner } from "@midday/ui/spinner";
 import { nanoid } from "nanoid";
 import { useRef, useState } from "react";
 import { useUpload } from "@/hooks/use-upload";
+import { useUserQuery } from "@/hooks/use-user";
 
 type Props = {
   logoUrl?: string | null;
@@ -17,12 +18,13 @@ export const LogoUpload = ({ logoUrl: initialLogoUrl, onUpload }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { isLoading, uploadFile } = useUpload();
+  const { data: user } = useUserQuery();
 
   const handleUpload = async (evt: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = evt.target;
     const selectedFile = files as FileList;
 
-    if (!selectedFile[0]) return;
+    if (!selectedFile[0] || !user?.teamId) return;
 
     const originalFilename = selectedFile[0]?.name ?? "";
     const extension = originalFilename.split(".").pop() || "";
@@ -30,7 +32,7 @@ export const LogoUpload = ({ logoUrl: initialLogoUrl, onUpload }: Props) => {
 
     const { url } = await uploadFile({
       bucket: "apps",
-      path: ["logos", filename],
+      path: [user.teamId, "logos", filename],
       file: selectedFile[0] as File,
     });
 

@@ -1,12 +1,12 @@
 import type { Context } from "@api/rest/types";
 import { proxyFileSchema } from "@api/schemas/files";
-import { createAdminClient } from "@api/services/supabase";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { isPublicBucket, verifyStorageToken } from "@midday/storage";
 import { HTTPException } from "hono/http-exception";
 import { withDatabase } from "../../middleware/db";
 import { withFileAuth } from "../../middleware/file-auth";
 import { withClientIp } from "../../middleware/ip";
-import { normalizeAndValidatePath } from "./utils";
+import { normalizeAndValidatePath, objectResponse } from "./utils";
 
 const app = new OpenAPIHono<Context>();
 
@@ -70,38 +70,50 @@ app.openapi(
     const { filePath } = c.req.valid("query");
     const { normalizedPath } = normalizeAndValidatePath(filePath);
 
-    const supabase = await createAdminClient();
-
-    // Download the file from storage
-    const { data, error } = await supabase.storage
-      .from("vault")
-      .download(normalizedPath);
-
-    if (error || !data) {
-      throw new HTTPException(404, {
-        message: error?.message || "File not found",
-      });
-    }
-
-    // Get the blob and determine content type
-    const blob = await data.arrayBuffer();
-    const contentType = data.type || "application/octet-stream";
-
-    // Set cache headers for images (long cache for immutable content)
-    const headers: Record<string, string> = {
-      "Content-Type": contentType,
-      "Cross-Origin-Resource-Policy": "cross-origin",
-    };
-
-    // Add cache headers for images
-    if (contentType.startsWith("image/")) {
-      headers["Cache-Control"] = "public, max-age=31536000, immutable";
-    }
-
-    return new Response(blob, {
-      headers,
+    return objectResponse(`vault/${normalizedPath}`, {
+      rangeHeader: c.req.header("range"),
     });
   },
 );
+
+/**
+ * Signed URLs minted by `storage.signedUrl()` when objects are not served
+ * directly by the backend. The HMAC token carries key, expiry and filename.
+ */
+app.get("/serve", withClientIp, async (c) => {
+  const token = c.req.query("token");
+  const payload = token ? verifyStorageToken(token) : null;
+
+  if (!payload) {
+    throw new HTTPException(403, { message: "Invalid or expired link" });
+  }
+
+  return objectResponse(payload.k, {
+    rangeHeader: c.req.header("range"),
+    download: payload.d,
+  });
+});
+
+/** Objects in public buckets (avatars, app logos, institution logos). */
+app.get("/public/:bucket/*", async (c) => {
+  const bucket = c.req.param("bucket");
+  if (!isPublicBucket(bucket)) {
+    throw new HTTPException(404, { message: "File not found" });
+  }
+
+  const prefix = `/files/public/${bucket}/`;
+  const encoded = c.req.path.slice(c.req.path.indexOf(prefix) + prefix.length);
+  let path: string;
+  try {
+    path = encoded.split("/").map(decodeURIComponent).join("/");
+  } catch {
+    throw new HTTPException(400, { message: "Invalid file path" });
+  }
+
+  return objectResponse(`${bucket}/${path}`, {
+    rangeHeader: c.req.header("range"),
+    cacheControl: "public, max-age=3600",
+  });
+});
 
 export { app as serveRouter };

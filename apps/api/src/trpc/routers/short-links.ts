@@ -14,7 +14,7 @@ import {
   getDocumentById,
   getShortLinkByShortId,
 } from "@midday/db/queries";
-import { signedUrl } from "@midday/supabase/storage";
+import { getStorage, teamVaultKey } from "@midday/storage";
 
 export const shortLinksRouter = createTRPCRouter({
   createForUrl: protectedProcedure
@@ -39,7 +39,7 @@ export const shortLinksRouter = createTRPCRouter({
 
   createForDocument: protectedProcedure
     .input(createShortLinkForDocumentSchema)
-    .mutation(async ({ ctx: { db, teamId, session, supabase }, input }) => {
+    .mutation(async ({ ctx: { db, teamId, session }, input }) => {
       const document = await getDocumentById(db, {
         id: input.documentId,
         filePath: input.filePath,
@@ -51,22 +51,15 @@ export const shortLinksRouter = createTRPCRouter({
       }
 
       // First create the signed URL for the file
-      const response = await signedUrl(supabase, {
-        bucket: "vault",
-        path: document.pathTokens?.join("/") ?? "",
-        expireIn: input.expireIn,
-        options: {
-          download: true,
-        },
-      });
-
-      if (!response.data?.signedUrl) {
-        throw new Error("Failed to create signed URL for file");
-      }
+      const signedUrl = await getStorage().signedUrl(
+        teamVaultKey(teamId!, document.pathTokens ?? []),
+        input.expireIn,
+        { download: true },
+      );
 
       // Then create a short link for the signed URL
       const result = await createShortLink(db, {
-        url: response.data.signedUrl,
+        url: signedUrl,
         teamId: teamId!,
         userId: session.user.id,
         type: "download",
@@ -87,7 +80,7 @@ export const shortLinksRouter = createTRPCRouter({
       return {
         ...result,
         shortUrl: `${ENV.APP_URL}/s/${result.shortId}`,
-        originalUrl: response.data.signedUrl,
+        originalUrl: signedUrl,
       };
     }),
 

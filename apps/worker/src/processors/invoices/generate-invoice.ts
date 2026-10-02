@@ -1,6 +1,6 @@
 import { getInvoiceById, updateInvoice } from "@midday/db/queries";
+import { putVaultFile } from "@midday/db/vault";
 import { PdfTemplate, renderToBuffer } from "@midday/invoice";
-import { createClient } from "@midday/supabase/job";
 import type { Job } from "bullmq";
 import { DEFAULT_JOB_OPTIONS } from "../../config/job-options";
 import { documentsQueue } from "../../queues/documents";
@@ -18,8 +18,6 @@ export class GenerateInvoiceProcessor extends BaseProcessor<GenerateInvoicePaylo
   async process(job: Job<GenerateInvoicePayload>): Promise<void> {
     const { invoiceId, deliveryType } = job.data;
     const db = getDb();
-    // Supabase client is needed for storage operations only
-    const supabase = createClient();
 
     this.logger.info("Starting invoice generation", {
       jobId: job.id,
@@ -56,21 +54,11 @@ export class GenerateInvoiceProcessor extends BaseProcessor<GenerateInvoicePaylo
       fileSize: buffer.length,
     });
 
-    // Upload to Supabase storage (storage SDK is still needed)
-    const { error: uploadError } = await supabase.storage
-      .from("vault")
-      .upload(fullPath, buffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
-
-    if (uploadError) {
-      this.logger.error("Failed to upload PDF", {
-        invoiceId,
-        error: uploadError.message,
-      });
-      throw new Error(`Failed to upload PDF: ${uploadError.message}`);
-    }
+    await putVaultFile(db, {
+      path: fullPath.split("/"),
+      body: buffer,
+      contentType: "application/pdf",
+    });
 
     this.logger.debug("PDF uploaded to storage", { invoiceId, fullPath });
 

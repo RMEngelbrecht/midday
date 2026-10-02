@@ -1,5 +1,6 @@
 import type { Database } from "@midday/db/client";
 import { getTeamByInboxId } from "@midday/db/queries";
+import { putVaultFile } from "@midday/db/vault";
 import { triggerJob } from "@midday/job-client";
 import { logger } from "@midday/logger";
 import { send } from "@midday/mailer";
@@ -38,22 +39,6 @@ export type UploadResult = {
   sender_email: string | null;
   reference_id: string;
   size: number;
-};
-
-/** The slice of a storage client used for the `vault` bucket. */
-export type AttachmentStorage = {
-  storage: {
-    from(bucket: string): {
-      upload(
-        path: string,
-        body: Buffer,
-        options: { contentType: string; upsert: boolean },
-      ): Promise<{
-        data: { path: string } | null;
-        error: { message: string } | null;
-      }>;
-    };
-  };
 };
 
 /** A received email, normalized from Postmark or IMAP. */
@@ -109,7 +94,7 @@ export function filterAttachments(
 
 /** Upload one attachment to the team's inbox folder. Null on failure. */
 export async function uploadAttachment(
-  storage: AttachmentStorage,
+  db: Database,
   teamId: string,
   attachment: InboxAttachment,
   senderEmail: string | null,
@@ -122,28 +107,17 @@ export async function uploadAttachment(
       attachment.ContentType,
     );
 
-    const { data, error } = await storage.storage
-      .from("vault")
-      .upload(
-        `${teamId}/inbox/${uniqueFileName}`,
-        Buffer.from(attachment.Content, "base64"),
-        { contentType: attachment.ContentType, upsert: true },
-      );
-
-    if (error || !data?.path) {
-      logger.error("Failed to upload attachment", {
-        fileName: attachment.Name,
-        teamId,
-        error: error?.message,
-        size: attachment.ContentLength,
-      });
-      return null;
-    }
+    const filePath = [teamId, "inbox", uniqueFileName];
+    await putVaultFile(db, {
+      path: filePath,
+      body: Buffer.from(attachment.Content, "base64"),
+      contentType: attachment.ContentType,
+    });
 
     return {
       display_name: subject || attachment.Name,
       team_id: teamId,
-      file_path: data.path.split("/"),
+      file_path: filePath,
       file_name: uniqueFileName,
       content_type: attachment.ContentType,
       sender_email: senderEmail,
@@ -214,7 +188,6 @@ export async function processInboundEmail(
   db: Database,
   email: InboundEmail,
   deps: {
-    storage: AttachmentStorage;
     /** Address of our own outbound mail; messages from it are dropped (loops). */
     ownAddress?: string;
   },
@@ -272,7 +245,7 @@ export async function processInboundEmail(
     await Promise.all(
       filtered.map((attachment) =>
         uploadAttachment(
-          deps.storage,
+          db,
           teamId,
           attachment,
           from.email || null,

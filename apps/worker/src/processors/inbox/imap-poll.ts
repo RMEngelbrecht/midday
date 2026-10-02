@@ -1,5 +1,4 @@
 import { getDefaultFromAddress } from "@midday/mailer";
-import { createClient } from "@midday/supabase/job";
 import type { Job } from "bullmq";
 import { ENV } from "../../env";
 import { getDb } from "../../utils/db";
@@ -25,9 +24,7 @@ export class ImapPollProcessor extends BaseProcessor<Record<string, never>> {
         localPart: ENV.INBOX_EMAIL_LOCAL_PART || undefined,
         ownAddress: getDefaultFromAddress(),
       },
-      // Storage goes through the vault bucket client; swapped for the storage
-      // driver when the supabase client is removed.
-      { db: getDb(), storage: createClient() },
+      { db: getDb() },
     );
   }
 }

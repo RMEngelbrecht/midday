@@ -490,3 +490,69 @@ export async function updateDocumentProcessingStatus(
     .where(eq(documents.id, id))
     .returning({ id: documents.id });
 }
+
+export type UpsertVaultDocumentParams = {
+  /** Path inside the vault bucket; the first token is the team id. */
+  pathTokens: string[];
+  size: number;
+  mimetype: string;
+  ownerId?: string | null;
+};
+
+/**
+ * Keeps `documents` in step with vault objects (previously a Supabase storage
+ * trigger): one row per object, keyed by team + full path in `name`. Metadata
+ * is merged so processing results survive a re-upload.
+ */
+export async function upsertVaultDocument(
+  db: Database,
+  params: UpsertVaultDocumentParams,
+) {
+  const { pathTokens, size, mimetype, ownerId } = params;
+  const [teamId] = pathTokens;
+  const name = pathTokens.join("/");
+  const metadata = { size, mimetype };
+
+  if (!teamId || pathTokens.length < 2) return null;
+
+  const [updated] = await db
+    .update(documents)
+    .set({
+      metadata: sql`coalesce(${documents.metadata}, '{}'::jsonb) || ${JSON.stringify(metadata)}::jsonb`,
+    })
+    .where(and(eq(documents.teamId, teamId), eq(documents.name, name)))
+    .returning({ id: documents.id });
+
+  if (updated) return updated;
+
+  const [inserted] = await db
+    .insert(documents)
+    .values({
+      name,
+      teamId,
+      pathTokens,
+      parentId: pathTokens.length > 2 ? pathTokens.at(-2) : null,
+      metadata,
+      ownerId: ownerId ?? null,
+    })
+    .returning({ id: documents.id });
+
+  return inserted;
+}
+
+/** Removes the `documents` rows of deleted vault objects. */
+export async function deleteVaultDocuments(
+  db: Database,
+  params: { teamId: string; names: string[] },
+) {
+  if (params.names.length === 0) return [];
+  return db
+    .delete(documents)
+    .where(
+      and(
+        eq(documents.teamId, params.teamId),
+        inArray(documents.name, params.names),
+      ),
+    )
+    .returning({ id: documents.id });
+}

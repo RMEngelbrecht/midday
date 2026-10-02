@@ -1,18 +1,16 @@
 import type { Context } from "@api/rest/types";
 import { downloadFileSchema, downloadInvoiceSchema } from "@api/schemas/files";
-import { createAdminClient } from "@api/services/supabase";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { getInvoiceById } from "@midday/db/queries";
 import { verifyFileKey } from "@midday/encryption";
 import { PdfTemplate, renderToStream } from "@midday/invoice";
 import { verify } from "@midday/invoice/token";
-import { download } from "@midday/supabase/storage";
 import { HTTPException } from "hono/http-exception";
 import { publicMiddleware } from "../../middleware";
 import { withDatabase } from "../../middleware/db";
 import { withFileAuth } from "../../middleware/file-auth";
 import { withClientIp } from "../../middleware/ip";
-import { getContentTypeFromFilename, normalizeAndValidatePath } from "./utils";
+import { normalizeAndValidatePath, objectResponse } from "./utils";
 
 const app = new OpenAPIHono<Context>();
 
@@ -85,37 +83,10 @@ app.openapi(
     const { path, filename } = c.req.valid("query");
     const { normalizedPath } = normalizeAndValidatePath(path);
 
-    const supabase = await createAdminClient();
-
-    const { data, error } = await download(supabase, {
-      bucket: "vault",
-      path: normalizedPath,
+    return objectResponse(`vault/${normalizedPath}`, {
+      rangeHeader: c.req.header("range"),
+      download: filename,
     });
-
-    if (error || !data) {
-      throw new HTTPException(404, {
-        message: error?.message || "File not found",
-      });
-    }
-
-    // Try to get content type from blob, fallback to application/octet-stream
-    const blob = await data.arrayBuffer();
-    const contentType =
-      data.type ||
-      (filename
-        ? getContentTypeFromFilename(filename)
-        : "application/octet-stream");
-
-    const headers: Record<string, string> = {
-      "Content-Type": contentType,
-      "Cross-Origin-Resource-Policy": "cross-origin",
-    };
-
-    if (filename) {
-      headers["Content-Disposition"] = `attachment; filename="${filename}"`;
-    }
-
-    return new Response(blob, { headers });
   },
 );
 

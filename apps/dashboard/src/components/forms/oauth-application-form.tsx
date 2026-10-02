@@ -330,7 +330,7 @@ export function OAuthApplicationForm({ data }: Props) {
 
           const { url } = await uploadFile({
             bucket: "apps",
-            path: ["screenshots", filename],
+            path: [user?.teamId ?? "", "screenshots", filename],
             file,
           });
 

@@ -32,7 +32,7 @@
     "@midday/logger": "workspace:*",
     "@midday/mailer": "workspace:*",
     "@midday/notifications": "workspace:*",
-    "@midday/supabase": "workspace:*",
+    "@midday/storage": "workspace:*",
     "@midday/trpc": "workspace:*",
     "@midday/utils": "workspace:*",
     "@sentry/bun": "catalog:",

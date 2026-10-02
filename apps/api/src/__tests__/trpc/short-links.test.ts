@@ -92,10 +92,7 @@ describe("tRPC: shortLinks.createForDocument", () => {
       }),
     );
     mocks.signedUrl.mockImplementation(() =>
-      Promise.resolve({
-        data: { signedUrl: "https://signed.example/file" },
-        error: null,
-      }),
+      Promise.resolve("https://signed.example/file"),
     );
     mocks.createShortLink.mockImplementation(() =>
       Promise.resolve({

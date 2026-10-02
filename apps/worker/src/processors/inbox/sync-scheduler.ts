@@ -5,6 +5,7 @@ import {
   updateInboxAccount,
 } from "@midday/db/queries";
 import { separateBlocklistEntries } from "@midday/db/utils/blocklist";
+import { putVaultFile } from "@midday/db/vault";
 import { InboxConnector } from "@midday/inbox/connector";
 import {
   assertInboxAuthError,
@@ -12,7 +13,6 @@ import {
   isInboxAuthError,
 } from "@midday/inbox/errors";
 import { triggerJob } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
 import { ensureFileExtension } from "@midday/utils";
 import type { Job } from "bullmq";
 import type { InboxProviderSyncAccountPayload } from "../../schemas/inbox";
@@ -34,7 +34,6 @@ export class SyncSchedulerProcessor extends BaseProcessor<InboxProviderSyncAccou
     syncedAt: string;
   }> {
     const { id: inboxAccountId, manualSync = false } = job.data;
-    const supabase = createClient();
     const db = getDb();
 
     if (!inboxAccountId) {
@@ -204,16 +203,22 @@ export class SyncSchedulerProcessor extends BaseProcessor<InboxProviderSyncAccou
               item.mimeType,
             );
 
-            const { data: uploadData } = await supabase.storage
-              .from("vault")
-              .upload(`${accountRow.teamId}/inbox/${safeFilename}`, item.data, {
-                contentType: item.mimeType,
-                upsert: true,
+            const filePath = [accountRow.teamId, "inbox", safeFilename];
+            const uploaded = await putVaultFile(db, {
+              path: filePath,
+              body: item.data,
+              contentType: item.mimeType,
+            }).catch((error) => {
+              this.logger.error("Failed to upload inbox attachment", {
+                filePath: filePath.join("/"),
+                error: error instanceof Error ? error.message : String(error),
               });
+              return null;
+            });
 
-            if (uploadData) {
+            if (uploaded) {
               results.push({
-                filePath: uploadData.path.split("/"),
+                filePath,
                 size: item.size,
                 mimetype: item.mimeType,
                 website: item.website,

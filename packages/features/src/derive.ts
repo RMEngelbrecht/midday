@@ -6,7 +6,7 @@
 
 export type MailDriver = "smtp" | "console";
 export type InboundEmailDriver = "postmark" | "imap";
-export type StorageDriver = "supabase";
+export type StorageDriver = "local" | "s3";
 
 export type BankingFeatures = {
   plaid: boolean;
@@ -89,6 +89,8 @@ export const FEATURE_ENV_KEYS = [
   "OPENPANEL_CLIENT_ID",
   "OPENPANEL_SECRET_KEY",
   "SENTRY_DSN",
+  "STORAGE_DRIVER",
+  "S3_BUCKET",
 ] as const;
 
 export type FeatureEnvKey = (typeof FEATURE_ENV_KEYS)[number];
@@ -114,7 +116,12 @@ export function deriveFeatures(env: FeatureEnv): Features {
       ),
     },
     mail: all("SMTP_URL") ? "smtp" : "console",
-    storage: "supabase",
+    storage:
+      env.STORAGE_DRIVER === "local" || env.STORAGE_DRIVER === "s3"
+        ? env.STORAGE_DRIVER
+        : all("S3_BUCKET")
+          ? "s3"
+          : "local",
     inboundEmail: all("INBOX_EMAIL_DOMAIN", "IMAP_URL")
       ? "imap"
       : all(

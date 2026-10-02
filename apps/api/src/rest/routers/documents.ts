@@ -9,7 +9,6 @@ import {
   getDocumentsSchema,
   preSignedUrlResponseSchema,
 } from "@api/schemas/documents";
-import { createAdminClient } from "@api/services/supabase";
 import { validateResponse } from "@api/utils/validate-response";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
@@ -23,7 +22,8 @@ import {
   getDocumentById,
   getDocuments,
 } from "@midday/db/queries";
-import { signedUrl } from "@midday/supabase/storage";
+import { removeVaultFiles } from "@midday/db/vault";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import { withRequiredScope } from "../middleware";
 
 const app = new OpenAPIHono<Context>();
@@ -179,31 +179,19 @@ app.openapi(
         return c.json({ error: "Document file path not available" }, 400);
       }
 
-      // Create admin supabase client
-      const supabase = await createAdminClient();
-
       // Generate the pre-signed URL with 60-second expiration
-      const filePath = document.pathTokens.join("/");
       const expireIn = 60; // 60 seconds
-
-      const { data, error } = await signedUrl(supabase, {
-        bucket: "vault",
-        path: filePath,
+      const url = await getStorage().signedUrl(
+        teamVaultKey(teamId, document.pathTokens),
         expireIn,
-        options: {
-          download,
-        },
-      });
-
-      if (error || !data?.signedUrl) {
-        return c.json({ error: "Failed to generate pre-signed URL" }, 500);
-      }
+        { download },
+      );
 
       // Calculate expiration timestamp
       const expiresAt = new Date(Date.now() + expireIn * 1000).toISOString();
 
       const result = {
-        url: data.signedUrl,
+        url,
         expiresAt,
         fileName:
           document.pathTokens?.at(-1) ||
@@ -252,6 +240,10 @@ app.openapi(
 
     if (!result) {
       throw new HTTPException(404, { message: "Document not found" });
+    }
+
+    if (result.pathTokens?.length) {
+      await removeVaultFiles(db, { teamId, paths: [result.pathTokens] });
     }
 
     return c.json(validateResponse(result, deleteDocumentResponseSchema));

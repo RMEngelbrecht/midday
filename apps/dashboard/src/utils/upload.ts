@@ -1,70 +1,74 @@
 import { stripSpecialCharacters } from "@midday/utils";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import * as tus from "tus-js-client";
 import { getClientPublicConfig } from "@/components/public-config-provider";
+import { getAccessToken } from "@/utils/session";
 
-type ResumableUploadParmas = {
+export type StorageBucket = "vault" | "avatars" | "apps";
+
+export type UploadResult = {
   file: File;
+  filename: string;
+  /** Path inside the bucket, including the filename. */
   path: string[];
-  bucket: string;
+  /** Public URL for avatars/apps; null for the private vault. */
+  url: string | null;
+};
+
+type UploadParams = {
+  file: File;
+  bucket: StorageBucket;
+  /** Folder tokens. */
+  path: string[];
+  /** Defaults to the sanitized `file.name`. */
+  filename?: string;
   onProgress?: (bytesUploaded: number, bytesTotal: number) => void;
 };
 
-export async function resumableUpload(
-  client: SupabaseClient,
-  { file, path, bucket, onProgress }: ResumableUploadParmas,
-) {
-  const {
-    data: { session },
-  } = await client.auth.getSession();
+/**
+ * Uploads a file through the API (`POST /files/upload`), which checks the
+ * path belongs to the caller's team. Uses XHR for upload progress events and
+ * the same bearer token as tRPC.
+ */
+export async function uploadFile({
+  file,
+  bucket,
+  path,
+  filename = stripSpecialCharacters(file.name),
+  onProgress,
+}: UploadParams): Promise<UploadResult> {
+  const fullPath = [...path, filename];
+  const { apiUrl } = getClientPublicConfig();
+  const token = await getAccessToken();
 
-  const filename = stripSpecialCharacters(file.name);
-
-  const fullPath = decodeURIComponent([...path, filename].join("/"));
-
-  const supabaseUrl = getClientPublicConfig().supabase?.url;
+  const query = new URLSearchParams({
+    bucket,
+    path: decodeURIComponent(fullPath.join("/")),
+  });
 
   return new Promise((resolve, reject) => {
-    const upload = new tus.Upload(file, {
-      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
-      retryDelays: [0, 3000, 5000, 10000],
-      headers: {
-        authorization: `Bearer ${session?.access_token}`,
-        // optionally set upsert to true to overwrite existing files
-        "x-upsert": "true",
-      },
-      uploadDataDuringCreation: true,
-      // Important if you want to allow re-uploading the same file https://github.com/tus/tus-js-client/blob/main/docs/api.md#removefingerprintonsuccess
-      removeFingerprintOnSuccess: true,
-      metadata: {
-        bucketName: bucket,
-        objectName: fullPath,
-        contentType: file.type,
-        cacheControl: "3600",
-      },
-      // NOTE: it must be set to 6MB (for now) do not change it
-      chunkSize: 6 * 1024 * 1024,
-      onError: (error) => {
-        reject(error);
-      },
-      onProgress,
-      onSuccess: () => {
-        resolve({
-          ...upload,
-          filename,
-        });
-      },
-    });
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${apiUrl}/files/upload?${query}`);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader(
+      "Content-Type",
+      file.type || "application/octet-stream",
+    );
 
-    // Check if there are any previous uploads to continue.
-    return upload.findPreviousUploads().then((previousUploads) => {
-      // Found previous uploads so we select the first one.
-      if (previousUploads.length) {
-        // @ts-expect-error
-        upload.resumeFromPreviousUpload(previousUploads[0]);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded, event.total);
+    };
+    xhr.onerror = () => reject(new Error("Upload failed: network error"));
+    xhr.onload = () => {
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText}`));
+        return;
       }
+      const body = JSON.parse(xhr.responseText) as {
+        path: string[];
+        url: string | null;
+      };
+      resolve({ file, filename, path: body.path, url: body.url });
+    };
 
-      upload.start();
-    });
+    xhr.send(file);
   });
 }

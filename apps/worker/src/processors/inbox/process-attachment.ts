@@ -6,9 +6,10 @@ import {
   updateInbox,
   updateInboxWithProcessedData,
 } from "@midday/db/queries";
+import { putVaultFile } from "@midday/db/vault";
 import { DocumentClient } from "@midday/documents";
 import { triggerJob } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import type { Job } from "bullmq";
 import type { ProcessAttachmentPayload } from "../../schemas/inbox";
 import { getDb } from "../../utils/db";
@@ -30,7 +31,6 @@ export class ProcessAttachmentProcessor extends BaseProcessor<ProcessAttachmentP
       senderEmail,
       inboxAccountId,
     } = job.data;
-    const supabase = createClient();
     const db = getDb();
 
     const fileName = filePath.join("/");
@@ -88,8 +88,8 @@ export class ProcessAttachmentProcessor extends BaseProcessor<ProcessAttachmentP
         jobId: job.id,
       });
 
-      const { data } = await withTimeout(
-        supabase.storage.from("vault").download(fileName),
+      const data = await withTimeout(
+        getStorage().download(teamVaultKey(teamId, filePath)),
         TIMEOUTS.FILE_DOWNLOAD,
         `File download timed out after ${TIMEOUTS.FILE_DOWNLOAD}ms`,
       );
@@ -104,18 +104,15 @@ export class ProcessAttachmentProcessor extends BaseProcessor<ProcessAttachmentP
       const { buffer: image } = await convertHeicToJpeg(buffer, this.logger);
 
       // Upload the converted image
-      const { data: uploadedData } = await withTimeout(
-        supabase.storage.from("vault").upload(fileName, image, {
+      await withTimeout(
+        putVaultFile(db, {
+          path: filePath,
+          body: image,
           contentType: "image/jpeg",
-          upsert: true,
         }),
         TIMEOUTS.FILE_UPLOAD,
         `File upload timed out after ${TIMEOUTS.FILE_UPLOAD}ms`,
       );
-
-      if (!uploadedData) {
-        throw new Error("Failed to upload converted image");
-      }
 
       processedMimetype = "image/jpeg";
       const heicDuration = Date.now() - heicStartTime;
@@ -239,8 +236,8 @@ export class ProcessAttachmentProcessor extends BaseProcessor<ProcessAttachmentP
       // (document processing timeout is 120s, plus buffer for retries and multiple passes)
       (async () => {
         const signedUrlStartTime = Date.now();
-        const { data: signedUrlData } = await withTimeout(
-          supabase.storage.from("vault").createSignedUrl(fileName, 600),
+        const signedUrl = await withTimeout(
+          getStorage().signedUrl(teamVaultKey(teamId, filePath), 600),
           TIMEOUTS.EXTERNAL_API,
           `Signed URL creation timed out after ${TIMEOUTS.EXTERNAL_API}ms`,
         );
@@ -251,7 +248,7 @@ export class ProcessAttachmentProcessor extends BaseProcessor<ProcessAttachmentP
           duration: `${signedUrlDuration}ms`,
           expirationSeconds: 600,
         });
-        return signedUrlData;
+        return signedUrl;
       })(),
       // Fetch team data to provide context for OCR extraction
       (async () => {
@@ -294,7 +291,7 @@ export class ProcessAttachmentProcessor extends BaseProcessor<ProcessAttachmentP
       // Process document with timeout
       const result = await withTimeout(
         document.getInvoiceOrReceipt({
-          documentUrl: signedUrlResult.signedUrl,
+          documentUrl: signedUrlResult,
           mimetype: processedMimetype,
           companyName: teamData?.name,
         }),

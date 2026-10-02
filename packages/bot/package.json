@@ -24,7 +24,7 @@
     "@midday/features": "workspace:*",
     "@midday/job-client": "workspace:*",
     "@midday/logger": "workspace:*",
-    "@midday/supabase": "workspace:*",
+    "@midday/storage": "workspace:*",
     "@midday/utils": "workspace:*",
     "chat": "^4.23.0",
     "chat-adapter-sendblue": "^0.2.0",

@@ -1,7 +1,6 @@
 import { ENV } from "@api/env";
-import { createAdminClient } from "@api/services/supabase";
 import { TZDate } from "@date-fns/tz";
-import { download, signedUrl } from "@midday/supabase/storage";
+import { getStorage, objectKey } from "@midday/storage";
 import {
   format,
   getQuarter,
@@ -168,25 +167,24 @@ export function getMimeType(filename: string): string {
 }
 
 /**
- * Generate a presigned Supabase storage URL for a vault file.
+ * Generate a signed storage URL for a vault file.
  * Expires after 1 hour.
  */
 export async function getVaultSignedUrl(
   storagePath: string,
 ): Promise<string | null> {
-  const supabase = await createAdminClient();
-  const { data, error } = await signedUrl(supabase, {
-    bucket: "vault",
-    path: storagePath,
-    expireIn: SIGNED_URL_EXPIRY,
-  });
-
-  if (error || !data?.signedUrl) return null;
-  return data.signedUrl;
+  try {
+    return await getStorage().signedUrl(
+      objectKey("vault", storagePath),
+      SIGNED_URL_EXPIRY,
+    );
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Download a file from Supabase vault storage and return it as
+ * Download a file from vault storage and return it as
  * a base64-encoded MCP EmbeddedResource content item.
  */
 export async function downloadVaultFile(
@@ -194,12 +192,7 @@ export async function downloadVaultFile(
   uri: string,
   mimeType: string,
 ): Promise<ResourceContent | null> {
-  const supabase = await createAdminClient();
-  const { data } = await download(supabase, {
-    bucket: "vault",
-    path: storagePath,
-  });
-
+  const data = await getStorage().download(objectKey("vault", storagePath));
   if (!data) return null;
 
   const buffer = await data.arrayBuffer();

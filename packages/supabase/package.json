@@ -10,7 +10,6 @@
     "db:generate": "supabase gen types --lang=typescript --project-id $PROJECT_ID --schema public > src/types/db.ts"
   },
   "dependencies": {
-    "@midday/banking": "workspace:*",
     "@supabase/postgrest-js": "^2.101.1",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
@@ -32,7 +31,6 @@
     "./middleware": "./src/client/middleware.ts",
     "./queries": "./src/queries/index.ts",
     "./cached-queries": "./src/queries/cached-queries.ts",
-    "./storage": "./src/utils/storage.ts",
     "./types": "./src/types/index.ts",
     "./account-matching": "./src/utils/account-matching.ts"
   }

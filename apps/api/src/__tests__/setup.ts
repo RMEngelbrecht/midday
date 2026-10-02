@@ -1,4 +1,5 @@
 import { mock } from "bun:test";
+import * as storageKeys from "@midday/storage/keys";
 
 // Test env values come from `.env.test` files (root and apps/api), loaded by
 // `varlock run` with APP_ENV=test (see package.json "test").
@@ -725,10 +726,10 @@ export const mocks = {
   // Other commonly used queries
   validateAccessToken: mock(() => null) as MockFn,
   triggerJob: mock(() => ({ id: "job-123" })) as MockFn,
-  signedUrl: mock(() => ({
-    data: { signedUrl: "https://example.com/signed" },
-    error: null,
-  })) as MockFn,
+  signedUrl: mock(() =>
+    Promise.resolve("https://example.com/signed"),
+  ) as MockFn,
+  removeVaultFiles: mock(() => Promise.resolve()) as MockFn,
   formatAmountValue: mock(
     ({ amount }: { amount: string }) => Number.parseFloat(amount) || 0,
   ) as MockFn,
@@ -1122,13 +1123,19 @@ mock.module("@midday/cache/api-key-cache", () => ({
   },
 }));
 
-// Mock @midday/supabase/storage
-mock.module("@midday/supabase/storage", () => ({
-  signedUrl: mocks.signedUrl,
-  remove: mock(() => Promise.resolve({ error: null })),
-  download: mock(() =>
-    Promise.resolve({ data: null, error: new Error("not used in tests") }),
-  ),
+// Mock @midday/storage (key helpers stay real)
+mock.module("@midday/storage", () => ({
+  ...storageKeys,
+  getStorage: () => ({
+    signedUrl: mocks.signedUrl,
+    delete: mock(() => Promise.resolve()),
+    download: mock(() => Promise.resolve(null)),
+  }),
+}));
+
+mock.module("@midday/db/vault", () => ({
+  putVaultFile: mock(() => Promise.resolve({})),
+  removeVaultFiles: mocks.removeVaultFiles,
 }));
 
 // Mock @midday/job-client

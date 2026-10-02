@@ -1,6 +1,6 @@
 import { getInvoiceById, updateInvoice } from "@midday/db/queries";
 import { Notifications } from "@midday/notifications";
-import { createClient } from "@midday/supabase/job";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import type { Job } from "bullmq";
 import type { SendInvoiceEmailPayload } from "../../schemas/invoices";
 import { getDb } from "../../utils/db";
@@ -14,8 +14,6 @@ export class SendInvoiceEmailProcessor extends BaseProcessor<SendInvoiceEmailPay
   async process(job: Job<SendInvoiceEmailPayload>): Promise<void> {
     const { invoiceId, filename, fullPath } = job.data;
     const db = getDb();
-    // Supabase client is needed for storage operations only
-    const supabase = createClient();
     const notifications = new Notifications(db);
 
     this.logger.info("Starting send invoice email", {
@@ -37,9 +35,9 @@ export class SendInvoiceEmailProcessor extends BaseProcessor<SendInvoiceEmailPay
     // Download PDF attachment if template includes PDF
     const template = invoice.template as Record<string, unknown> | null;
     if (template?.includePdf) {
-      const { data: attachmentData } = await supabase.storage
-        .from("vault")
-        .download(fullPath);
+      const attachmentData = await getStorage().download(
+        teamVaultKey(invoice.teamId, fullPath),
+      );
 
       if (attachmentData) {
         attachments = [

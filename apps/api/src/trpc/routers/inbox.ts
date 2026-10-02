@@ -36,9 +36,9 @@ import {
   unmatchTransaction,
   updateInbox,
 } from "@midday/db/queries";
+import { removeVaultFiles } from "@midday/db/vault";
 import { triggerJob } from "@midday/job-client";
 import { logger } from "@midday/logger";
-import { remove } from "@midday/supabase/storage";
 
 export const inboxRouter = createTRPCRouter({
   get: protectedProcedure
@@ -70,7 +70,7 @@ export const inboxRouter = createTRPCRouter({
 
   delete: protectedProcedure
     .input(deleteInboxSchema)
-    .mutation(async ({ ctx: { db, supabase, teamId }, input }) => {
+    .mutation(async ({ ctx: { db, teamId }, input }) => {
       // Delete inbox item and get filePath for storage cleanup
       const result = await deleteInbox(db, {
         id: input.id,
@@ -80,9 +80,9 @@ export const inboxRouter = createTRPCRouter({
       // Delete file from storage if filePath exists
       if (result?.filePath && result.filePath.length > 0) {
         try {
-          await remove(supabase, {
-            bucket: "vault",
-            path: result.filePath,
+          await removeVaultFiles(db, {
+            teamId: teamId!,
+            paths: [result.filePath],
           });
         } catch (error) {
           // Log error but don't fail the deletion if file doesn't exist in storage
@@ -95,7 +95,7 @@ export const inboxRouter = createTRPCRouter({
 
   deleteMany: protectedProcedure
     .input(deleteInboxManySchema)
-    .mutation(async ({ ctx: { db, supabase, teamId }, input }) => {
+    .mutation(async ({ ctx: { db, teamId }, input }) => {
       // Delete inbox items and get filePaths for storage cleanup
       const results = await deleteInboxMany(db, {
         ids: input,
@@ -108,9 +108,9 @@ export const inboxRouter = createTRPCRouter({
           .filter((result) => result?.filePath && result.filePath.length > 0)
           .map(async (result) => {
             try {
-              await remove(supabase, {
-                bucket: "vault",
-                path: result.filePath!,
+              await removeVaultFiles(db, {
+                teamId: teamId!,
+                paths: [result.filePath!],
               });
             } catch (error) {
               logger.error("Failed to delete file from storage", {

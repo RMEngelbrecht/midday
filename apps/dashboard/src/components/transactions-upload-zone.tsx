@@ -1,6 +1,5 @@
 "use client";
 
-import { createClient } from "@midday/supabase/client";
 import { cn } from "@midday/ui/cn";
 import { useToast } from "@midday/ui/use-toast";
 import { stripSpecialCharacters } from "@midday/utils";
@@ -10,7 +9,7 @@ import { useDropzone } from "react-dropzone";
 import { useUserQuery } from "@/hooks/use-user";
 import { usePendingUploadsStore } from "@/store/pending-uploads";
 import { useTRPC } from "@/trpc/client";
-import { resumableUpload } from "@/utils/upload";
+import { uploadFile } from "@/utils/upload";
 
 // Shared toast ID for coordinating between upload zone and data table
 export const PROCESSING_TOAST_ID = "transactions-processing";
@@ -33,7 +32,6 @@ type Props = {
 export function TransactionsUploadZone({ children }: Props) {
   const trpc = useTRPC();
   const { data: user } = useUserQuery();
-  const supabase = createClient();
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
@@ -97,7 +95,7 @@ export function TransactionsUploadZone({ children }: Props) {
       // First, create inbox items immediately for instant feedback
       const inboxItems = await Promise.all(
         files.map(async (file: File) => {
-          // Use the same filename processing as resumableUpload
+          // Use the same filename processing as uploadFile
           const processedFilename = stripSpecialCharacters(file.name);
           const filePath = [...path, processedFilename];
           return createInboxItemMutation.mutateAsync({
@@ -126,7 +124,7 @@ export function TransactionsUploadZone({ children }: Props) {
 
       const results = (await Promise.all(
         files.map(async (file: File, idx: number) =>
-          resumableUpload(supabase, {
+          uploadFile({
             bucket: "vault",
             path,
             file,

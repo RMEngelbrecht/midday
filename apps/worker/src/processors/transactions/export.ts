@@ -5,9 +5,9 @@ import {
   markTransactionsAsExported,
   updateDocumentByPath,
 } from "@midday/db/queries";
+import { putVaultFile } from "@midday/db/vault";
 import { triggerJob } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
-import { signedUrl } from "@midday/supabase/storage";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import { getAppUrl } from "@midday/utils/envs";
 import archiver from "archiver";
 import type { Job } from "bullmq";
@@ -64,7 +64,6 @@ export class ExportTransactionsProcessor extends BaseProcessor<ExportTransaction
       dateFormat,
       exportSettings,
     } = job.data;
-    const supabase = createClient();
 
     const filePath = `export-${format(new Date(), `${dateFormat ?? "yyyy-MM-dd"}-HHmm`)}`;
     const path = `${teamId}/exports`;
@@ -209,25 +208,23 @@ export class ExportTransactionsProcessor extends BaseProcessor<ExportTransaction
 
     const fullPath = `${path}/${fileName}`;
 
-    // Upload to Supabase storage with timeout
-    const { error: uploadError } = await withTimeout(
-      supabase.storage.from("vault").upload(fullPath, zip, {
-        upsert: true,
+    const db = getDb();
+    const pathTokens = fullPath.split("/");
+
+    await withTimeout(
+      putVaultFile(db, {
+        path: pathTokens,
+        body: zip,
         contentType: "application/zip",
+        ownerId: userId,
       }),
       TIMEOUTS.FILE_UPLOAD,
       `File upload timed out after ${TIMEOUTS.FILE_UPLOAD}ms`,
     );
 
-    if (uploadError) {
-      throw new Error(`Failed to upload export file: ${uploadError.message}`);
-    }
-
     await this.updateProgress(job, 95);
 
     // Update documents table (non-critical)
-    const db = getDb();
-    const pathTokens = fullPath.split("/");
     await updateDocumentByPath(db, {
       pathTokens,
       teamId,
@@ -239,16 +236,15 @@ export class ExportTransactionsProcessor extends BaseProcessor<ExportTransaction
 
     if (settings.sendEmail && settings.accountantEmail) {
       const expireIn = 7 * 24 * 60 * 60;
-      const { data: signedUrlData } = await signedUrl(supabase, {
-        bucket: "vault",
-        path: fullPath,
+      const signedUrl = await getStorage().signedUrl(
+        teamVaultKey(teamId, pathTokens),
         expireIn,
-        options: { download: true },
-      });
+        { download: true },
+      );
 
-      if (signedUrlData?.signedUrl) {
+      if (signedUrl) {
         const shortLink = await createShortLink(getDb(), {
-          url: signedUrlData.signedUrl,
+          url: signedUrl,
           teamId,
           userId,
           type: "download",

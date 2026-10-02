@@ -1,59 +1,27 @@
 /**
  * End-to-end check of the IMAP poller against GreenMail (imap 3145, smtp 3025),
- * a migrated Postgres and Valkey. Attachment storage is stubbed in memory.
+ * a migrated Postgres and Valkey. Attachments go to the configured storage
+ * driver (local by default).
  *
  *   APP_ENV=test DATABASE_URL=postgres://postgres:postgres@localhost:5445/midday_test \
  *   REDIS_URL=redis://localhost:6445 INBOX_EMAIL_DOMAIN=example.com \
  *   IMAP_URL=imap://inbox:secret@localhost:3145 varlock run -- bun scripts/imap-smoke.ts
  */
 
-import { mock } from "bun:test";
 import { getInboxByFilePath } from "@midday/db/queries";
 import { teams } from "@midday/db/schema";
 import { Queue } from "bullmq";
 import { eq } from "drizzle-orm";
 import nodemailer from "nodemailer";
 import { ENV } from "../src/env";
+import { ProcessAttachmentProcessor } from "../src/processors/inbox/process-attachment";
 import { getDb } from "../src/utils/db";
 import { pollImapInbox } from "../src/utils/imap-poll";
-
-// The process-attachment job talks to storage after creating the inbox row.
-mock.module("@midday/supabase/job", () => ({
-  createClient: () => ({
-    storage: {
-      from: () => ({
-        createSignedUrl: async () => ({
-          data: null,
-          error: { message: "storage stubbed" },
-        }),
-        download: async () => ({
-          data: null,
-          error: { message: "storage stubbed" },
-        }),
-      }),
-    },
-  }),
-}));
-const { ProcessAttachmentProcessor } = await import(
-  "../src/processors/inbox/process-attachment"
-);
 
 const db = getDb();
 const [team] = await db.select().from(teams).limit(1);
 if (!team?.inboxId) throw new Error("seed a team first");
 const inboxId = team.inboxId;
-
-const uploads: string[] = [];
-const storage = {
-  storage: {
-    from: () => ({
-      upload: async (path: string) => {
-        uploads.push(path);
-        return { data: { path }, error: null };
-      },
-    }),
-  },
-};
 
 const smtp = nodemailer.createTransport({
   host: "localhost",
@@ -99,12 +67,10 @@ const config = {
   domain: ENV.INBOX_EMAIL_DOMAIN,
   mailbox: ENV.IMAP_MAILBOX,
 };
-const first = await pollImapInbox(config, { db, storage });
+const first = await pollImapInbox(config, { db });
 console.log("poll 1:", first);
-const second = await pollImapInbox(config, { db, storage });
+const second = await pollImapInbox(config, { db });
 console.log("poll 2 (nothing new):", second);
-
-console.log("stored:", uploads);
 
 // Run the queued process-attachment jobs; they create the inbox row first.
 const queue = new Queue("inbox", {
@@ -119,7 +85,7 @@ for (const job of jobs) {
     await new ProcessAttachmentProcessor().process(job as never);
   } catch (error) {
     console.log(
-      "  (expected, storage is stubbed):",
+      "  process-attachment failed (AI may be unconfigured):",
       (error as Error).message.slice(0, 80),
     );
   }

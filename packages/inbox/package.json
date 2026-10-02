@@ -26,7 +26,6 @@
     "@midday/job-client": "workspace:*",
     "@midday/logger": "workspace:*",
     "@midday/mailer": "workspace:*",
-    "@midday/supabase": "workspace:*",
     "@midday/utils": "workspace:*",
     "googleapis": "^171.4.0",
     "nanoid": "catalog:",

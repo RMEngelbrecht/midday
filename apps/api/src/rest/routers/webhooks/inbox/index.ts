@@ -1,6 +1,5 @@
 import { ENV } from "@api/env";
 import type { Context } from "@api/rest/types";
-import { createAdminClient } from "@api/services/supabase";
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { getInboxIdFromEmail, inboxWebhookPostSchema } from "@midday/inbox";
 import { processInboundEmail } from "@midday/inbox/ingest";
@@ -186,7 +185,6 @@ app.openapi(
           attachments: Attachments ?? [],
         },
         {
-          storage: await createAdminClient(),
           ownAddress: getDefaultFromAddress(),
         },
       );

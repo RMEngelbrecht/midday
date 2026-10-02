@@ -1,7 +1,5 @@
+import { getStorage } from "@midday/storage";
 import type { InstitutionRecord } from "./institutions";
-import { logoExists, uploadLogo } from "./utils/storage";
-
-const CDN_PREFIX = "https://cdn-engine.midday.ai/";
 
 type SyncLogosResult = {
   uploaded: number;
@@ -13,17 +11,6 @@ type SyncLogosOptions = {
   concurrency?: number;
   delayMs?: number;
 };
-
-/**
- * Extract the R2 object key from a CDN URL.
- * e.g. "https://cdn-engine.midday.ai/SEB.png" -> "SEB.png"
- */
-function extractR2Key(cdnUrl: string): string | null {
-  if (!cdnUrl.startsWith(CDN_PREFIX)) {
-    return null;
-  }
-  return cdnUrl.slice(CDN_PREFIX.length);
-}
 
 /**
  * Infer content type from file extension.
@@ -86,17 +73,18 @@ async function downloadLogo(
 }
 
 /**
- * Sync institution logos to R2. Downloads from provider source URLs
- * and uploads to R2 if the logo doesn't already exist.
+ * Sync institution logos to the `institutions` storage bucket. Downloads
+ * from provider source URLs and uploads them if the logo doesn't already exist.
  *
  * Processes in batches with configurable concurrency and delay
- * between batches to avoid overwhelming providers or R2.
+ * between batches to avoid overwhelming providers or storage.
  */
 export async function syncInstitutionLogos(
   institutions: InstitutionRecord[],
   options: SyncLogosOptions = {},
 ): Promise<SyncLogosResult> {
   const { concurrency = 10, delayMs = 200 } = options;
+  const storage = getStorage();
 
   // Deduplicate by logo CDN URL (e.g. EnableBanking personal/business share a logo)
   const uniqueLogos = new Map<string, { key: string; sourceLogo: string }>();
@@ -104,7 +92,7 @@ export async function syncInstitutionLogos(
   for (const inst of institutions) {
     if (!inst.logo || !inst.sourceLogo) continue;
 
-    const key = extractR2Key(inst.logo);
+    const key = storage.keyFromPublicUrl(inst.logo);
     if (!key) continue;
 
     if (!uniqueLogos.has(key)) {
@@ -123,9 +111,7 @@ export async function syncInstitutionLogos(
 
     const results = await Promise.allSettled(
       batch.map(async ({ key, sourceLogo }) => {
-        // Check if logo already exists in R2
-        const exists = await logoExists(key);
-        if (exists) {
+        if (await storage.head(key)) {
           return "skipped" as const;
         }
 
@@ -135,9 +121,10 @@ export async function syncInstitutionLogos(
           return "failed" as const;
         }
 
-        // Upload to R2
-        const contentType = inferContentType(key);
-        await uploadLogo(key, data.buffer, contentType);
+        await storage.put(key, data.buffer, {
+          contentType: inferContentType(key),
+          cacheControl: "public, max-age=31536000, immutable",
+        });
         return "uploaded" as const;
       }),
     );

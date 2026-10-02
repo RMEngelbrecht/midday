@@ -10,9 +10,10 @@ import {
   updateInbox,
   updateInboxWithProcessedData,
 } from "@midday/db/queries";
+import { putVaultFile } from "@midday/db/vault";
 import { DocumentClient } from "@midday/documents";
 import { triggerJob } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import { getExtensionFromMimeType } from "@midday/utils";
 import { generateText } from "ai";
 import type { Job } from "bullmq";
@@ -31,7 +32,6 @@ export class SlackUploadProcessor extends BaseProcessor<SlackUploadPayload> {
       fileName: file.name,
       channelId,
     });
-    const supabase = createClient();
     const db = getDb();
 
     const slackClient = createSlackWebClient({ token });
@@ -145,31 +145,14 @@ export class SlackUploadProcessor extends BaseProcessor<SlackUploadPayload> {
         fileSize: fileData.byteLength,
       });
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("vault")
-        .upload(filePathStr, new Uint8Array(fileData), {
-          contentType: file.mimetype,
-          upsert: true,
-        });
-
-      if (uploadError) {
-        this.logger.error("Failed to upload file to vault", {
-          error: uploadError.message,
-          filePath: filePathStr,
-        });
-        throw new Error(`Failed to upload file: ${uploadError.message}`);
-      }
-
-      if (!uploadData) {
-        this.logger.error("Upload succeeded but no data returned", {
-          filePath: filePathStr,
-        });
-        throw new Error("File upload succeeded but no data returned");
-      }
+      await putVaultFile(db, {
+        path: filePath,
+        body: new Uint8Array(fileData),
+        contentType: file.mimetype,
+      });
 
       this.logger.info("File uploaded successfully", {
         filePath: filePathStr,
-        uploadPath: uploadData.path,
       });
 
       // Create inbox entry with source metadata
@@ -202,32 +185,10 @@ export class SlackUploadProcessor extends BaseProcessor<SlackUploadPayload> {
       });
 
       // Get signed URL for document processing (30 minutes expiration)
-      const pathForSignedUrl = uploadData.path || filePathStr;
-      const { data: signedUrlData, error: signedUrlError } =
-        await supabase.storage
-          .from("vault")
-          .createSignedUrl(pathForSignedUrl, 1800);
-
-      if (signedUrlError) {
-        this.logger.error("Failed to create signed URL", {
-          error: signedUrlError.message,
-          filePath: filePathStr,
-          inboxId: inboxData.id,
-        });
-        throw new Error(
-          `Failed to create signed URL: ${signedUrlError.message}`,
-        );
-      }
-
-      if (!signedUrlData?.signedUrl) {
-        this.logger.error("Signed URL data is missing", {
-          filePath: filePathStr,
-          inboxId: inboxData.id,
-        });
-        throw new Error("Failed to create signed URL for document processing");
-      }
-
-      const signedUrl = signedUrlData.signedUrl;
+      const signedUrl = await getStorage().signedUrl(
+        teamVaultKey(teamId, filePath),
+        1800,
+      );
 
       // Validate signed URL is not empty
       if (

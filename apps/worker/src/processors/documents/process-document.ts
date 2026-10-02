@@ -1,10 +1,11 @@
+import { putVaultFile } from "@midday/db/vault";
 import { loadDocument } from "@midday/documents/loader";
 import {
   getContentSample,
   isMimeTypeSupportedForProcessing,
 } from "@midday/documents/utils";
 import { triggerJob, triggerJobAndWait } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import type { Job } from "bullmq";
 import type { ProcessDocumentPayload } from "../../schemas/documents";
 import { getDb } from "../../utils/db";
@@ -29,9 +30,10 @@ export class ProcessDocumentProcessor extends BaseProcessor<ProcessDocumentPaylo
   async process(job: Job<ProcessDocumentPayload>): Promise<void> {
     const processStartTime = Date.now();
     const { mimetype, filePath, teamId } = job.data;
-    const supabase = createClient();
+    const storage = getStorage();
     const db = getDb();
     const fileName = filePath.join("/");
+    const key = teamVaultKey(teamId, filePath);
 
     this.logger.info("Starting process-document job", {
       jobId: job.id,
@@ -72,8 +74,8 @@ export class ProcessDocumentProcessor extends BaseProcessor<ProcessDocumentPaylo
       if (mimetype === "image/heic") {
         this.logger.info("Converting HEIC to JPG", { filePath: fileName });
 
-        const { data } = await withTimeout(
-          supabase.storage.from("vault").download(fileName),
+        const data = await withTimeout(
+          storage.download(key),
           TIMEOUTS.FILE_DOWNLOAD,
           `File download timed out after ${TIMEOUTS.FILE_DOWNLOAD}ms`,
         );
@@ -143,18 +145,15 @@ export class ProcessDocumentProcessor extends BaseProcessor<ProcessDocumentPaylo
           );
 
           // Upload the converted image
-          const { data: uploadedData } = await withTimeout(
-            supabase.storage.from("vault").upload(fileName, image, {
+          await withTimeout(
+            putVaultFile(db, {
+              path: filePath,
+              body: image,
               contentType: "image/jpeg",
-              upsert: true,
             }),
             TIMEOUTS.FILE_UPLOAD,
             `File upload timed out after ${TIMEOUTS.FILE_UPLOAD}ms`,
           );
-
-          if (!uploadedData) {
-            throw new Error("Failed to upload converted image");
-          }
 
           await this.updateProgress(
             job,
@@ -204,8 +203,8 @@ export class ProcessDocumentProcessor extends BaseProcessor<ProcessDocumentPaylo
           mimetype: processedMimetype,
         });
 
-        const { data } = await withTimeout(
-          supabase.storage.from("vault").download(fileName),
+        const data = await withTimeout(
+          storage.download(key),
           TIMEOUTS.FILE_DOWNLOAD,
           `File download timed out after ${TIMEOUTS.FILE_DOWNLOAD}ms`,
         );
@@ -282,8 +281,8 @@ export class ProcessDocumentProcessor extends BaseProcessor<ProcessDocumentPaylo
           );
           // If detection fails, try to process as PDF (most common case)
           // Re-download the file since we may have consumed the buffer
-          const { data: redownloadedData } = await withTimeout(
-            supabase.storage.from("vault").download(fileName),
+          const redownloadedData = await withTimeout(
+            storage.download(key),
             TIMEOUTS.FILE_DOWNLOAD,
             `File re-download timed out after ${TIMEOUTS.FILE_DOWNLOAD}ms`,
           );

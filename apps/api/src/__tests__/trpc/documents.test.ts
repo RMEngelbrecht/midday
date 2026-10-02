@@ -257,29 +257,33 @@ describe("tRPC: documents.signedUrl", () => {
   beforeEach(() => {
     mocks.signedUrl.mockReset();
     mocks.signedUrl.mockImplementation(() =>
-      Promise.resolve({
-        data: { signedUrl: "https://example.com/signed-doc" },
-        error: null,
-      }),
+      Promise.resolve("https://example.com/signed-doc"),
     );
   });
 
   test("returns signed URL payload for vault path", async () => {
     const caller = createCaller(createTestContext());
     const result = await caller.signedUrl({
-      filePath: "test/doc.pdf",
+      filePath: "test-team-id/doc.pdf",
       expireIn: 3600,
     });
 
     expect(result).toEqual({ signedUrl: "https://example.com/signed-doc" });
     expect(mocks.signedUrl).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        bucket: "vault",
-        path: "test/doc.pdf",
-        expireIn: 3600,
-      }),
+      "vault/test-team-id/doc.pdf",
+      3600,
     );
+  });
+
+  test("rejects paths outside the caller's team", async () => {
+    const caller = createCaller(createTestContext());
+    await expect(
+      caller.signedUrl({ filePath: "other-team/doc.pdf", expireIn: 60 }),
+    ).rejects.toThrow();
+    await expect(
+      caller.signedUrl({ filePath: "test-team-id/../x/doc.pdf", expireIn: 60 }),
+    ).rejects.toThrow();
+    expect(mocks.signedUrl).not.toHaveBeenCalled();
   });
 });
 
@@ -287,25 +291,18 @@ describe("tRPC: documents.signedUrls", () => {
   beforeEach(() => {
     mocks.signedUrl.mockReset();
     mocks.signedUrl.mockImplementation(() =>
-      Promise.resolve({
-        data: { signedUrl: "https://example.com/signed-batch" },
-        error: null,
-      }),
+      Promise.resolve("https://example.com/signed-batch"),
     );
   });
 
   test("returns list of signed URL strings for paths", async () => {
     const caller = createCaller(createTestContext());
-    const result = await caller.signedUrls(["test/doc.pdf"]);
+    const result = await caller.signedUrls(["test-team-id/doc.pdf"]);
 
     expect(result).toEqual(["https://example.com/signed-batch"]);
     expect(mocks.signedUrl).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        bucket: "vault",
-        path: "test/doc.pdf",
-        expireIn: 60,
-      }),
+      "vault/test-team-id/doc.pdf",
+      60,
     );
   });
 });

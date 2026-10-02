@@ -21,6 +21,7 @@
     "@midday/features": "workspace:*",
     "@midday/location": "workspace:*",
     "@midday/logger": "workspace:*",
+    "@midday/storage": "workspace:*",
     "axios": "^1.14.0",
     "change-case": "catalog:",
     "date-fns": "catalog:",

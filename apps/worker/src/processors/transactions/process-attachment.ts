@@ -1,7 +1,8 @@
 import { updateTransaction } from "@midday/db/queries";
+import { putVaultFile } from "@midday/db/vault";
 import { DocumentClient } from "@midday/documents";
 import { triggerJob } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import type { Job } from "bullmq";
 import type { ProcessTransactionAttachmentPayload } from "../../schemas/transactions";
 import { getDb } from "../../utils/db";
@@ -15,7 +16,6 @@ import { BaseProcessor } from "../base";
 export class ProcessTransactionAttachmentProcessor extends BaseProcessor<ProcessTransactionAttachmentPayload> {
   async process(job: Job<ProcessTransactionAttachmentPayload>): Promise<void> {
     const { transactionId, mimetype, filePath, teamId } = job.data;
-    const supabase = createClient();
 
     this.logger.info("Processing transaction attachment", {
       transactionId,
@@ -30,9 +30,7 @@ export class ProcessTransactionAttachmentProcessor extends BaseProcessor<Process
         filePath: filePath.join("/"),
       });
 
-      const { data } = await supabase.storage
-        .from("vault")
-        .download(filePath.join("/"));
+      const data = await getStorage().download(teamVaultKey(teamId, filePath));
 
       if (!data) {
         throw new Error("File not found");
@@ -44,29 +42,21 @@ export class ProcessTransactionAttachmentProcessor extends BaseProcessor<Process
       const { buffer: image } = await convertHeicToJpeg(buffer, this.logger);
 
       // Upload the converted image
-      const { data: uploadedData } = await supabase.storage
-        .from("vault")
-        .upload(filePath.join("/"), image, {
-          contentType: "image/jpeg",
-          upsert: true,
-        });
-
-      if (!uploadedData) {
-        throw new Error("Failed to upload converted image");
-      }
+      await putVaultFile(getDb(), {
+        path: filePath,
+        body: image,
+        contentType: "image/jpeg",
+      });
     }
 
     const filename = filePath.at(-1);
 
     // Use 10 minutes expiration to ensure URL doesn't expire during processing
     // (document processing can take up to 120s, plus buffer for retries)
-    const { data: signedUrlData } = await supabase.storage
-      .from("vault")
-      .createSignedUrl(filePath.join("/"), 600);
-
-    if (!signedUrlData) {
-      throw new Error("File not found");
-    }
+    const documentUrl = await getStorage().signedUrl(
+      teamVaultKey(teamId, filePath),
+      600,
+    );
 
     const document = new DocumentClient();
 
@@ -77,7 +67,7 @@ export class ProcessTransactionAttachmentProcessor extends BaseProcessor<Process
     });
 
     const result = await document.getInvoiceOrReceipt({
-      documentUrl: signedUrlData.signedUrl,
+      documentUrl,
       mimetype,
     });
 

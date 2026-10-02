@@ -1,0 +1,28 @@
+{
+  "name": "@midday/storage",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test --exit src",
+    "test:s3": "sh -c 'eval \"$(sh scripts/garage-test.sh midday-garage-test 9442 2>/dev/null | sed s/^/export\\ /)\" && APP_ENV=test varlock run -- bun test --exit src; status=$?; docker rm -f midday-garage-test >/dev/null; exit $status'"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.900.0",
+    "@aws-sdk/lib-storage": "^3.900.0",
+    "@aws-sdk/s3-request-presigner": "^3.900.0",
+    "varlock": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./keys": "./src/keys.ts"
+  }
+}

@@ -1,9 +1,5 @@
 import type { Database } from "@midday/db/client";
-import {
-  type AttachmentStorage,
-  type InboundResult,
-  processInboundEmail,
-} from "@midday/inbox/ingest";
+import { type InboundResult, processInboundEmail } from "@midday/inbox/ingest";
 import { inboundFromParsedMail } from "@midday/inbox/mail-parser";
 import { createLoggerWithContext } from "@midday/logger";
 import { ImapFlow } from "imapflow";
@@ -52,7 +48,7 @@ export function parseImapUrl(url: string) {
  */
 export async function pollImapInbox(
   config: ImapPollConfig,
-  deps: { db: Database; storage: AttachmentStorage },
+  deps: { db: Database },
 ): Promise<ImapPollResult> {
   const result: ImapPollResult = {
     fetched: 0,
@@ -104,7 +100,6 @@ export async function pollImapInbox(
 
           if (inbound) {
             outcome = await processInboundEmail(deps.db, inbound, {
-              storage: deps.storage,
               ownAddress: config.ownAddress,
             });
           }

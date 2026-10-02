@@ -3,7 +3,7 @@ import { mapTransactions } from "@midday/import/mappings";
 import { transform } from "@midday/import/transform";
 import { validateTransactions } from "@midday/import/validate";
 import { triggerJob } from "@midday/job-client";
-import { createClient } from "@midday/supabase/job";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import type { Job } from "bullmq";
 import Papa from "papaparse";
 import type { ImportTransactionsPayload } from "../../schemas/transactions";
@@ -28,7 +28,6 @@ export class ImportTransactionsProcessor extends BaseProcessor<ImportTransaction
     const { teamId, filePath, bankAccountId, currency, mappings, inverted } =
       job.data;
     const db = getDb();
-    const supabase = createClient();
 
     this.logger.info("Starting import-transactions job", {
       jobId: job.id,
@@ -44,9 +43,9 @@ export class ImportTransactionsProcessor extends BaseProcessor<ImportTransaction
 
     await this.updateProgress(job, this.ProgressMilestones.FETCHED);
 
-    // Download file from Supabase storage with timeout
-    const { data: fileData } = await withTimeout(
-      supabase.storage.from("vault").download(filePath.join("/")),
+    // Download file from storage with timeout
+    const fileData = await withTimeout(
+      getStorage().download(teamVaultKey(teamId, filePath)),
       TIMEOUTS.FILE_DOWNLOAD,
       `File download timed out after ${TIMEOUTS.FILE_DOWNLOAD}ms`,
     );

@@ -1,12 +1,11 @@
-import { createClient } from "@midday/supabase/client";
-import { upload } from "@midday/supabase/storage";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { useState } from "react";
+import { type StorageBucket, uploadFile as upload } from "@/utils/upload";
 
 interface UploadParams {
   file: File;
+  /** Full path inside the bucket, including the filename. */
   path: string[];
-  bucket: string;
+  bucket: StorageBucket;
 }
 
 interface UploadResult {
@@ -15,7 +14,6 @@ interface UploadResult {
 }
 
 export function useUpload() {
-  const supabase: SupabaseClient = createClient();
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const uploadFile = async ({
@@ -26,15 +24,16 @@ export function useUpload() {
     setLoading(true);
 
     try {
-      const url = await upload(supabase, {
-        path,
+      const result = await upload({
         file,
         bucket,
+        path: path.slice(0, -1),
+        filename: path.at(-1),
       });
 
       return {
-        url,
-        path,
+        url: result.url ?? "",
+        path: result.path,
       };
     } finally {
       setLoading(false);

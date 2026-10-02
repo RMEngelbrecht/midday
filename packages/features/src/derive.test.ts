@@ -12,7 +12,7 @@ describe("deriveFeatures", () => {
         enablebanking: false,
       },
       mail: "console",
-      storage: "supabase",
+      storage: "local",
       inboundEmail: false,
       integrations: {
         slack: false,
@@ -56,6 +56,14 @@ describe("deriveFeatures", () => {
   it("uses SMTP when configured and falls back to console", () => {
     expect(deriveFeatures({ SMTP_URL: "smtp://x" }).mail).toBe("smtp");
     expect(deriveFeatures({}).mail).toBe("console");
+  });
+
+  it("selects s3 storage from STORAGE_DRIVER or S3_BUCKET", () => {
+    expect(deriveFeatures({ S3_BUCKET: "midday" }).storage).toBe("s3");
+    expect(deriveFeatures({ STORAGE_DRIVER: "s3" }).storage).toBe("s3");
+    expect(
+      deriveFeatures({ STORAGE_DRIVER: "local", S3_BUCKET: "midday" }).storage,
+    ).toBe("local");
   });
 
   it("derives the inbound email driver", () => {

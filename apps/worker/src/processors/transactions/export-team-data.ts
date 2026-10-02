@@ -14,8 +14,8 @@ import {
   getTransactions,
   updateDocumentByPath,
 } from "@midday/db/queries";
-import { createClient } from "@midday/supabase/job";
-import { download } from "@midday/supabase/storage";
+import { putVaultFile } from "@midday/db/vault";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import archiver from "archiver";
 import type { Job } from "bullmq";
 import { format, formatISO } from "date-fns";
@@ -73,7 +73,7 @@ export class ExportTeamDataProcessor extends BaseProcessor<ExportTeamDataPayload
   }> {
     const { teamId, locale, dateFormat } = job.data;
     const resolvedLocale = locale ?? "en";
-    const supabase = createClient();
+    const storage = getStorage();
     const db = getDb();
 
     const filePath = `team-export-${format(new Date(), `${dateFormat ?? "yyyy-MM-dd"}-HHmm`)}`;
@@ -247,10 +247,9 @@ export class ExportTeamDataProcessor extends BaseProcessor<ExportTeamDataPayload
         if (!fp?.length || !num) continue;
         const storagePath = fp.join("/");
         try {
-          const { data } = await download(supabase, {
-            bucket: "vault",
-            path: storagePath,
-          });
+          const data = await storage.download(
+            teamVaultKey(teamId, storagePath),
+          );
           if (data) {
             const buf = Buffer.from(await data.arrayBuffer());
             archive.append(buf, { name: `invoices/${num}.pdf` });
@@ -373,10 +372,9 @@ export class ExportTeamDataProcessor extends BaseProcessor<ExportTeamDataPayload
             const storagePath = tokens.join("/");
             const safeName = tokens.join("_").replace(/[/\\?%*:|"<>]/g, "_");
             try {
-              const { data } = await download(supabase, {
-                bucket: "vault",
-                path: storagePath,
-              });
+              const data = await storage.download(
+                teamVaultKey(teamId, storagePath),
+              );
               if (data) {
                 archive.append(Buffer.from(await data.arrayBuffer()), {
                   name: `documents/${safeName}`,
@@ -435,10 +433,9 @@ export class ExportTeamDataProcessor extends BaseProcessor<ExportTeamDataPayload
         const storagePath = fp.join("/");
         const safeFn = fn.replace(/[/\\?%*:|"<>]/g, "_");
         try {
-          const { data } = await download(supabase, {
-            bucket: "vault",
-            path: storagePath,
-          });
+          const data = await storage.download(
+            teamVaultKey(teamId, storagePath),
+          );
           if (data) {
             archive.append(Buffer.from(await data.arrayBuffer()), {
               name: `inbox/${item.id}_${safeFn}`,
@@ -479,22 +476,19 @@ export class ExportTeamDataProcessor extends BaseProcessor<ExportTeamDataPayload
 
     const zipBuffer = await zipBufferPromise;
 
-    const { error: uploadError } = await withTimeout(
-      supabase.storage.from("vault").upload(fullPath, zipBuffer, {
-        upsert: true,
+    const pathTokens = fullPath.split("/");
+    await withTimeout(
+      putVaultFile(db, {
+        path: pathTokens,
+        body: zipBuffer,
         contentType: "application/zip",
       }),
       TIMEOUTS.FILE_UPLOAD,
       `File upload timed out after ${TIMEOUTS.FILE_UPLOAD}ms`,
     );
 
-    if (uploadError) {
-      throw new Error(`Failed to upload export file: ${uploadError.message}`);
-    }
-
     await this.updateProgress(job, 96);
 
-    const pathTokens = fullPath.split("/");
     await updateDocumentByPath(db, {
       pathTokens,
       teamId,

@@ -18,9 +18,10 @@ import {
   updateDocumentProcessingStatus,
   updateDocuments,
 } from "@midday/db/queries";
+import { removeVaultFiles } from "@midday/db/vault";
 import { isMimeTypeSupportedForProcessing } from "@midday/documents/utils";
 import { triggerJob } from "@midday/job-client";
-import { remove, signedUrl } from "@midday/supabase/storage";
+import { getStorage, teamVaultKey } from "@midday/storage";
 import { TRPCError } from "@trpc/server";
 
 export const documentsRouter = createTRPCRouter({
@@ -66,7 +67,7 @@ export const documentsRouter = createTRPCRouter({
 
   delete: protectedProcedure
     .input(deleteDocumentSchema)
-    .mutation(async ({ input, ctx: { db, supabase, teamId } }) => {
+    .mutation(async ({ input, ctx: { db, teamId } }) => {
       const document = await deleteDocument(db, {
         id: input.id,
         teamId: teamId!,
@@ -79,10 +80,9 @@ export const documentsRouter = createTRPCRouter({
         });
       }
 
-      // Delete from storage
-      await remove(supabase, {
-        bucket: "vault",
-        path: document.pathTokens,
+      await removeVaultFiles(db, {
+        teamId: teamId!,
+        paths: [document.pathTokens],
       });
 
       return document;
@@ -213,31 +213,23 @@ export const documentsRouter = createTRPCRouter({
 
   signedUrl: protectedProcedure
     .input(signedUrlSchema)
-    .mutation(async ({ input, ctx: { supabase } }) => {
-      const { data } = await signedUrl(supabase, {
-        bucket: "vault",
-        path: input.filePath,
-        expireIn: input.expireIn,
-      });
+    .mutation(async ({ input, ctx: { teamId } }) => {
+      const signedUrl = await getStorage().signedUrl(
+        teamVaultKey(teamId!, input.filePath),
+        input.expireIn,
+      );
 
-      return data;
+      return { signedUrl };
     }),
 
   signedUrls: protectedProcedure
     .input(signedUrlsSchema)
-    .mutation(async ({ input, ctx: { supabase } }) => {
-      const results = await Promise.all(
+    .mutation(async ({ input, ctx: { teamId } }) => {
+      const storage = getStorage();
+      return Promise.all(
         input.map((filePath) =>
-          signedUrl(supabase, {
-            bucket: "vault",
-            path: filePath,
-            expireIn: 60,
-          }),
+          storage.signedUrl(teamVaultKey(teamId!, filePath), 60),
         ),
       );
-
-      return results
-        .map((r) => r.data?.signedUrl)
-        .filter((url): url is string => !!url);
     }),
 });
