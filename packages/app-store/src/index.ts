@@ -56,3 +56,5 @@ export const apps = [
   zedMcpApp,
   manusMcpApp,
 ];
+
+export { getEnabledApps } from "./enabled";

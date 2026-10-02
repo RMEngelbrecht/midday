@@ -1,53 +1,55 @@
 import { headers } from "next/headers";
 import flags from "./country-flags";
 import { currencies } from "./currencies";
+import { ENV } from "./env";
+import {
+  type HeaderGetter,
+  type LocationDefaults,
+  parseLocale,
+  resolveGeo,
+} from "./resolve";
 import timezones from "./timezones.json";
 
-/**
- * Parse the primary locale from an Accept-Language header value.
- * Returns the first language tag (e.g. "en-US" from "en-US,en;q=0.9").
- */
-export function parseLocale(acceptLanguage: string | null): string {
-  if (!acceptLanguage) return "en-US";
-  const primary = acceptLanguage.split(",")[0]?.trim();
-  if (!primary) return "en-US";
-  return primary.split(";")[0]?.trim() || "en-US";
-}
+export { parseLocale } from "./resolve";
+
+const FALLBACK_COUNTRY = "SE";
+const FALLBACK_TIMEZONE = "Europe/Berlin";
 
 /**
- * Extract all location values from a resolved headers object (Cloudflare headers).
- * Use this when you already have the headers and want to avoid multiple async calls.
+ * Extract all location values from a resolved headers object.
+ * Cloudflare headers are used when present, otherwise Accept-Language and the
+ * DEFAULT_COUNTRY / DEFAULT_TIMEZONE env defaults.
  */
-export function getLocationHeaders(headersList: {
-  get: (name: string) => string | null;
-}): {
+export function getLocationHeaders(
+  headersList: HeaderGetter,
+  defaults: LocationDefaults = {
+    country: ENV.DEFAULT_COUNTRY,
+    timezone: ENV.DEFAULT_TIMEZONE,
+  },
+): {
   country: string;
   timezone: string;
   locale: string;
 } {
+  const geo = resolveGeo(headersList, defaults);
+
   return {
-    country: headersList.get("cf-ipcountry") || "SE",
-    timezone: headersList.get("cf-timezone") || "Europe/Berlin",
+    country: geo.country || FALLBACK_COUNTRY,
+    timezone: geo.timezone || FALLBACK_TIMEZONE,
     locale: parseLocale(headersList.get("accept-language")),
   };
 }
 
 export async function getCountryCode() {
-  const headersList = await headers();
-
-  return headersList.get("cf-ipcountry") || "SE";
+  return getLocationHeaders(await headers()).country;
 }
 
 export async function getTimezone() {
-  const headersList = await headers();
-
-  return headersList.get("cf-timezone") || "Europe/Berlin";
+  return getLocationHeaders(await headers()).timezone;
 }
 
 export async function getLocale() {
-  const headersList = await headers();
-
-  return parseLocale(headersList.get("accept-language"));
+  return getLocationHeaders(await headers()).locale;
 }
 
 export function getTimezones() {

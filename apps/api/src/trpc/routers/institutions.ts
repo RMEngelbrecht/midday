@@ -4,6 +4,7 @@ import {
   getInstitutions,
   updateInstitutionUsage,
 } from "@midday/db/queries";
+import { enabledBankProviders, getFeatures } from "@midday/features";
 import { createLoggerWithContext } from "@midday/logger";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -35,6 +36,7 @@ export const institutionsRouter = createTRPCRouter({
           q: input.q,
           limit: input.limit,
           excludeProviders: input.excludeProviders,
+          providers: enabledBankProviders(getFeatures().banking),
         });
 
         return results.map((institution) => ({

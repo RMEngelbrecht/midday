@@ -1,3 +1,4 @@
+import { enabledBankProviders, getFeatures } from "@midday/features";
 import { EnableBankingProvider } from "./providers/enablebanking/enablebanking-provider";
 import { GoCardLessProvider } from "./providers/gocardless/gocardless-provider";
 import { PlaidProvider } from "./providers/plaid/plaid-provider";
@@ -12,6 +13,7 @@ import type {
   GetInstitutionsRequest,
   GetTransactionsRequest,
   ProviderParams,
+  Providers,
 } from "./types";
 import { logger } from "./utils/logger";
 
@@ -47,39 +49,35 @@ export class Provider {
     }
   }
 
+  /**
+   * Probes only the providers that are configured. Unconfigured providers are
+   * omitted rather than constructed, since their constructors throw.
+   */
   async getHealthCheck(): Promise<GetHealthCheckResponse> {
-    const teller = new TellerProvider();
-    const plaid = new PlaidProvider();
-    const gocardless = new GoCardLessProvider();
-    const enablebanking = new EnableBankingProvider();
+    const enabled = enabledBankProviders(getFeatures().banking);
+
+    const factories: Record<
+      Providers,
+      () => { getHealthCheck(): Promise<boolean> }
+    > = {
+      plaid: () => new PlaidProvider(),
+      teller: () => new TellerProvider(),
+      gocardless: () => new GoCardLessProvider(),
+      enablebanking: () => new EnableBankingProvider(),
+    };
 
     try {
-      const [
-        isPlaidHealthy,
-        isGocardlessHealthy,
-        isTellerHealthy,
-        isEnableBankingHealthy,
-      ] = await Promise.all([
-        plaid.getHealthCheck(),
-        gocardless.getHealthCheck(),
-        teller.getHealthCheck(),
-        enablebanking.getHealthCheck(),
-      ]);
+      const entries = await Promise.all(
+        enabled.map(
+          async (name) =>
+            [
+              name,
+              { healthy: await factories[name]().getHealthCheck() },
+            ] as const,
+        ),
+      );
 
-      return {
-        plaid: {
-          healthy: isPlaidHealthy,
-        },
-        gocardless: {
-          healthy: isGocardlessHealthy,
-        },
-        teller: {
-          healthy: isTellerHealthy,
-        },
-        enablebanking: {
-          healthy: isEnableBankingHealthy,
-        },
-      };
+      return Object.fromEntries(entries) as GetHealthCheckResponse;
     } catch (error) {
       logger.error("Health check failed", { error });
       throw error;

@@ -13,13 +13,17 @@ export type GetInstitutionsParams = {
   q?: string;
   limit?: number;
   excludeProviders?: BankProvider[];
+  /** Restrict to these providers (the configured ones). Empty means none. */
+  providers?: BankProvider[];
 };
 
 export async function getInstitutions(
   db: Database,
   params: GetInstitutionsParams,
 ) {
-  const { countryCode, q, limit = 50, excludeProviders } = params;
+  const { countryCode, q, limit = 50, excludeProviders, providers } = params;
+
+  if (providers && providers.length === 0) return [];
 
   const conditions = [
     eq(institutions.status, "active"),
@@ -28,6 +32,10 @@ export async function getInstitutions(
 
   if (excludedInstitutions.length > 0) {
     conditions.push(notInArray(institutions.id, excludedInstitutions));
+  }
+
+  if (providers) {
+    conditions.push(inArray(institutions.provider, providers));
   }
 
   if (excludeProviders && excludeProviders.length > 0) {

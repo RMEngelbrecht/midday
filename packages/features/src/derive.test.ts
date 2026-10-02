@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { deriveFeatures } from "./derive";
+import { deriveFeatures, enabledBankProviders } from "./derive";
 
 describe("deriveFeatures", () => {
   it("disables every optional service when nothing is configured", () => {
@@ -86,5 +86,21 @@ describe("deriveFeatures", () => {
     expect(integrations.stripe).toBe(true);
     expect(integrations.composio).toBe(true);
     expect(integrations.xero).toBe(false);
+  });
+});
+
+describe("enabledBankProviders", () => {
+  it("lists only configured providers", () => {
+    expect(enabledBankProviders(deriveFeatures({}).banking)).toEqual([]);
+    expect(
+      enabledBankProviders(
+        deriveFeatures({
+          PLAID_CLIENT_ID: "a",
+          PLAID_SECRET: "b",
+          ENABLEBANKING_APPLICATION_ID: "c",
+          ENABLE_BANKING_KEY_CONTENT: "d",
+        }).banking,
+      ),
+    ).toEqual(["plaid", "enablebanking"]);
   });
 });

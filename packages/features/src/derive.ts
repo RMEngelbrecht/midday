@@ -14,6 +14,13 @@ export type BankingFeatures = {
   enablebanking: boolean;
 };
 
+export type BankProvider = keyof BankingFeatures;
+
+/** Bank providers whose credentials are configured, in a stable order. */
+export function enabledBankProviders(banking: BankingFeatures): BankProvider[] {
+  return (Object.keys(banking) as BankProvider[]).filter((p) => banking[p]);
+}
+
 export type IntegrationFeatures = {
   slack: boolean;
   xero: boolean;

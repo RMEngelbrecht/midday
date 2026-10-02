@@ -6,10 +6,21 @@ import { CURATED_TOOLKIT_SLUGS } from "@midday/connectors";
 import { logger } from "@midday/logger";
 import { LRUCache } from "lru-cache";
 
-export const composio = new Composio({
-  apiKey: ENV.COMPOSIO_API_KEY,
-  provider: new VercelProvider(),
-});
+let composioClient: Composio<VercelProvider> | undefined;
+
+/** Lazily built; throws when COMPOSIO_API_KEY is not configured. */
+export function getComposio() {
+  if (!ENV.COMPOSIO_API_KEY) {
+    throw new Error("Composio is not configured. Set COMPOSIO_API_KEY.");
+  }
+
+  composioClient ??= new Composio({
+    apiKey: ENV.COMPOSIO_API_KEY,
+    provider: new VercelProvider(),
+  });
+
+  return composioClient;
+}
 
 const COMPOSIO_API_BASE = "https://backend.composio.dev/api/v3";
 
@@ -50,11 +61,13 @@ function asToolkitItems(items: unknown[]): ToolkitItem[] {
 const TOOLKIT_CACHE_TTL = 120; // 2 min in seconds
 
 export async function getUserToolkits(userId: string): Promise<ToolkitItem[]> {
+  if (!ENV.COMPOSIO_API_KEY) return [];
+
   return connectorsCache.getOrSet<ToolkitItem[]>(
     `toolkits:${userId}`,
     TOOLKIT_CACHE_TTL,
     async () => {
-      const session = await composio.create(userId);
+      const session = await getComposio().create(userId);
       const { items } = await session.toolkits({
         toolkits: [...CURATED_TOOLKIT_SLUGS],
         limit: 50,
@@ -105,7 +118,7 @@ export async function getComposioTools(
   if (cached) return cached;
 
   try {
-    const session = await composio.create(userId, {
+    const session = await getComposio().create(userId, {
       manageConnections: false,
       workbench: { enable: false },
     });

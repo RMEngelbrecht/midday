@@ -21,6 +21,7 @@
     "@midday/cache": "workspace:*",
     "@midday/db": "workspace:*",
     "@midday/documents": "workspace:*",
+    "@midday/features": "workspace:*",
     "@midday/job-client": "workspace:*",
     "@midday/logger": "workspace:*",
     "@midday/supabase": "workspace:*",

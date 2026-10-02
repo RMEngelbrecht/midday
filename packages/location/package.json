@@ -8,7 +8,8 @@
     "clean": "rm -rf .turbo node_modules",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test src"
   },
   "exports": {
     ".": "./src/index.ts",
@@ -16,9 +17,14 @@
     "./countries-intl": "./src/countries-intl.ts",
     "./currencies": "./src/currencies.ts",
     "./country-flags": "./src/country-flags.ts",
+    "./resolve": "./src/resolve.ts",
     "./timezones": "./src/timezones.ts"
   },
+  "dependencies": {
+    "varlock": "catalog:"
+  },
   "devDependencies": {
+    "@types/bun": "latest",
     "typescript": "catalog:"
   }
 }

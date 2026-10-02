@@ -8,7 +8,8 @@
     "clean": "rm -rf .turbo node_modules",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test src"
   },
   "dependencies": {
     "@openpanel/nextjs": "^1.4.0",

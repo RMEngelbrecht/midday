@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "APP_ENV=test varlock run -- bun test src"
   },
   "exports": {
     "./checker": "./src/checker.ts",
@@ -16,6 +17,7 @@
     "@midday/banking": "workspace:*",
     "@midday/cache": "workspace:*",
     "@midday/db": "workspace:*",
+    "@midday/features": "workspace:*",
     "varlock": "catalog:"
   }
 }

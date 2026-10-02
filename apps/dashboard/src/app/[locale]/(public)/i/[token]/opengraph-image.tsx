@@ -1,5 +1,6 @@
 import { isValidLogoUrl, OgTemplate } from "@midday/invoice";
 import { ImageResponse } from "next/og";
+import { ENV } from "@/env";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { getWebsiteLogo } from "@/utils/logos";
 
@@ -27,7 +28,7 @@ export default async function Image({ params }: Props) {
     "https://cdn.midday.ai/fonts/HedvigSans/HedvigLettersSans-Regular.ttf",
   ).then((res) => res.arrayBuffer());
 
-  const logoUrl = getWebsiteLogo(invoice.customer?.website);
+  const logoUrl = getWebsiteLogo(invoice.customer?.website, ENV.LOGO_DEV_TOKEN);
 
   const isValidLogo = await isValidLogoUrl(logoUrl);
 

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { enabledBankProviders, getFeatures } from "@midday/features";
 import { ENV } from "./env";
 import { EnableBankingApi } from "./providers/enablebanking/enablebanking-api";
 import { GoCardLessApi } from "./providers/gocardless/gocardless-api";
@@ -95,7 +96,9 @@ function extractDomain(url: string): string | null {
  * Build a logo.dev URL for a given domain.
  * Used as fallback when Plaid doesn't return a logo.
  */
-function getLogoDevURL(domain: string): string {
+function getLogoDevURL(domain: string): string | null {
+  if (!ENV.LOGO_DEV_TOKEN) return null;
+
   return `https://img.logo.dev/${domain}?token=${ENV.LOGO_DEV_TOKEN}&format=png&size=256&retina=true`;
 }
 
@@ -113,7 +116,7 @@ async function fetchPlaidInstitutions(): Promise<InstitutionRecord[]> {
     if (hasLogo) {
       logo = getLogoURL(institution.institution_id);
       sourceLogo = institution.logo!;
-    } else if (domain) {
+    } else if (domain && getLogoDevURL(domain)) {
       logo = getLogoURL(institution.institution_id);
       sourceLogo = getLogoDevURL(domain);
     } else {
@@ -156,27 +159,29 @@ async function fetchTellerInstitutions(): Promise<InstitutionRecord[]> {
 }
 
 /**
- * Fetch institutions from all banking providers.
- * Each provider resolves its own env vars internally.
+ * Fetch institutions from the banking providers that are configured.
+ * Each provider resolves its own env vars internally; unconfigured providers
+ * are skipped entirely (never constructed).
  * Returns both the fetched institutions and any errors that occurred.
  */
-export async function fetchAllInstitutions(): Promise<FetchInstitutionsResult> {
-  const results = await Promise.allSettled([
-    fetchEnableBankingInstitutions(),
-    fetchGoCardLessInstitutions(),
-    fetchPlaidInstitutions(),
-    fetchTellerInstitutions(),
-  ]);
+export async function fetchAllInstitutions(
+  enabled: Providers[] = enabledBankProviders(getFeatures().banking),
+): Promise<FetchInstitutionsResult> {
+  const fetchers: Record<Providers, () => Promise<InstitutionRecord[]>> = {
+    enablebanking: fetchEnableBankingInstitutions,
+    gocardless: fetchGoCardLessInstitutions,
+    plaid: fetchPlaidInstitutions,
+    teller: fetchTellerInstitutions,
+  };
+
+  const providers = enabled.filter((p) => p in fetchers);
+  const results = await Promise.allSettled(
+    providers.map((provider) => fetchers[provider]()),
+  );
 
   const institutions: InstitutionRecord[] = [];
   const errors: { provider: string; error: string }[] = [];
   const succeededProviders: Providers[] = [];
-  const providers: Providers[] = [
-    "enablebanking",
-    "gocardless",
-    "plaid",
-    "teller",
-  ];
 
   for (let i = 0; i < results.length; i++) {
     const result = results[i]!;

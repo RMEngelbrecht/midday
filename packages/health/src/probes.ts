@@ -10,6 +10,7 @@
 import { Provider } from "@midday/banking";
 import { checkHealth as checkCacheHealth } from "@midday/cache/health";
 import { checkHealth as checkDbHealth } from "@midday/db/utils/health";
+import { type Features, getFeatures } from "@midday/features";
 import { ENV } from "./env";
 import type { Dependency } from "./registry";
 
@@ -105,7 +106,9 @@ export function plaidProbe(): Dependency {
     probe: async () => {
       try {
         const provider = new Provider({ provider: "plaid" });
-        return await provider.getHealthCheck().then((h) => h.plaid.healthy);
+        return await provider
+          .getHealthCheck()
+          .then((h) => h.plaid?.healthy ?? false);
       } catch {
         return false;
       }
@@ -125,7 +128,7 @@ export function gocardlessProbe(): Dependency {
         const provider = new Provider({ provider: "gocardless" });
         return await provider
           .getHealthCheck()
-          .then((h) => h.gocardless.healthy);
+          .then((h) => h.gocardless?.healthy ?? false);
       } catch {
         return false;
       }
@@ -145,7 +148,7 @@ export function enableBankingProbe(): Dependency {
         const provider = new Provider({ provider: "enablebanking" });
         return await provider
           .getHealthCheck()
-          .then((h) => h.enablebanking.healthy);
+          .then((h) => h.enablebanking?.healthy ?? false);
       } catch {
         return false;
       }
@@ -163,7 +166,9 @@ export function tellerProbe(): Dependency {
     probe: async () => {
       try {
         const provider = new Provider({ provider: "teller" });
-        return await provider.getHealthCheck().then((h) => h.teller.healthy);
+        return await provider
+          .getHealthCheck()
+          .then((h) => h.teller?.healthy ?? false);
       } catch {
         return false;
       }
@@ -357,51 +362,58 @@ export function mistralProbe(): Dependency {
 // Pre-built registry sets for each service
 // ---------------------------------------------------------------------------
 
+type ProbeFeatures = Pick<Features, "ai" | "mail" | "banking" | "integrations">;
+
+/** Probes for the optional services that are configured; nothing else is probed. */
+export function optionalProbes(
+  features: ProbeFeatures,
+  env: { OPENAI_API_KEY?: string; MISTRAL_API_KEY?: string } = ENV,
+): Dependency[] {
+  const { banking, integrations } = features;
+  const candidates: [boolean, () => Dependency][] = [
+    [banking.plaid, plaidProbe],
+    [banking.gocardless, gocardlessProbe],
+    [banking.enablebanking, enableBankingProbe],
+    [banking.teller, tellerProbe],
+    [integrations.stripe, stripeProbe],
+    [features.mail === "resend", resendProbe],
+    [Boolean(env.OPENAI_API_KEY), openaiProbe],
+    [integrations.slack, slackProbe],
+    [integrations.xero, xeroProbe],
+    [integrations.quickbooks, quickbooksProbe],
+    [integrations.fortnox, fortnoxProbe],
+    [Boolean(env.MISTRAL_API_KEY), mistralProbe],
+  ];
+
+  return candidates.filter(([enabled]) => enabled).map(([, probe]) => probe());
+}
+
 /** Dependencies used by the API service */
-export function apiDependencies(): Dependency[] {
+export function apiDependencies(features = getFeatures()): Dependency[] {
   return [
     // Tier 1 — Core
     databaseProbe(),
     redisCacheProbe(),
     redisQueueProbe(),
-    supabaseProbe(),
-    // Tier 2 — Important
-    plaidProbe(),
-    gocardlessProbe(),
-    enableBankingProbe(),
-    tellerProbe(),
-    stripeProbe(),
-    resendProbe(),
+    ...(ENV.SUPABASE_URL ? [supabaseProbe()] : []),
     triggerDevProbe(),
-    openaiProbe(),
-    // Tier 3 — Integrations
-    slackProbe(),
-    xeroProbe(),
-    quickbooksProbe(),
-    fortnoxProbe(),
-    // Tier 4 — Optional
-    googleAiProbe(),
-    mistralProbe(),
+    ...optionalProbes(features),
+    ...(ENV.GOOGLE_GENERATIVE_AI_API_KEY ? [googleAiProbe()] : []),
   ];
 }
 
 /** Dependencies used by the Worker service */
-export function workerDependencies(): Dependency[] {
+export function workerDependencies(features = getFeatures()): Dependency[] {
   return [
     // Tier 1 — Core
     databaseProbe(),
     redisQueueProbe(),
-    supabaseProbe(),
-    // Tier 2 — Important
-    plaidProbe(),
-    gocardlessProbe(),
-    enableBankingProbe(),
-    tellerProbe(),
-    resendProbe(),
-    openaiProbe(),
-    // Tier 4 — Optional
-    googleAiProbe(),
-    mistralProbe(),
-    exaProbe(),
+    ...(ENV.SUPABASE_URL ? [supabaseProbe()] : []),
+    ...optionalProbes(features).filter(
+      (d) =>
+        !["stripe", "slack", "xero", "quickbooks", "fortnox"].includes(d.name),
+    ),
+    ...(ENV.GOOGLE_GENERATIVE_AI_API_KEY ? [googleAiProbe()] : []),
+    ...(ENV.EXA_API_KEY ? [exaProbe()] : []),
   ];
 }

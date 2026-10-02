@@ -1,10 +1,10 @@
 import { uniqueCurrencies } from "@midday/location/currencies";
-
-const ENDPOINT =
-  "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1";
+import { ENV } from "../env";
 
 async function getCurrency(currency: string) {
-  const response = await fetch(`${ENDPOINT}/currencies/${currency}.json`);
+  const response = await fetch(
+    `${ENV.EXCHANGE_RATES_URL}/currencies/${currency}.json`,
+  );
 
   return response.json();
 }

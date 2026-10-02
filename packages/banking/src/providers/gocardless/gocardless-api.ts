@@ -51,6 +51,12 @@ export class GoCardLessApi {
   #secretId;
 
   constructor() {
+    if (!ENV.GOCARDLESS_SECRET_ID || !ENV.GOCARDLESS_SECRET_KEY) {
+      throw new Error(
+        "GoCardless is not configured. Set GOCARDLESS_SECRET_ID and GOCARDLESS_SECRET_KEY.",
+      );
+    }
+
     this.#secretId = ENV.GOCARDLESS_SECRET_ID;
     this.#secretKey = ENV.GOCARDLESS_SECRET_KEY;
   }

@@ -35,6 +35,7 @@
     "@midday/db": "workspace:*",
     "@midday/documents": "workspace:*",
     "@midday/encryption": "workspace:*",
+    "@midday/features": "workspace:*",
     "@midday/events": "workspace:*",
     "@midday/health": "workspace:*",
     "@midday/import": "workspace:*",

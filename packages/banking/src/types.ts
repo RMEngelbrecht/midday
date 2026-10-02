@@ -115,12 +115,10 @@ export type HealthCheckResponse = {
   healthy: boolean;
 };
 
-export type GetHealthCheckResponse = {
-  teller: HealthCheckResponse;
-  gocardless: HealthCheckResponse;
-  plaid: HealthCheckResponse;
-  enablebanking: HealthCheckResponse;
-};
+/** Only providers that are configured are present. */
+export type GetHealthCheckResponse = Partial<
+  Record<Providers, HealthCheckResponse>
+>;
 
 export type GetConnectionStatusResponse = ConnectionStatus;
 

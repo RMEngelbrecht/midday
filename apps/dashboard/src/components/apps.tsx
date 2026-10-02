@@ -1,6 +1,6 @@
 "use client";
 
-import { apps as appStoreApps } from "@midday/app-store";
+import { apps as allAppStoreApps, getEnabledApps } from "@midday/app-store";
 import type { UnifiedApp } from "@midday/app-store/types";
 import { Button } from "@midday/ui/button";
 import {
@@ -14,6 +14,7 @@ import { AppConnectionToast } from "@/components/app-connection-toast";
 import { ConnectIMessage } from "@/components/inbox/connect-imessage";
 import { ConnectTelegram } from "@/components/inbox/connect-telegram";
 import { ConnectWhatsApp } from "@/components/inbox/connect-whatsapp";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useUserQuery } from "@/hooks/use-user";
 import { useTRPC } from "@/trpc/client";
 import { isOAuthMessage } from "@/utils/oauth-message";
@@ -24,6 +25,8 @@ export function Apps() {
   const queryClient = useQueryClient();
   const { data: user } = useUserQuery();
   const router = useRouter();
+  const { features } = usePublicConfig();
+  const appStoreApps = getEnabledApps(allAppStoreApps, features.integrations);
 
   // Global listener for OAuth completion messages
   useEffect(() => {

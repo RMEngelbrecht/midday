@@ -131,7 +131,8 @@ export function BankSearchContent({
   defaultCountryCode,
   emptyState,
 }: BankSearchContentProps) {
-  const { plaidEnvironment } = usePublicConfig();
+  const { plaidEnvironment, features } = usePublicConfig();
+  const hasProviders = Object.values(features.banking).some(Boolean);
   const trpc = useTRPC();
   const _router = useRouter();
   const [plaidToken, setPlaidToken] = useState<string | undefined>();
@@ -157,9 +158,12 @@ export function BankSearchContent({
     trpc.banking.plaidExchange.mutationOptions(),
   );
 
-  useScript("https://cdn.teller.io/connect/connect.js", {
-    removeOnUnmount: false,
-  });
+  useScript(
+    features.banking.teller ? "https://cdn.teller.io/connect/connect.js" : null,
+    {
+      removeOnUnmount: false,
+    },
+  );
 
   const { open: openPlaid } = usePlaidLink({
     token: plaidToken,
@@ -205,17 +209,43 @@ export function BankSearchContent({
         countryCode,
       },
       {
-        enabled,
+        enabled: enabled && hasProviders,
       },
     ),
     placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
-    if (enabled && (countryCode === "US" || countryCode === "CA")) {
+    if (
+      enabled &&
+      features.banking.plaid &&
+      (countryCode === "US" || countryCode === "CA")
+    ) {
       createPlaidLink.mutate();
     }
   }, [enabled, countryCode]);
+
+  if (!hasProviders) {
+    return (
+      <div
+        className={`${listHeight} flex flex-col items-center justify-center`}
+      >
+        <p className="font-medium mb-2">No bank providers configured</p>
+        <p className="text-sm text-center text-[#878787]">
+          Add a manual account or import a file.
+        </p>
+
+        <div className="mt-4 flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setParams({ step: "import" })}
+          >
+            Import
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

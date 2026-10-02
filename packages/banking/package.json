@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@midday/cache": "workspace:*",
+    "@midday/features": "workspace:*",
     "@midday/location": "workspace:*",
     "@midday/logger": "workspace:*",
     "axios": "^1.14.0",

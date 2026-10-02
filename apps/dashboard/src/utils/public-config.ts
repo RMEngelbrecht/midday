@@ -18,6 +18,8 @@ export type PublicConfig = {
   supabase: { url: string; publishableKey: string } | null;
   sentry: { dsn: string; environment: string; release?: string } | null;
   openpanelClientId: string | null;
+  /** logo.dev publishable token; logos fall back to initials when null. */
+  logoDevToken: string | null;
   plaidEnvironment: string;
   teller: { applicationId: string; environment?: string } | null;
   stripePublishableKey: string | null;

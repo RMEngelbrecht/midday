@@ -29,6 +29,7 @@ export function getPublicConfig(): PublicConfig {
     openpanelClientId: features.analytics
       ? (ENV.OPENPANEL_CLIENT_ID ?? null)
       : null,
+    logoDevToken: ENV.LOGO_DEV_TOKEN ?? null,
     plaidEnvironment: ENV.PLAID_ENVIRONMENT,
     teller: ENV.TELLER_APPLICATION_ID
       ? {
