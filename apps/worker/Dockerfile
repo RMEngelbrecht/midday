@@ -1,5 +1,5 @@
 # Base image with Bun
-FROM oven/bun:1.3.10 AS base
+FROM oven/bun:1.3.11 AS base
 
 # Install turbo CLI globally
 FROM base AS turbo-cli
@@ -36,7 +36,7 @@ COPY --from=builder /app/out/worker/full/ .
 RUN cd packages/workbench && bun run build
 
 # Runner stage - clean image
-FROM oven/bun:1.3.10 AS runner
+FROM oven/bun:1.3.11 AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -50,8 +50,9 @@ COPY --from=installer /app/package.json ./package.json
 # Root env schema; app/package schemas import it (`@import(../../)`).
 COPY --from=builder /app/.env.schema ./.env.schema
 
-# Carry the git SHA into the runtime container (stamped by CI before the build)
-COPY --from=builder /app/.git-commit-sha /tmp/git-sha.txt
+# Release id stamped by CI (--build-arg GIT_COMMIT_SHA=...)
+ARG GIT_COMMIT_SHA=""
+ENV GIT_COMMIT_SHA=$GIT_COMMIT_SHA
 COPY --from=builder /app/scripts/docker-entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 

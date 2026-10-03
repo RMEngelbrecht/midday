@@ -1,0 +1,13 @@
+# CADDY_SCHEME is empty for real domains (automatic HTTPS) and `http://` for
+# local testing. Hosts are app.$DOMAIN and api.$DOMAIN.
+{$CADDY_SCHEME}app.{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy dashboard:3000
+}
+
+{$CADDY_SCHEME}api.{$DOMAIN} {
+	# flush_interval -1: do not buffer the /realtime SSE stream.
+	reverse_proxy api:8080 {
+		flush_interval -1
+	}
+}

@@ -1,5 +1,5 @@
 # Base image with Bun
-FROM oven/bun:1.3.10 AS base
+FROM oven/bun:1.3.11 AS base
 
 # Install turbo CLI globally using Bun
 FROM base AS turbo-cli
@@ -39,18 +39,15 @@ ARG SENTRY_AUTH_TOKEN
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 
-# Git SHA stamped by CI (echo "$GITHUB_SHA" > .git-commit-sha) before `railway up`.
-# The file lives at repo root, so the builder stage has it after COPY . .
-COPY --from=builder /app/.git-commit-sha /tmp/git-sha.txt
+# Release id stamped by CI (--build-arg GIT_COMMIT_SHA=...).
+ARG GIT_COMMIT_SHA=""
 
 ENV CI=true
 ENV NODE_ENV=production
 
 # Build with GIT_COMMIT_SHA + SENTRY_RELEASE exported so next.config.ts and
 # the Sentry webpack plugin can read them via process.env.
-RUN GIT_COMMIT_SHA=$(cat /tmp/git-sha.txt 2>/dev/null || echo ""); \
-    export GIT_COMMIT_SHA; \
-    export SENTRY_RELEASE="$GIT_COMMIT_SHA"; \
+RUN export GIT_COMMIT_SHA SENTRY_RELEASE="$GIT_COMMIT_SHA"; \
     bunx turbo run build --filter=@midday/dashboard --only
 
 # Collapse the dashboard's env schema import graph (root + packages) into a
@@ -59,7 +56,7 @@ COPY --from=builder /app/.env.schema ./.env.schema
 RUN cd apps/dashboard && bun ../../node_modules/varlock/bin/cli.js flatten --out-dir .env-flat
 
 # Runner stage - clean bun image, no turbo
-FROM oven/bun:1.3.10 AS runner
+FROM oven/bun:1.3.11 AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -80,7 +77,8 @@ COPY --from=installer /app/node_modules/varlock ./node_modules/varlock
 
 # Carry the git SHA into the runtime container and use the shared entrypoint to
 # set GIT_COMMIT_SHA / SENTRY_RELEASE when they aren't provided.
-COPY --from=installer /tmp/git-sha.txt /tmp/git-sha.txt
+ARG GIT_COMMIT_SHA=""
+ENV GIT_COMMIT_SHA=$GIT_COMMIT_SHA
 COPY --from=builder /app/scripts/docker-entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
