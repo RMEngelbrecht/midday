@@ -18,6 +18,7 @@ import { formatDate } from "@midday/utils/format";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useDocumentFilterParams } from "@/hooks/use-document-filter-params";
 import { useDocumentParams } from "@/hooks/use-document-params";
 import { useFileUrl } from "@/hooks/use-file-url";
@@ -112,6 +113,7 @@ export const columns: ColumnDef<Document>[] = [
         "w-[250px] min-w-[180px] md:sticky md:left-[50px] bg-background group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f] z-20",
     },
     cell: ({ row }) => {
+      const { features } = usePublicConfig();
       // @ts-expect-error - mimetype is not typed (JSONB)
       const mimetype = row.original.metadata?.mimetype as string | undefined;
       const isSupported = mimetype
@@ -120,8 +122,11 @@ export const columns: ColumnDef<Document>[] = [
 
       const isFailed = row.original.processingStatus === "failed";
       // Document completed but AI classification failed - title is null
+      // (without AI nothing classifies documents, so a missing title is normal)
       const needsClassification =
-        row.original.processingStatus === "completed" && !row.original.title;
+        features.ai &&
+        row.original.processingStatus === "completed" &&
+        !row.original.title;
       // Get display name - fallback to filename from path
       const displayName =
         row.original.title ?? row.original.name?.split("/").at(-1);
@@ -265,6 +270,7 @@ export const columns: ColumnDef<Document>[] = [
     },
     cell: ({ row, table }) => {
       const { setParams } = useDocumentParams();
+      const { features } = usePublicConfig();
 
       // @ts-expect-error - mimetype is not typed (JSONB)
       const mimetype = row.original.metadata?.mimetype as string | undefined;
@@ -274,8 +280,11 @@ export const columns: ColumnDef<Document>[] = [
 
       const isFailed = row.original.processingStatus === "failed";
       // Document completed but AI classification failed - title is null
+      // (without AI nothing classifies documents, so a missing title is normal)
       const needsClassification =
-        row.original.processingStatus === "completed" && !row.original.title;
+        features.ai &&
+        row.original.processingStatus === "completed" &&
+        !row.original.title;
       // Check if document is stuck in processing (pending for >10 minutes since creation)
       const staleProcessing = isStaleProcessing(
         row.original.processingStatus,

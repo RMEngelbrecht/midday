@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   canSignUp,
+  cookieSharingProblem,
   deriveCookieDomain,
   socialProvidersFromEnv,
 } from "./policy";
@@ -93,5 +94,30 @@ describe("socialProvidersFromEnv", () => {
       AUTH_MICROSOFT_CLIENT_SECRET: "ms-secret",
     });
     expect(microsoft?.tenantId).toBe("common");
+  });
+});
+
+describe("cookieSharingProblem", () => {
+  it("flags different *.localhost hosts", () => {
+    expect(
+      cookieSharingProblem(
+        "http://app.localhost",
+        "http://api.localhost",
+        undefined,
+      ),
+    ).toContain("lvh.me");
+  });
+
+  it("accepts a shared domain, one host and a cookie domain", () => {
+    expect(
+      cookieSharingProblem("http://app.lvh.me", "http://api.lvh.me", "lvh.me"),
+    ).toBeUndefined();
+    expect(
+      cookieSharingProblem(
+        "http://localhost:3001",
+        "http://localhost:3003",
+        undefined,
+      ),
+    ).toBeUndefined();
   });
 });

@@ -1,5 +1,7 @@
 # Bank Account Reconnect Logic
 
+> **Historical.** This document describes the pre-fork architecture (Supabase, Trigger.dev, GoCardless and the `apps/engine` provider service). Those pieces no longer exist in the self-hostable fork: jobs run on BullMQ in `apps/worker`, files go through `@midday/storage`, auth is better-auth, and bank data comes from statement import, SimpleFIN, Enable Banking, Plaid and Teller. The flows below are kept for reference; see [self-hosting.md](./self-hosting.md) for the current setup.
+
 ## Overview
 
 When a user reconnects a bank connection, the provider may assign new account IDs. This document describes how we safely match existing database accounts to the new API accounts and update the `account_id` field without data corruption.

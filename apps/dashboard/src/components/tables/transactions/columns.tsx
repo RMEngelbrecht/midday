@@ -17,12 +17,13 @@ import { Spinner } from "@midday/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@midday/ui/tooltip";
 import { formatDate } from "@midday/utils/format";
 import { calculateBaseTaxAmount } from "@midday/utils/tax";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { memo, useCallback } from "react";
 import { FormatAmount } from "@/components/format-amount";
 import { InlineAssignUser } from "@/components/inline-assign-user";
 import { InlineSelectCategory } from "@/components/inline-select-category";
 import { InlineSelectTags } from "@/components/inline-select-tags";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { TransactionBankAccount } from "@/components/transaction-bank-account";
 import { TransactionMethod } from "@/components/transaction-method";
 import { TransactionStatus } from "@/components/transaction-status";
@@ -275,6 +276,62 @@ const ActionsCell = memo(
 
 ActionsCell.displayName = "ActionsCell";
 
+function CategoryCell({
+  row,
+  table,
+}: {
+  row: Row<Transaction>;
+  table: Table<Transaction>;
+}) {
+  const { features } = usePublicConfig();
+
+  // Show analyzing state while AI enrichment is pending. Without AI nothing
+  // will ever enrich the transaction, so show the category as usual.
+  if (features.ai && !row.original.enrichmentCompleted) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center space-x-2 cursor-help">
+            <Spinner size={14} className="stroke-primary" />
+            <span className="text-[#878787] text-sm">Analyzing</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          className="px-3 py-1.5 text-xs max-w-[280px]"
+          side="top"
+          sideOffset={5}
+        >
+          Analyzing transaction details to determine the best category.
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  const meta = table.options.meta;
+
+  return (
+    <InlineSelectCategory
+      selected={
+        row.original.category
+          ? {
+              id: row.original.category.id,
+              name: row.original.category.name,
+              color: row.original.category.color,
+              slug: row.original.category.slug ?? "",
+            }
+          : undefined
+      }
+      onChange={(category) => {
+        meta?.updateTransaction?.({
+          id: row.original.id,
+          categorySlug: category.slug,
+          categoryName: category.name,
+        });
+      }}
+    />
+  );
+}
+
 export const columns: ColumnDef<Transaction>[] = [
   {
     id: "select",
@@ -521,52 +578,7 @@ export const columns: ColumnDef<Transaction>[] = [
       headerLabel: "Category",
       className: "w-[250px] min-w-[150px]",
     },
-    cell: ({ row, table }) => {
-      // Show analyzing state when enrichment is not completed
-      if (!row.original.enrichmentCompleted) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center space-x-2 cursor-help">
-                <Spinner size={14} className="stroke-primary" />
-                <span className="text-[#878787] text-sm">Analyzing</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent
-              className="px-3 py-1.5 text-xs max-w-[280px]"
-              side="top"
-              sideOffset={5}
-            >
-              Analyzing transaction details to determine the best category.
-            </TooltipContent>
-          </Tooltip>
-        );
-      }
-
-      const meta = table.options.meta;
-
-      return (
-        <InlineSelectCategory
-          selected={
-            row.original.category
-              ? {
-                  id: row.original.category.id,
-                  name: row.original.category.name,
-                  color: row.original.category.color,
-                  slug: row.original.category.slug ?? "",
-                }
-              : undefined
-          }
-          onChange={(category) => {
-            meta?.updateTransaction?.({
-              id: row.original.id,
-              categorySlug: category.slug,
-              categoryName: category.name,
-            });
-          }}
-        />
-      );
-    },
+    cell: ({ row, table }) => <CategoryCell row={row} table={table} />,
   },
   {
     accessorKey: "counterparty",

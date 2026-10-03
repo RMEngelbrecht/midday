@@ -5,7 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { pdfjs } from "react-pdf";
 import { FilePreviewIcon } from "@/components/file-preview-icon";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Bundled with the dashboard (no CDN), so it works offline and keeps one
+// pdfjs version: dashboard and react-pdf both pin pdfjs-dist 5.4.296.
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
 
 // Module-level thumbnail cache (persists across navigations)
 const thumbnailCache = new Map<string, string>();

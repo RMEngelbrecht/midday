@@ -1,5 +1,7 @@
 # Document Processing Pipeline
 
+> **Historical.** This document describes the pre-fork architecture (Supabase, Trigger.dev, GoCardless and the `apps/engine` provider service). Those pieces no longer exist in the self-hostable fork: jobs run on BullMQ in `apps/worker`, files go through `@midday/storage`, auth is better-auth, and bank data comes from statement import, SimpleFIN, Enable Banking, Plaid and Teller. The flows below are kept for reference; see [self-hosting.md](./self-hosting.md) for the current setup.
+
 ## Overview
 
 The Document Processing Pipeline automatically processes files uploaded to the Vault, extracting content, classifying documents using AI, and generating searchable metadata. The system is designed with **graceful degradation** - documents always reach a usable state even if AI classification fails, and users can retry processing at any time.

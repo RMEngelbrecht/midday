@@ -72,6 +72,26 @@ export function deriveCookieDomain(
   return shared.reverse().join(".");
 }
 
+/**
+ * Explains why the dashboard cannot see the session cookie, or undefined when
+ * the URLs are fine. Different `*.localhost` hosts count as different sites
+ * (localhost is not a registrable domain), and browsers reject
+ * `Domain=localhost`, so the cookie never reaches the dashboard server.
+ */
+export function cookieSharingProblem(
+  appUrl: string,
+  apiUrl: string,
+  cookieDomain: string | undefined,
+): string | undefined {
+  const app = new URL(appUrl).hostname;
+  const api = new URL(apiUrl).hostname;
+  if (cookieDomain || app === api) return undefined;
+  if (app.endsWith(".localhost") || api.endsWith(".localhost")) {
+    return `APP_URL (${app}) and API_URL (${api}) are different *.localhost hosts, which browsers treat as separate sites: sign-in cannot be shared with the dashboard. Use a real parent domain (for local trials: app.lvh.me + api.lvh.me, which resolve to 127.0.0.1) or put both on one host.`;
+  }
+  return undefined;
+}
+
 export type SocialProviderId = "google" | "github" | "apple" | "microsoft";
 
 type ProviderEnv = {

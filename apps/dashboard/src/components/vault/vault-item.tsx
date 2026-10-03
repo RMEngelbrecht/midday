@@ -9,6 +9,7 @@ import { Skeleton } from "@midday/ui/skeleton";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { memo, useEffect, useState } from "react";
 import { FilePreview } from "@/components/file-preview";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { VaultItemTags } from "@/components/vault/vault-item-tags";
 import { useDocumentParams } from "@/hooks/use-document-params";
 import { useTRPC } from "@/trpc/client";
@@ -33,6 +34,7 @@ type Props = {
 
 export const VaultItem = memo(function VaultItem({ data, small }: Props) {
   const { setParams } = useDocumentParams();
+  const { features } = usePublicConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -47,8 +49,9 @@ export const VaultItem = memo(function VaultItem({ data, small }: Props) {
   const isFailed = data.processingStatus === "failed";
 
   // Document completed but AI classification failed - title is null
+  // Without AI nothing classifies documents, so a missing title is expected.
   const needsClassification =
-    data.processingStatus === "completed" && !data.title;
+    features.ai && data.processingStatus === "completed" && !data.title;
 
   // Check if document is stuck in processing (pending for >10 minutes since creation)
   const staleProcessing = isStaleProcessing(

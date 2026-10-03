@@ -1,8 +1,14 @@
 # Documentation
 
-This directory contains technical documentation for the Midday.
+This directory contains the documentation for this self-hostable fork of Midday.
 
-## Contents
+## Running it
+
+- **[self-hosting.md](./self-hosting.md)** - Quickstart, requirements (URLs and cookies), optional services (SMTP, inbound email, S3, AI, bank data, OAuth integrations), desktop and CLI, backups and upgrades.
+- **[env-reference.md](./env-reference.md)** - Every environment variable, generated from the Varlock `.env.schema` files (`bun run docs:env`).
+- **[ai.md](./ai.md)** - Configuring the optional AI layer (OpenAI, Ollama and other OpenAI-compatible servers).
+
+## Internals
 
 - **[weekly-insights.md](./weekly-insights.md)** - Technical documentation of the AI-powered weekly insights system including content generation, metric selection, data consistency, and advanced projections (runway dates, quarter pace, payment anomalies).
 - **[inbox-matching.md](./inbox-matching.md)** - Detailed documentation of the V2 deterministic inbox matching algorithm with team calibration, hard-negative memory, and read-only verification tooling.
@@ -13,4 +19,4 @@ This directory contains technical documentation for the Midday.
 
 This documentation provides in-depth technical details about core Midday features and algorithms. It's intended for developers working on the codebase who need to understand the implementation details, data flows, and architectural decisions.
 
-The documentation here is kept in sync with the actual implementation and provides more technical depth than the user-facing documentation in the apps/docs directory.
+Documents marked "Historical" describe the pre-fork architecture and are kept for reference.

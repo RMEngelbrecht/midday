@@ -19,6 +19,7 @@ import { count, sql } from "drizzle-orm";
 import { mfaGate } from "./mfa-gate";
 import {
   canSignUp,
+  cookieSharingProblem,
   deriveCookieDomain,
   type SignupPolicy,
   socialProvidersFromEnv,
@@ -31,6 +32,13 @@ const cookieDomain = deriveCookieDomain(
   ENV.API_URL,
   ENV.AUTH_COOKIE_DOMAIN,
 );
+
+const cookieProblem = cookieSharingProblem(
+  ENV.APP_URL,
+  ENV.API_URL,
+  cookieDomain,
+);
+if (cookieProblem) logger.warn(cookieProblem);
 
 const socialProviders = socialProvidersFromEnv(ENV);
 
@@ -93,6 +101,13 @@ export const auth = betterAuth({
   session: {
     // Lets get-session (called by the dashboard on navigation) skip the DB.
     cookieCache: { enabled: true, maxAge: 5 * 60 },
+  },
+  rateLimit: {
+    // Session reads are not an attack surface, and the dashboard server makes
+    // one per request from a single IP: the default limit (100 / 10 s in
+    // production) answered 429, which the proxy treated as "signed out".
+    // Sign-in, sign-up, OTP and TOTP endpoints keep the default limits.
+    customRules: { "/get-session": false, "/token": false },
   },
   advanced: {
     cookiePrefix: "midday",

@@ -20,9 +20,14 @@ Caddy serves `app.$DOMAIN` (dashboard) and `api.$DOMAIN` (API, including the
 `/realtime` event stream, which is not buffered) and obtains Let's Encrypt
 certificates automatically. The two hosts must share a parent domain.
 
-**Local trial without DNS:** in `.env` set `DOMAIN=localhost`, `CADDY_SCHEME=http://`,
-`HTTP_PORT=8080`, `APP_URL=http://app.localhost:8080`, `API_URL=http://api.localhost:8080`.
-Browsers resolve `*.localhost` to 127.0.0.1. (Caddy on plain HTTP; no TLS.)
+**Local trial without DNS:** in `.env` set `DOMAIN=lvh.me`, `CADDY_SCHEME=http://`,
+`HTTP_PORT=8080`, `APP_URL=http://app.lvh.me:8080`, `API_URL=http://api.lvh.me:8080`.
+`lvh.me` and its subdomains resolve to 127.0.0.1 and share a parent domain, so the
+session cookie reaches both hosts (Caddy on plain HTTP; no TLS). Do not use
+`app.localhost` + `api.localhost`: browsers treat those as different sites and the
+dashboard never sees the session cookie.
+
+Full guide, provider setup and backups: [`../docs/self-hosting.md`](../docs/self-hosting.md).
 
 To build the images instead of pulling: `docker compose build`.
 

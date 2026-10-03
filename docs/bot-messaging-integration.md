@@ -1,5 +1,7 @@
 # Bot & Messaging Integration (Telegram, WhatsApp, Slack)
 
+> **Historical.** This document describes the pre-fork architecture (Supabase, Trigger.dev, GoCardless and the `apps/engine` provider service). Those pieces no longer exist in the self-hostable fork: jobs run on BullMQ in `apps/worker`, files go through `@midday/storage`, auth is better-auth, and bank data comes from statement import, SimpleFIN, Enable Banking, Plaid and Teller. The flows below are kept for reference; see [self-hosting.md](./self-hosting.md) for the current setup.
+
 ## Overview
 
 The bot integration extends Midday into external messaging platforms — Telegram, WhatsApp, and Slack — so users can chat with the Midday AI assistant, submit receipts/invoices, and receive proactive notifications without opening the dashboard.

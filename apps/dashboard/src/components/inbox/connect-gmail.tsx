@@ -4,6 +4,7 @@ import { Icons } from "@midday/ui/icons";
 import { SubmitButton } from "@midday/ui/submit-button";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useTRPC } from "@/trpc/client";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function ConnectGmail({ redirectPath }: Props) {
+  const { features } = usePublicConfig();
   const trpc = useTRPC();
   const router = useRouter();
 
@@ -23,6 +25,9 @@ export function ConnectGmail({ redirectPath }: Props) {
       },
     }),
   );
+
+  // Needs operator-registered OAuth credentials (see docs/self-hosting.md).
+  if (!features.integrations.gmail) return null;
 
   return (
     <SubmitButton

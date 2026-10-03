@@ -3,77 +3,63 @@
 <p align="center">
 	<h1 align="center"><b>Midday</b></h1>
 <p align="center">
-    Your AI-Powered Business Assistant
+    Self-hostable business assistant: invoicing, banking, receipts, time tracking
     <br />
     <br />
-    <a href="https://midday.ai">Website</a>
+    <a href="docs/self-hosting.md">Self-hosting guide</a>
     ·
-    <a href="https://github.com/midday-ai/midday/issues">Issues</a>
+    <a href="docs/env-reference.md">Configuration</a>
+    ·
+    <a href="docs/README.md">Docs</a>
   </p>
 </p>
 
-<p align="center">
-  <a href="https://go.midday.ai/K7GwMoQ">
-    <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  </a>
-</p>
+## About this fork
 
-## About Midday
+[Midday](https://github.com/midday-ai/midday) was a hosted product for freelancers, contractors and small companies. The original service has been sunset, and this repository is a hard fork of it that you can run yourself. The hosted-only parts (Supabase, Trigger.dev, Railway/Vercel/Cloudflare, Polar billing, Plain, the marketing website) are gone. What is left is one stack that runs on a single machine:
 
-Midday is an all-in-one tool designed to help freelancers, contractors, consultants, and solo entrepreneurs manage their business operations more efficiently. It integrates various functions typically scattered across multiple platforms into a single, cohesive system.
+```
+Caddy ── app.example.com → dashboard (Next.js)
+      └─ api.example.com → api (Hono: REST, tRPC, MCP, auth, realtime)
+api + worker (BullMQ) ── Postgres (pgvector) · Valkey · local volume or S3
+```
 
+```sh
+cd deploy && cp .env.example .env && ./generate-secrets.sh && $EDITOR .env
+docker compose up -d
+```
+
+Start with **[docs/self-hosting.md](docs/self-hosting.md)**. With no configuration you get email + password login, local file storage, manual accounts and statement import (OFX, CAMT.053, MT940, QIF, CSV), invoices, inbox, vault, export and time tracking. Everything else is switched on by environment variables: SMTP mail, S3 storage, AI (any OpenAI-compatible endpoint, including Ollama), bank connections (SimpleFIN, Enable Banking, Plaid, Teller), and OAuth integrations. Bank and OAuth providers need your own developer accounts.
 
 ## Features
 
-**Time Tracking**: Allows for live time tracking of projects to boost productivity and collaboration, providing insightful project overviews.<br/>
-**Invoicing**: An upcoming feature that will enable users to create web-based invoices, collaborate in real-time, and synchronize projects seamlessly.<br/>
-**Magic Inbox**: Automatically matches incoming invoices or receipts to the correct transactions, simplifying financial tracking and organization.<br/>
-**Vault**: Secure storage for important files like contracts and agreements, keeping everything in one place for easy access​.<br/>
-**Seamless Export**: Facilitates easy export of financial data, packaged neatly in CSV files for accountants.<br/>
-**Assistant**: Provides tailored insights into financial situations, helping users understand spending patterns, cut costs, and find documents.<br/>
+**Invoicing**: web-based invoices with a public link, PDF and email delivery, recurring invoices.<br/>
+**Magic Inbox**: receipts and invoices, by upload or inbound email, matched to the right transactions.<br/>
+**Banking**: manual accounts, statement import, and optional bank connections.<br/>
+**Vault**: secure storage for contracts and documents.<br/>
+**Time tracking**: live tracking of projects.<br/>
+**Export**: all your data as a ZIP, or CSV for your accountant.<br/>
+**Assistant** (optional AI): insights, categorisation and document extraction.<br/>
+**Desktop and CLI**: a Tauri app and a command-line client that connect to your own server.<br/>
 
+## Architecture
 
+- Monorepo (Bun, Turborepo), TypeScript
+- `apps/dashboard`: Next.js, one prebuilt image for any domain (runtime config)
+- `apps/api`: Hono, better-auth at `/auth`, SSE at `/realtime`
+- `apps/worker`: BullMQ jobs and schedulers
+- `apps/desktop`: Tauri shell; `packages/cli`: command-line client
+- Configuration: [Varlock](https://varlock.dev) `.env.schema` files, documented in [docs/env-reference.md](docs/env-reference.md)
 
+## Development
 
-## Get started
+```sh
+bun install
+bun run env:codegen     # typed env from the .env.schema files
+bun run typecheck && bun run lint && bun run test
+```
 
-We are working on the documentation to get started with Midday for local development: https://docs.midday.ai
-
-## App Architecture
-
-- Monorepo
-- Bun
-- React
-- TypeScript
-- Nextjs
-- Supabase
-- Shadcn
-- Tauri
-- Expo
-- TailwindCSS
-
-### Hosting
-
-- Supabase (database, storage, realtime, auth)
-- Railway (API, Worker, Dashboard)
-- Cloudflare (Engine, CDN/Proxy)
-
-### Services
-
-- Trigger.dev (background jobs)
-- Resend (Transactional email)
-- Github Actions (CI/CD)
-- SimpleFIN (Bank connection US/CA, optional)
-- Plaid (Bank connection in Canada and US)
-- Teller (Bank connection in the US)
-- OpenPanel (Events and Analytics)
-- Typesense (Search)
-- Gemini
-- OpenAI
-
-## Repo Activity
-
-![Alt](https://repobeats.axiom.co/api/embed/96aae855e5dd87c30d53c1d154b37cf7aa5a89b3.svg "Repobeats analytics image")
+`e2e/` is a Playwright smoke suite for a running compose stack (see the self-hosting guide). It runs nightly in CI.
 
 ## License
 

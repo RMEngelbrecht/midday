@@ -1,5 +1,7 @@
 # Credit Card Transaction Handling
 
+> **Historical.** This document describes the pre-fork architecture (Supabase, Trigger.dev, GoCardless and the `apps/engine` provider service). Those pieces no longer exist in the self-hostable fork: jobs run on BullMQ in `apps/worker`, files go through `@midday/storage`, auth is better-auth, and bank data comes from statement import, SimpleFIN, Enable Banking, Plaid and Teller. The flows below are kept for reference; see [self-hosting.md](./self-hosting.md) for the current setup.
+
 This document explains how Midday handles credit card transactions from different banking providers to ensure correct categorization and amount signs.
 
 ## The Problem

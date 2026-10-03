@@ -53,6 +53,9 @@ jobs:
       - name: Check hardcoded URLs
         run: bun run lint:urls
 
+      - name: Check env reference is up to date
+        run: bun run docs:env:check
+
       - name: Build required type dependencies
         run: bunx turbo build --filter=workbench
 

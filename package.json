@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "e2e"
   ],
   "scripts": {
     "build": "turbo build",
@@ -22,6 +23,8 @@
     "lint:urls": "bash scripts/check-hardcoded-urls.sh",
     "lint:fix": "turbo lint:fix",
     "typecheck": "turbo typecheck",
+    "docs:env": "bun scripts/gen-env-docs.ts",
+    "docs:env:check": "bun scripts/gen-env-docs.ts --check",
     "env:codegen": "sh scripts/env-codegen.sh",
     "env:check": "sh -c 'for d in apps/api apps/dashboard apps/worker; do varlock load --path \"$d/\" || exit 1; done'"
   },

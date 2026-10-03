@@ -10,7 +10,12 @@ import { Input } from "@midday/ui/input";
 import { Skeleton } from "@midday/ui/skeleton";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Bundled with the dashboard (no CDN), so it works offline and keeps one
+// pdfjs version: dashboard and react-pdf both pin pdfjs-dist 5.4.296.
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
 
 interface PdfViewerProps {
   url: string;

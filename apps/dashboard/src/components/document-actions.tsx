@@ -75,6 +75,7 @@ export function DocumentActions({ showDelete = false, filePath }: Props) {
       <Button
         variant="ghost"
         size="icon"
+        aria-label="Download"
         onClick={() => {
           if (downloadUrl && filename) {
             downloadFile(downloadUrl, filename);
@@ -88,6 +89,7 @@ export function DocumentActions({ showDelete = false, filePath }: Props) {
       <Button
         variant="ghost"
         size="icon"
+        aria-label="Copy link"
         onClick={() =>
           shortLinkMutation.mutate({
             filePath: filePath?.join("/") ?? "",
@@ -106,6 +108,7 @@ export function DocumentActions({ showDelete = false, filePath }: Props) {
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Delete"
           onClick={() =>
             deleteDocumentMutation.mutate({
               id: params.documentId!,

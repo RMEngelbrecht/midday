@@ -64,14 +64,14 @@ export function InboxGetStarted() {
         // Revalidate server-side cache
         await revalidateInbox();
 
-        // Refresh the router to trigger server component re-render
-        // This will cause the page to check data again and switch to InboxView
-        router.refresh();
-
-        // If the new item has an ID, navigate to it
+        // The page decides between "get started" and the list on the server.
+        // Navigating with a non-shallow param change renders it again with
+        // fresh data (a bare router.refresh() kept showing this empty state).
         const newItem = payload.new as { id?: string };
         if (newItem?.id) {
-          setParams({ inboxId: newItem.id });
+          setParams({ inboxId: newItem.id }, { shallow: false });
+        } else {
+          router.refresh();
         }
       }
     },
