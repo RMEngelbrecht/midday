@@ -34,7 +34,7 @@ export function shouldShowUI(flags: {
 }
 
 export function getApiUrl(): string {
-  return process.env.MIDDAY_API_URL || "https://api.midday.ai";
+  return process.env.MIDDAY_API_URL || "http://localhost:3003";
 }
 
 export function getDashboardUrl(): string {

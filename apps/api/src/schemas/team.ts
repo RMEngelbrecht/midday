@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import { z } from "@hono/zod-openapi";
 
 export const teamResponseSchema = z.object({
@@ -11,7 +12,7 @@ export const teamResponseSchema = z.object({
   }),
   logoUrl: z.string().url().nullable().openapi({
     description: "URL to the team's logo image",
-    example: "https://cdn.midday.ai/logos/acme-corp.png",
+    example: "https://api.example.com/files/public/logos/acme-corp.png",
   }),
   email: z.string().email().nullable().optional().openapi({
     description: "Primary contact email address for the team",
@@ -66,18 +67,12 @@ export const getTeamByIdSchema = z.object({
 });
 
 /**
- * Validates that a URL is hosted on a trusted midday.ai domain.
- * Prevents SSRF by checking the hostname, not just URL contents.
+ * Validates that a URL is hosted by this instance (API_URL origin).
+ * Prevents SSRF by comparing the parsed origin, not just URL contents.
  */
-function isValidMiddayUrl(url: string): boolean {
+function isInstanceUrl(url: string): boolean {
   try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname.toLowerCase();
-    return (
-      hostname === "cdn.midday.ai" ||
-      hostname === "midday.ai" ||
-      hostname.endsWith(".midday.ai")
-    );
+    return new URL(url).origin === new URL(ENV.API_URL).origin;
   } catch {
     return false;
   }
@@ -96,14 +91,14 @@ export const updateTeamByIdSchema = z.object({
   logoUrl: z
     .string()
     .url()
-    .refine(isValidMiddayUrl, {
-      message: "logoUrl must be hosted on midday.ai domain",
+    .refine(isInstanceUrl, {
+      message: "logoUrl must be hosted on this instance",
     })
     .optional()
     .openapi({
       description:
-        "URL to the team's logo image. Must be hosted on midday.ai domain",
-      example: "https://cdn.midday.ai/logos/acme-corp.png",
+        "URL to the team's logo image. Must be hosted on this instance",
+      example: "https://api.example.com/files/public/logos/acme-corp.png",
     }),
   baseCurrency: z.string().optional().openapi({
     description:
@@ -203,7 +198,7 @@ export const createTeamSchema = z.object({
     }),
   logoUrl: z.string().url().optional().openapi({
     description: "URL to the team's logo image",
-    example: "https://cdn.midday.ai/logos/acme-corp.png",
+    example: "https://api.example.com/files/public/logos/acme-corp.png",
   }),
   companyType: z
     .enum([
@@ -352,7 +347,7 @@ export const teamMemberResponseSchema = z.object({
   }),
   avatarUrl: z.string().url().nullable().openapi({
     description: "URL to the team member's avatar image",
-    example: "https://cdn.midday.ai/avatars/john-doe.png",
+    example: "https://api.example.com/files/public/avatars/john-doe.png",
   }),
 });
 

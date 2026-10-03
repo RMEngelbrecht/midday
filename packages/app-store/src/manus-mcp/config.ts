@@ -17,10 +17,9 @@ export default {
 
 **Setup steps:**
 1. In Manus, go to **Settings** and add a new MCP connector
-2. Enter the server URL: \`https://api.midday.ai/mcp\`
+2. Enter the server URL: \`{{API_URL}}/mcp\`
 3. Authenticate with your Midday account when prompted
 
 **Requirements:** Manus account with MCP connector support.`,
   images: [],
-  installUrl: "https://midday.ai/mcp/manus",
 };

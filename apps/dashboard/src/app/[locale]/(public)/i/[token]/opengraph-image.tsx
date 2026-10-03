@@ -24,10 +24,6 @@ export default async function Image({ params }: Props) {
     return new Response("Not found", { status: 404 });
   }
 
-  const hedvigSansFont = fetch(
-    "https://cdn.midday.ai/fonts/HedvigSans/HedvigLettersSans-Regular.ttf",
-  ).then((res) => res.arrayBuffer());
-
   const logoUrl = getWebsiteLogo(invoice.customer?.website, ENV.LOGO_DEV_TOKEN);
 
   const isValidLogo = await isValidLogoUrl(logoUrl);
@@ -37,14 +33,6 @@ export default async function Image({ params }: Props) {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: "hedvig-sans",
-          data: await hedvigSansFont,
-          style: "normal",
-          weight: 400,
-        },
-      ],
     },
   );
 }

@@ -1,16 +1,19 @@
+import { getApiUrl } from "@midday/utils/envs";
+
 /**
  * Allowed hosts for logo URLs.
  * Prevents SSRF by only allowing trusted domains.
  */
 const ALLOWED_LOGO_HOSTS = new Set([
-  "cdn.midday.ai",
-  "midday.ai",
   "img.logo.dev", // Used for customer website logos
 ]);
 
 function isAllowedLogoHost(hostname: string): boolean {
   const lower = hostname.toLowerCase();
-  return ALLOWED_LOGO_HOSTS.has(lower) || lower.endsWith(".midday.ai");
+  // Logos uploaded to this instance are served from API_URL.
+  return (
+    ALLOWED_LOGO_HOSTS.has(lower) || lower === new URL(getApiUrl()).hostname
+  );
 }
 
 export async function isValidLogoUrl(url: string): Promise<boolean> {

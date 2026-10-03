@@ -18,6 +18,7 @@ import { getExtensionFromMimeType } from "@midday/utils";
 import { generateText } from "ai";
 import type { Job } from "bullmq";
 import { format, parseISO } from "date-fns";
+import { ENV } from "../../env";
 import type { SlackUploadPayload } from "../../schemas/inbox";
 import { getDb } from "../../utils/db";
 import { TIMEOUTS, withTimeout } from "../../utils/timeout";
@@ -432,7 +433,7 @@ Focus on what was purchased (e.g., "office supplies", "software subscription", "
                   text: "View in Midday",
                   emoji: true,
                 },
-                url: `https://app.midday.ai/inbox?inboxId=${encodeURIComponent(updatedInbox.id)}`,
+                url: `${ENV.APP_URL}/inbox?inboxId=${encodeURIComponent(updatedInbox.id)}`,
                 action_id: "view_receipt",
               },
             ],

@@ -9,54 +9,34 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactElement } from "react";
 import { DesktopHeader } from "@/components/desktop-header";
 import { PublicConfigProvider } from "@/components/public-config-provider";
+import { ENV } from "@/env";
 import { isDesktopApp } from "@/utils/desktop";
 import { getPublicConfig } from "@/utils/public-config.server";
 import { Providers } from "./providers";
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://app.midday.ai"),
-  title: "Midday | Run your business smarter",
-  description:
-    "Automate financial tasks, stay organized, and make informed decisions effortlessly.",
-  twitter: {
+const description =
+  "Automate financial tasks, stay organized, and make informed decisions effortlessly.";
+
+// Resolved per request: APP_URL is runtime config, not a build-time constant.
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL(ENV.APP_URL),
     title: "Midday | Run your business smarter",
-    description:
-      "Automate financial tasks, stay organized, and make informed decisions effortlessly.",
-    images: [
-      {
-        url: "https://cdn.midday.ai/opengraph-image-v1.jpg",
-        width: 800,
-        height: 600,
-      },
-      {
-        url: "https://cdn.midday.ai/opengraph-image-v1.jpg",
-        width: 1800,
-        height: 1600,
-      },
-    ],
-  },
-  openGraph: {
-    title: "Midday | Run your business smarter",
-    description:
-      "Automate financial tasks, stay organized, and make informed decisions effortlessly.",
-    url: "https://app.midday.ai",
-    siteName: "Midday",
-    images: [
-      {
-        url: "https://cdn.midday.ai/opengraph-image-v1.jpg",
-        width: 800,
-        height: 600,
-      },
-      {
-        url: "https://cdn.midday.ai/opengraph-image-v1.jpg",
-        width: 1800,
-        height: 1600,
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-};
+    description,
+    twitter: {
+      title: "Midday | Run your business smarter",
+      description,
+    },
+    openGraph: {
+      title: "Midday | Run your business smarter",
+      description,
+      url: ENV.APP_URL,
+      siteName: "Midday",
+      locale: "en_US",
+      type: "website",
+    },
+  };
+}
 
 const hedvigSans = Hedvig_Letters_Sans({
   weight: "400",

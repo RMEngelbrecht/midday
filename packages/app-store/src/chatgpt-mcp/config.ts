@@ -18,10 +18,9 @@ export default {
 
 **Setup steps:**
 1. In ChatGPT, go to **Settings → Connectors** and click **Create**
-2. Paste this URL as the connector URL: \`https://api.midday.ai/mcp\`
+2. Paste this URL as the connector URL: \`{{API_URL}}/mcp\`
 3. When you use a Midday tool, you'll be prompted to sign in and select a team
 
 **Requirements:** ChatGPT Pro, Plus, Business, Enterprise, or Education account. Enable developer mode in Settings → Apps & Connectors → Advanced settings.`,
   images: [],
-  installUrl: "https://midday.ai/mcp/chatgpt",
 };

@@ -123,10 +123,7 @@ export default async function Page({ params }: Props) {
         <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-6">
           <p className="text-center text-xs text-muted-foreground">
             Powered by{" "}
-            <a
-              href="https://midday.ai"
-              className="hover:text-foreground transition-colors"
-            >
+            <a href="/" className="hover:text-foreground transition-colors">
               Midday
             </a>
           </p>

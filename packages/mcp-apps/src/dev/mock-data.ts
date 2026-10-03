@@ -11,7 +11,7 @@ export const invoiceData = {
     discount: 0,
     template: {
       title: "Invoice",
-      logoUrl: "https://midday.ai/email/logo.png",
+      logoUrl: "/email/logo.png",
       customerLabel: "To",
       fromLabel: "From",
       invoiceNoLabel: "Invoice No",
@@ -68,9 +68,9 @@ export const invoiceData = {
           content: [
             {
               type: "text",
-              text: "hello@midday.ai",
+              text: "hello@example.com",
               marks: [
-                { type: "link", attrs: { href: "mailto:hello@midday.ai" } },
+                { type: "link", attrs: { href: "mailto:hello@example.com" } },
               ],
             },
           ],

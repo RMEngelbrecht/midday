@@ -15,6 +15,8 @@ export type PublicConfig = {
   features: Features;
   /** Where inbound email is received; null when forwarding is not configured. */
   inboxEmail: { domain: string; localPart: string | null } | null;
+  /** Support contact for error pages; null hides it. */
+  supportEmail: string | null;
   desktopScheme: string;
   sentry: { dsn: string; environment: string; release?: string } | null;
   openpanelClientId: string | null;

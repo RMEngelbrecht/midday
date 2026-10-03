@@ -130,17 +130,6 @@ export default async function Page(props: Props) {
           </div>
         </div>
       </InvoiceViewWrapper>
-
-      <div className="fixed bottom-4 right-4 hidden md:block">
-        <a
-          href="https://midday.ai?utm_source=invoice"
-          target="_blank"
-          rel="noreferrer"
-          className="text-[9px] text-[#878787]"
-        >
-          Powered by <span className="text-primary">midday</span>
-        </a>
-      </div>
     </>
   );
 }

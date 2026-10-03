@@ -112,19 +112,19 @@ async function seedUsers(db: Database): Promise<void> {
   await db.insert(authUser).values({
     id: TEST_USER_ID,
     name: "Test User",
-    email: "test@midday.ai",
+    email: "test@example.com",
   });
   await db
     .insert(users)
     .values({
       id: TEST_USER_ID,
       fullName: "Test User",
-      email: "test@midday.ai",
+      email: "test@example.com",
       teamId: null,
     })
     .onConflictDoUpdate({
       target: users.id,
-      set: { fullName: "Test User", email: "test@midday.ai", teamId: null },
+      set: { fullName: "Test User", email: "test@example.com", teamId: null },
     });
 }
 

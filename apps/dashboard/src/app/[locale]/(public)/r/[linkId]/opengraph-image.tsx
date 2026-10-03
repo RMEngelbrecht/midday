@@ -32,14 +32,6 @@ export default async function Image({ params }: Props) {
     notFound();
   }
 
-  const hedvigSerifFont = fetch(
-    "https://cdn.midday.ai/fonts/HedvigSerif/HedvigLettersSerif-Regular.ttf?c=1",
-  ).then((res) => res.arrayBuffer());
-
-  const hedvigSansFont = fetch(
-    "https://cdn.midday.ai/fonts/HedvigSans/HedvigLettersSans-Regular.ttf",
-  ).then((res) => res.arrayBuffer());
-
   const chartName = getChartDisplayName(report.type as any);
   const fromDate = parseISO(report.from!);
   const toDate = parseISO(report.to!);
@@ -63,20 +55,6 @@ export default async function Image({ params }: Props) {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: "hedvig-sans",
-          data: await hedvigSansFont,
-          style: "normal",
-          weight: 400,
-        },
-        {
-          name: "hedvig-serif",
-          data: await hedvigSerifFont,
-          style: "normal",
-          weight: 400,
-        },
-      ],
     },
   );
 }
@@ -117,7 +95,7 @@ function ReportOgTemplate({
         {/* Report Type */}
         <h1
           tw="text-[80px] text-white mb-6 text-center"
-          style={{ fontFamily: "hedvig-serif" }}
+          style={{ fontFamily: "sans-serif" }}
         >
           {chartName}
         </h1>
@@ -125,7 +103,7 @@ function ReportOgTemplate({
         {/* Company Name */}
         <h2
           tw="text-[36px] text-white mb-8 text-center"
-          style={{ fontFamily: "hedvig-sans" }}
+          style={{ fontFamily: "sans-serif" }}
         >
           {teamName}
         </h2>
@@ -133,7 +111,7 @@ function ReportOgTemplate({
         {/* Date Range */}
         <p
           tw="text-[28px] text-[#858585] text-center"
-          style={{ fontFamily: "hedvig-sans" }}
+          style={{ fontFamily: "sans-serif" }}
         >
           {dateRangeDisplay}
         </p>

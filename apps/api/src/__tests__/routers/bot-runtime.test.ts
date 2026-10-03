@@ -315,10 +315,7 @@ describe("bot runtime link-code consumption", () => {
     expect(posts).toEqual([
       "Connected to Midday Test Team. You can chat with Midday, send receipts and PDFs, or create invoices \u2014 all from iMessage.\n\nYou'll receive notifications for new transactions, invoices, and receipt matches (all on by default). To manage these, go to Apps \u2192 iMessage \u2192 Settings in Midday.\n\nTry sending a receipt or asking \u201cWhat did I spend this week?\u201d",
     ]);
-    expect(sendMediaMessageMock).toHaveBeenCalledWith(
-      thread.id,
-      "https://cdn.midday.ai/midday-contact.vcf",
-    );
+    expect(sendMediaMessageMock).not.toHaveBeenCalled();
     expect(streamMiddayAssistantMock).not.toHaveBeenCalled();
     expect(toAiMessagesMock).not.toHaveBeenCalled();
     expect(mocks.getUserById).not.toHaveBeenCalled();

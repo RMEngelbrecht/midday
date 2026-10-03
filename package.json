@@ -19,6 +19,7 @@
     "cli": "bun run packages/cli/bin/midday.ts",
     "format": "biome format --write .",
     "lint": "turbo lint",
+    "lint:urls": "bash scripts/check-hardcoded-urls.sh",
     "lint:fix": "turbo lint:fix",
     "typecheck": "turbo typecheck",
     "env:codegen": "sh scripts/env-codegen.sh",

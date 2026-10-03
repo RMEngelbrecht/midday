@@ -426,7 +426,8 @@ export const transactionResponseSchema = z
             }),
             logoUrl: z.string().nullable().openapi({
               description: "URL to the bank institution's logo image",
-              example: "https://cdn.midday.ai/logos/chase-bank.png",
+              example:
+                "https://api.example.com/files/public/logos/chase-bank.png",
             }),
           })
           .nullable()
@@ -436,7 +437,8 @@ export const transactionResponseSchema = z
             example: {
               id: "a43dc3a5-6925-4d91-ac9c-4c1a34bdb388",
               name: "Chase Bank",
-              logoUrl: "https://cdn.midday.ai/logos/chase-bank.png",
+              logoUrl:
+                "https://api.example.com/files/public/logos/chase-bank.png",
             },
           }),
       })
@@ -451,7 +453,8 @@ export const transactionResponseSchema = z
           connection: {
             id: "a43dc3a5-6925-4d91-ac9c-4c1a34bdb388",
             name: "Chase Bank",
-            logoUrl: "https://cdn.midday.ai/logos/chase-bank.png",
+            logoUrl:
+              "https://api.example.com/files/public/logos/chase-bank.png",
           },
         },
       }),

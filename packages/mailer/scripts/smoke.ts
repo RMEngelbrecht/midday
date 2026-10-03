@@ -56,10 +56,7 @@ for (const message of list.messages) {
   ].map((m) => m[1] as string);
   for (const src of imgs) {
     imgChecked++;
-    if (
-      src.includes("midday.ai") ||
-      (src.startsWith("http") && !src.startsWith(appUrl))
-    ) {
+    if (src.startsWith("http") && !src.startsWith(appUrl)) {
       console.log(`BAD IMG ${message.Subject}: ${src}`);
       failures++;
     }

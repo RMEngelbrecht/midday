@@ -92,13 +92,7 @@ export function createMcpServer(ctx: McpContext): McpServer {
       title: "Midday",
       description:
         "Financial operating system for small businesses — transactions, invoices, time tracking, and reports",
-      websiteUrl: "https://midday.ai",
-      icons: [
-        {
-          src: "https://midday.ai/images/midday-icon.svg",
-          mimeType: "image/svg+xml",
-        },
-      ],
+      websiteUrl: ENV.APP_URL,
     },
     {
       instructions: getServerInstructions(ctx),

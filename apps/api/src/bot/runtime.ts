@@ -463,16 +463,6 @@ function resolveSendblueConversation(
           msg?.author?.fullName || msg?.author?.userName || undefined,
       },
     }),
-    afterConnect: async ({ thread: t }) => {
-      try {
-        await (t.adapter as SendblueAdapter).sendMediaMessage(
-          t.id,
-          "https://cdn.midday.ai/midday-contact.vcf",
-        );
-      } catch {
-        // Contact card is best-effort
-      }
-    },
     welcomeMessage: (name) => buildWelcomeMessage(name, "sendblue"),
     invalidCodeMessage:
       "That iMessage link code is invalid or expired. Open Midday and generate a new one.",

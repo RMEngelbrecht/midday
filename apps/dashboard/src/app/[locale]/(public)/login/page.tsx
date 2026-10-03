@@ -66,7 +66,7 @@ export default async function Page() {
         <nav className="w-full pointer-events-none">
           <div className="relative py-3 xl:py-4 px-4 sm:px-4 md:px-4 lg:px-4 xl:px-6 2xl:px-8 flex items-center">
             <Link
-              href="https://midday.ai"
+              href="/"
               className="flex items-center gap-2 hover:opacity-80 active:opacity-80 transition-opacity duration-200 pointer-events-auto"
             >
               <div className="w-6 h-6">
@@ -113,26 +113,6 @@ export default async function Page() {
 
             {/* More Options Accordion */}
             <LoginAccordion>{moreSignInOptions}</LoginAccordion>
-          </div>
-
-          {/* Terms and Privacy Policy - Bottom aligned */}
-          <div className="text-center mt-auto">
-            <p className="font-sans text-xs text-[#878787]">
-              By signing in you agree to our{" "}
-              <Link
-                href="https://midday.ai/terms"
-                className="text-[#878787] hover:text-foreground transition-colors underline"
-              >
-                Terms of service
-              </Link>{" "}
-              &{" "}
-              <Link
-                href="https://midday.ai/policy"
-                className="text-[#878787] hover:text-foreground transition-colors underline"
-              >
-                Privacy policy
-              </Link>
-            </p>
           </div>
         </div>
       </div>

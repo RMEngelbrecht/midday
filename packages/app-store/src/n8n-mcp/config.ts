@@ -21,5 +21,4 @@ export default {
 2. Configure authentication with your Midday API key
 3. Use the available tools in your workflows and AI agents`,
   images: [],
-  installUrl: "https://midday.ai/mcp/n8n",
 };

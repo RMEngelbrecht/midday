@@ -15,5 +15,3 @@ export const LocalStorageKeys = {
   MetricsFilter: "metrics-filter-preferences",
   McpBannerDismissed: "mcp-banner-dismissed",
 };
-
-export const SUPPORT_EMAIL = "support@midday.ai";

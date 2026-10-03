@@ -18,6 +18,7 @@ export function getPublicConfig(): PublicConfig {
             localPart: ENV.INBOX_EMAIL_LOCAL_PART || null,
           }
         : null,
+    supportEmail: ENV.SUPPORT_EMAIL || null,
     desktopScheme: ENV.DESKTOP_SCHEME,
     sentry: ENV.SENTRY_DSN
       ? {

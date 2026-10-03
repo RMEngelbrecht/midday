@@ -175,11 +175,6 @@ const openAPIConfig = {
     title: "Midday API",
     description:
       "Midday is a platform for Invoicing, Time tracking, File reconciliation, Storage & Financial Overview.",
-    contact: {
-      name: "Midday Support",
-      email: "engineer@midday.ai",
-      url: "https://midday.ai",
-    },
     license: {
       name: "AGPL-3.0 license",
       url: "https://github.com/midday-ai/midday/blob/main/LICENSE",
@@ -187,8 +182,8 @@ const openAPIConfig = {
   },
   servers: [
     {
-      url: "https://api.midday.ai",
-      description: "Production API",
+      url: ENV.API_URL,
+      description: "API",
     },
   ],
   security: [

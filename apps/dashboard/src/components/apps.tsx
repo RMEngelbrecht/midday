@@ -25,7 +25,7 @@ export function Apps() {
   const queryClient = useQueryClient();
   const { data: user } = useUserQuery();
   const router = useRouter();
-  const { features } = usePublicConfig();
+  const { features, apiUrl } = usePublicConfig();
   const appStoreApps = getEnabledApps(allAppStoreApps, features.integrations);
 
   // Global listener for OAuth completion messages
@@ -116,7 +116,7 @@ export function Apps() {
         "beta" in app && typeof app.beta === "boolean" ? app.beta : undefined,
       logo: app.logo,
       short_description: app.short_description,
-      description: app.description || undefined,
+      description: app.description?.replaceAll("{{API_URL}}", apiUrl),
       images: app.images || [],
       installed,
       type: "official" as const,

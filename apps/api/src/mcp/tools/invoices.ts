@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import {
   deleteInvoiceSchema,
   duplicateInvoiceSchema,
@@ -60,7 +61,7 @@ import {
 } from "../utils";
 
 function isAllowedLogoUrl(url: string): boolean {
-  return url.startsWith("https://service.midday.ai/");
+  return url.startsWith(`${ENV.API_URL}/files/`);
 }
 
 async function embedLogoAsDataUrl(

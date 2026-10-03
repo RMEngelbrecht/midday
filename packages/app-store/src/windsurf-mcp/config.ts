@@ -17,10 +17,9 @@ export default {
 
 **Setup steps:**
 1. Open Windsurf and go to **MCP Marketplace** in Settings (or edit \`mcp_config.json\`)
-2. Add a new server with URL: \`https://api.midday.ai/mcp\`
+2. Add a new server with URL: \`{{API_URL}}/mcp\`
 3. When prompted, sign in to Midday in your browser and select a team
 
 **Requirements:** Windsurf IDE installed.`,
   images: [],
-  installUrl: "https://midday.ai/mcp/windsurf",
 };

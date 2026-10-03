@@ -3,7 +3,7 @@
 import { Button } from "@midday/ui/button";
 import { useEffect } from "react";
 import { CopyInput } from "@/components/copy-input";
-import { SUPPORT_EMAIL } from "@/utils/constants";
+import { usePublicConfig } from "@/components/public-config-provider";
 
 /**
  * Error boundary scoped to the (sidebar) layout.
@@ -19,6 +19,8 @@ export default function SidebarError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { supportEmail } = usePublicConfig();
+
   useEffect(() => {
     // No-op unless Sentry was initialized (SENTRY_DSN, production).
     import("@sentry/nextjs").then((Sentry) => {
@@ -31,12 +33,16 @@ export default function SidebarError({
       <div className="max-w-md w-full text-center px-4">
         <h2 className="font-medium mb-4">Something went wrong</h2>
         <p className="text-sm text-[#878787] mb-6">
-          We've been notified and are looking into it.
-          <br />
-          If this issue persists, please reach out to our support team.
+          Something unexpected happened. Please try again.
+          {supportEmail && (
+            <>
+              <br />
+              If this issue persists, please reach out to support.
+            </>
+          )}
         </p>
 
-        <CopyInput value={SUPPORT_EMAIL} />
+        {supportEmail && <CopyInput value={supportEmail} />}
 
         {error.digest && (
           <p className="text-xs text-[#4a4a4a] mt-4">

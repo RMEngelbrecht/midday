@@ -67,19 +67,19 @@ function DashboardImageAnimation() {
       style={{ width: "100%", height: "100%", transformOrigin: "center" }}
     >
       <Image
-        src="https://cdn.midday.ai/web/dashboard-light.svg"
+        src="/assets/overview-1-light.png"
         alt="Dashboard illustration"
-        width={2400}
-        height={1800}
+        width={1458}
+        height={753}
         className="h-auto transform -rotate-[2deg] dark:hidden"
         style={{ width: "140%", minWidth: "1400px" }}
         priority
       />
       <Image
-        src="https://cdn.midday.ai/web/dashboard-dark.svg"
+        src="/assets/overview-1.png"
         alt="Dashboard illustration"
-        width={2400}
-        height={1800}
+        width={1458}
+        height={753}
         className="h-auto transform -rotate-[2deg] hidden dark:block"
         style={{ width: "140%", minWidth: "1400px" }}
         priority

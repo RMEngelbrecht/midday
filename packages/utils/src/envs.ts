@@ -14,8 +14,3 @@ export function getApiUrl() {
 export function getEmailUrl() {
   return ENV.APP_URL;
 }
-
-/** Base URL for static assets. Served by the dashboard until S9 bundles them. */
-export function getCdnUrl() {
-  return ENV.APP_URL;
-}

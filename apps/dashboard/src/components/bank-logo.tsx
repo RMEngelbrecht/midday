@@ -24,19 +24,9 @@ export function BankLogo({ src, alt, size = 34 }: Props) {
           className="object-contain bg-white"
           onError={() => setHasError(true)}
         />
-      ) : (
-        <AvatarImage
-          src="https://cdn-engine.midday.ai/default.jpg"
-          alt={alt}
-          className="object-contain"
-        />
-      )}
-      <AvatarFallback>
-        <AvatarImage
-          src="https://cdn-engine.midday.ai/default.jpg"
-          alt={alt}
-          className="object-contain"
-        />
+      ) : null}
+      <AvatarFallback className="text-[0.6em] font-medium">
+        {alt?.trim().charAt(0).toUpperCase()}
       </AvatarFallback>
     </Avatar>
   );

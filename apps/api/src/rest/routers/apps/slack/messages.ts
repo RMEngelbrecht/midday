@@ -1,3 +1,4 @@
+import { ENV } from "@api/env";
 import {
   createSlackApp,
   createSlackWebClient,
@@ -47,7 +48,7 @@ export function getWelcomeMessage(isPrivateChannel = false) {
           text: "⚙️ Notification Settings",
           emoji: true,
         },
-        url: "https://app.midday.ai/apps?app=slack&settings=true",
+        url: `${ENV.APP_URL}/apps?app=slack&settings=true`,
         action_id: "view_settings",
       },
     ],

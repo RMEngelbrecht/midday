@@ -17,11 +17,10 @@ export default {
 - Manage invoices and track time from your terminal
 
 **Setup steps:**
-1. Run: \`gemini mcp add --transport http midday https://api.midday.ai/mcp\`
+1. Run: \`gemini mcp add --transport http midday {{API_URL}}/mcp\`
 2. When prompted, sign in to Midday in your browser and select a team
 3. Use Midday tools in Gemini CLI to access your financial data
 
 **Requirements:** Gemini CLI installed (see [Gemini CLI docs](https://github.com/google-gemini/gemini-cli) for installation).`,
   images: [],
-  installUrl: "https://midday.ai/mcp/gemini",
 };

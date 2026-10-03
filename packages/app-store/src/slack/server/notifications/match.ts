@@ -2,6 +2,7 @@ import { getAppByAppId } from "@midday/db/queries";
 import { getWorkerDb } from "@midday/db/worker-client";
 import { createLoggerWithContext } from "@midday/logger";
 import { format, parseISO } from "date-fns";
+import { ENV } from "../../../env";
 import { createSlackWebClient, ensureBotInChannel } from "../client";
 
 const logger = createLoggerWithContext("slack:match-notification");
@@ -128,7 +129,7 @@ export async function sendSlackMatchNotification({
                   text: "View transaction",
                   emoji: false,
                 },
-                url: `https://app.midday.ai/transactions?id=${encodeURIComponent(transactionId)}`,
+                url: `${ENV.APP_URL}/transactions?id=${encodeURIComponent(transactionId)}`,
                 action_id: "view_transaction",
               },
             ],
@@ -199,7 +200,7 @@ export async function sendSlackMatchNotification({
                   text: "View in Midday",
                   emoji: false,
                 },
-                url: `https://app.midday.ai/inbox?inboxId=${encodeURIComponent(inboxId)}`,
+                url: `${ENV.APP_URL}/inbox?inboxId=${encodeURIComponent(inboxId)}`,
                 action_id: "view_inbox",
               },
             ],

@@ -1222,11 +1222,11 @@ export const draftInvoiceResponseSchema = z
     }),
     pdfUrl: z.string().nullable().openapi({
       description: "Direct URL to download the invoice PDF",
-      example: "https://app.midday.ai/api/download/invoice?token=eyJ...",
+      example: "https://app.example.com/api/download/invoice?token=eyJ...",
     }),
     previewUrl: z.string().nullable().openapi({
       description: "Direct URL to preview the invoice in browser",
-      example: "https://app.midday.ai/i/eyJ...",
+      example: "https://app.example.com/i/eyJ...",
     }),
   })
   .openapi({
@@ -1351,12 +1351,12 @@ export const invoiceResponseSchema = z
     pdfUrl: z.string().url().nullable().openapi({
       description: "URL to download the invoice PDF, or null if not generated",
       example:
-        "https://app.midday.ai/api/download/invoice?token=eef58951-1682-4062-b010-425866032390",
+        "https://app.example.com/api/download/invoice?token=eef58951-1682-4062-b010-425866032390",
     }),
     previewUrl: z.string().url().nullable().openapi({
       description:
         "URL to preview the invoice in the browser, or null if not generated",
-      example: "https://app.midday.ai/i/eef58951-1682-4062-b010-425866032390",
+      example: "https://app.example.com/i/eef58951-1682-4062-b010-425866032390",
     }),
   })
   .openapi({

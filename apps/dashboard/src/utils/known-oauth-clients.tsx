@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 type KnownClient = {
   icon: ReactNode;
   developerName: string;
-  website: string;
+  website?: string;
 };
 
 const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
@@ -22,7 +22,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -40,7 +39,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -58,7 +56,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -76,7 +73,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -94,7 +90,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -113,7 +108,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -135,7 +129,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -172,7 +165,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
   {
@@ -194,7 +186,6 @@ const KNOWN_CLIENTS: { keywords: string[]; client: KnownClient }[] = [
         </svg>
       ),
       developerName: "Midday",
-      website: "https://midday.ai",
     },
   },
 ];

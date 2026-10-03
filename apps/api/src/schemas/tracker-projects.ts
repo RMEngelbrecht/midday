@@ -330,7 +330,7 @@ export const trackerProjectResponseSchema = z
           }),
           avatarUrl: z.string().url().openapi({
             description: "URL to the user's avatar image",
-            example: "https://cdn.midday.ai/avatar.jpg",
+            example: "https://api.example.com/files/public/avatar.jpg",
           }),
         }),
       )

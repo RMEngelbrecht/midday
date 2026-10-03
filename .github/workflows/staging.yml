@@ -87,6 +87,9 @@ jobs:
       - name: Lint
         run: bunx turbo lint --affected
 
+      - name: Check hardcoded URLs
+        run: bun run lint:urls
+
       - name: Build required type dependencies
         run: bunx turbo build --filter=workbench
 

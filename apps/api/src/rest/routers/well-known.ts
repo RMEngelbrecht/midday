@@ -15,7 +15,6 @@ const protectedResourceMetadata = {
   resource: apiUrl,
   authorization_servers: [apiUrl],
   scopes_supported: supportedScopes,
-  resource_documentation: "https://midday.ai/docs",
 };
 
 // RFC 9728: clients try the path-suffixed URL first (e.g. /oauth-protected-resource/mcp)

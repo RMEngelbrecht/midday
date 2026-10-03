@@ -3,6 +3,11 @@
 import { Icons } from "@midday/ui/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@midday/ui/tabs";
 import { useState } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
+
+function useMcpUrl() {
+  return `${usePublicConfig().apiUrl}/mcp`;
+}
 
 function CopyableUrl({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
@@ -82,6 +87,7 @@ function SetupStep({
 }
 
 export function ChatGPTSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -93,7 +99,7 @@ export function ChatGPTSetupInstructions() {
         <p className="text-xs text-[#878787]">
           Copy this URL and add it as a connector in ChatGPT:
         </p>
-        <CopyableUrl url="https://api.midday.ai/mcp" />
+        <CopyableUrl url={mcpUrl} />
       </div>
 
       <div className="space-y-2.5">
@@ -128,6 +134,7 @@ export function ChatGPTSetupInstructions() {
 }
 
 export function GeminiSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -139,7 +146,9 @@ export function GeminiSetupInstructions() {
         <p className="text-xs text-[#878787]">
           Run this command to add the Midday MCP server:
         </p>
-        <CopyableCode code="gemini mcp add --transport http midday https://api.midday.ai/mcp" />
+        <CopyableCode
+          code={`gemini mcp add --transport http midday ${mcpUrl}`}
+        />
       </div>
 
       <div className="space-y-2.5">
@@ -177,6 +186,7 @@ export function GeminiSetupInstructions() {
 }
 
 export function WindsurfSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -197,7 +207,7 @@ export function WindsurfSetupInstructions() {
           </SetupStep>
           <SetupStep number={2}>
             Add a new server with URL:
-            <CopyableUrl url="https://api.midday.ai/mcp" />
+            <CopyableUrl url={mcpUrl} />
           </SetupStep>
           <SetupStep number={3}>
             When prompted, sign in to Midday in your browser and select a team
@@ -209,6 +219,7 @@ export function WindsurfSetupInstructions() {
 }
 
 export function ClineSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -225,7 +236,7 @@ export function ClineSetupInstructions() {
           </SetupStep>
           <SetupStep number={2}>
             Add the server URL:
-            <CopyableUrl url="https://api.midday.ai/mcp" />
+            <CopyableUrl url={mcpUrl} />
           </SetupStep>
           <SetupStep number={3}>
             Click <span className="font-medium text-primary">Authenticate</span>{" "}
@@ -245,6 +256,7 @@ export function ClineSetupInstructions() {
 }
 
 export function ZedSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -265,7 +277,7 @@ export function ZedSetupInstructions() {
           </SetupStep>
           <SetupStep number={2}>
             Enter the URL:
-            <CopyableUrl url="https://api.midday.ai/mcp" />
+            <CopyableUrl url={mcpUrl} />
           </SetupStep>
           <SetupStep number={3}>
             When prompted, sign in to Midday in your browser and select a team
@@ -284,6 +296,7 @@ export function ZedSetupInstructions() {
 }
 
 export function ManusSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -300,7 +313,7 @@ export function ManusSetupInstructions() {
           </SetupStep>
           <SetupStep number={2}>
             Enter the server URL:
-            <CopyableUrl url="https://api.midday.ai/mcp" />
+            <CopyableUrl url={mcpUrl} />
           </SetupStep>
           <SetupStep number={3}>
             Authenticate with your Midday account when prompted
@@ -319,6 +332,7 @@ export function ManusSetupInstructions() {
 }
 
 export function ClaudeSetupInstructions() {
+  const mcpUrl = useMcpUrl();
   return (
     <div className="space-y-4">
       <p className="text-xs text-[#878787]">
@@ -341,7 +355,7 @@ export function ClaudeSetupInstructions() {
             <p className="text-xs text-[#878787]">
               Copy this URL and add it as a connector in Claude:
             </p>
-            <CopyableUrl url="https://api.midday.ai/mcp" />
+            <CopyableUrl url={mcpUrl} />
           </div>
 
           <div className="space-y-2.5">
@@ -374,7 +388,9 @@ export function ClaudeSetupInstructions() {
               Run this command to add the Midday MCP server. OAuth will be
               handled automatically in your browser:
             </p>
-            <CopyableCode code="claude mcp add --transport http midday https://api.midday.ai/mcp" />
+            <CopyableCode
+              code={`claude mcp add --transport http midday ${mcpUrl}`}
+            />
           </div>
 
           <div className="space-y-2.5">

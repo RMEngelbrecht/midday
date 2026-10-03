@@ -17,8 +17,6 @@ import {
 /*  Audio — real MP3 samples for notification & keyboard clicks        */
 /* ------------------------------------------------------------------ */
 
-const NOTIFICATION_MP3 = "https://cdn.midday.ai/notification.mp3";
-const KEYBOARD_MP3 = "https://cdn.midday.ai/keyboard.mp3";
 let audioCtx: AudioContext | null = null;
 let notificationBuffer: AudioBuffer | null = null;
 let keyboardBuffer: AudioBuffer | null = null;
@@ -84,21 +82,6 @@ function decodeBuffers() {
 }
 
 if (typeof window !== "undefined") {
-  fetch(NOTIFICATION_MP3)
-    .then((r) => r.arrayBuffer())
-    .then((arr) => {
-      rawNotificationData = arr;
-      decodeBuffers();
-    })
-    .catch(() => {});
-  fetch(KEYBOARD_MP3)
-    .then((r) => r.arrayBuffer())
-    .then((arr) => {
-      rawKeyboardData = arr;
-      decodeBuffers();
-    })
-    .catch(() => {});
-
   const onInteract = () => {
     hasUserInteracted = true;
     getOrCreateContext();
@@ -340,7 +323,7 @@ const SCENARIOS: Record<ChatDemoScenario, ScenarioConfig> = {
         attachment: {
           kind: "og",
           title: "Invoice #1043 | Linear",
-          domain: "app.midday.ai",
+          domain: "app.example.com",
           status: "Unpaid",
           website: "linear.app",
           invoiceNumber: "1043",
@@ -354,7 +337,7 @@ const SCENARIOS: Record<ChatDemoScenario, ScenarioConfig> = {
             "Midday Studios AB",
             "Regeringsgatan 25",
             "111 53 Stockholm",
-            "billing@midday.ai",
+            "billing@example.com",
             "+46 8 555 019 20",
           ],
           customerDetails: [
@@ -380,7 +363,7 @@ const SCENARIOS: Record<ChatDemoScenario, ScenarioConfig> = {
           title: "IMG_4821.HEIC",
           subtitle: "Hemköp receipt",
           amount: "SEK 1,018.35",
-          imageSrc: "https://cdn.midday.ai/chat-receipt-hemkop.png",
+          imageSrc: "/images/chat-receipt-hemkop.png",
         },
         delayAfterMs: 700,
       },
@@ -862,7 +845,7 @@ function buildGlobalBeats(): DemoBeat[] {
 function IOSKeyboard() {
   return (
     <img
-      src="https://cdn.midday.ai/ios-keyboard-dark-v1.svg"
+      src="/images/ios-keyboard-dark.svg"
       alt=""
       draggable={false}
       style={{ width: "100%", display: "block" }}
@@ -1278,7 +1261,7 @@ function HomeIndicator({ dark }: { dark?: boolean }) {
 /* ------------------------------------------------------------------ */
 
 const CLOCK_MAX_WIDTH = 390;
-const LOCK_SCREEN_WALLPAPER = "https://cdn.midday.ai/background-remote-v7.png";
+const LOCK_SCREEN_WALLPAPER = "/images/chat-lock-wallpaper.jpg";
 
 function LockScreenClock({ timeStr }: { timeStr: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -2382,7 +2365,7 @@ function SetupNotificationBanner({
 }) {
   return (
     <motion.a
-      href="https://app.midday.ai"
+      href="/"
       target="_blank"
       rel="noreferrer"
       initial={{ y: -88, opacity: 0, scale: 0.96, filter: "blur(10px)" }}
@@ -3327,7 +3310,7 @@ function MessageBubble({
 /*  iOS Camera viewfinder                                              */
 /* ------------------------------------------------------------------ */
 
-const RECEIPT_IMAGE_SRC = "https://cdn.midday.ai/reciept.jpg";
+const RECEIPT_IMAGE_SRC = "/images/chat-receipt-hemkop.png";
 
 const CAMERA_DRIFT_CSS = `
 @keyframes cameraDriftX {
