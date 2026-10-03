@@ -8,12 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "MIDDAY_ENV=development tauri dev --config src-tauri/tauri.dev.conf.json",
-    "tauri:staging": "MIDDAY_ENV=staging tauri dev --config src-tauri/tauri.staging.conf.json",
-    "tauri:prod": "MIDDAY_ENV=production tauri dev",
+    "tauri:dev": "tauri dev --config src-tauri/tauri.dev.conf.json",
     "tauri:build:dev": "tauri build --config src-tauri/tauri.dev.conf.json",
-    "tauri:build:staging": "tauri build --config src-tauri/tauri.staging.conf.json",
-    "tauri:build:prod": "tauri build"
+    "tauri:build": "tauri build",
+    "tauri:build:release": "node scripts/build-release.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",

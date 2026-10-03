@@ -9,13 +9,15 @@
       "csp": null,
       "dangerousDisableAssetCspModification": true,
       "freezePrototype": false,
-      "capabilities": ["default"]
+      "capabilities": [
+        "default"
+      ]
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "macOS": {
       "dmg": {
         "background": "./images/installer.png"
@@ -32,14 +34,16 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["midday"]
+        "schemes": [
+          "midday"
+        ]
       }
-    },
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkwNzNERjA3NzVBNDM3QkMKUldTOE42UjFCOTl6a0IrZW1EcEhhRHlUZ0Z2YW5sT0N4aVdQVE5aOEVTem9GTE1QRzJPM2JaUmMK",
-      "endpoints": ["https://api.midday.ai/desktop/update"],
-      "createUpdaterArtifacts": true,
-      "dangerousInsecureTransportProtocol": true
     }
+  },
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build"
   }
 }

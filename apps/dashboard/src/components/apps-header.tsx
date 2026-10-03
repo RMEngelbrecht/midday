@@ -1,12 +1,15 @@
 import { apps as allApps, getEnabledApps } from "@midday/app-store";
 import { connectorApps } from "@midday/connectors";
 import { getFeatures } from "@midday/features";
+import { ENV } from "@/env";
 import { AppsTabs } from "./apps-tabs";
 import { SearchField } from "./search-field";
 
 export function AppsHeader() {
   const { integrations } = getFeatures();
-  const officialApps = getEnabledApps(allApps, integrations);
+  const officialApps = getEnabledApps(allApps, integrations).filter(
+    (app) => app.id !== "midday-desktop" || ENV.DESKTOP_RELEASES_URL,
+  );
   const connectors = integrations.composio
     ? connectorApps.filter((c) => c.active)
     : [];

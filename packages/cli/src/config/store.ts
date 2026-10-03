@@ -14,6 +14,7 @@ interface Credentials {
 
 interface Config {
   apiUrl?: string;
+  appUrl?: string;
   defaultFormat?: "json" | "table";
 }
 

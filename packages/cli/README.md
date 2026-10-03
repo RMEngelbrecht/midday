@@ -17,6 +17,7 @@ npm install -g @midday-ai/cli
 ## Authentication
 
 ```bash
+midday auth login --server https://midday.example.com  # Point the CLI at your self-hosted server (once)
 midday auth login          # Opens browser for OAuth
 midday auth login --no-browser  # Prints URL to open manually
 midday auth status         # Check current session
@@ -28,6 +29,20 @@ You can also authenticate with an API key:
 ```bash
 echo $MIDDAY_API_KEY | midday auth login --token-stdin
 ```
+
+### Self-hosted server
+
+`--server` takes your dashboard URL (`APP_URL`). The CLI fetches
+`<url>/api/instance`, learns the API URL from it and stores both in
+`~/.config/midday/config.json` (`apiUrl`, `appUrl`), so later commands need no flags.
+Environment variables override the file for a single invocation:
+
+| Variable | Overrides |
+|----------|-----------|
+| `MIDDAY_API_URL` | `apiUrl` |
+| `MIDDAY_DASHBOARD_URL` | `appUrl` (used for the browser OAuth page) |
+
+Without either, the CLI talks to `http://localhost:3003`.
 
 ## Commands
 
@@ -218,7 +233,7 @@ echo $API_KEY | midday auth login --token-stdin
 | Variable | Description |
 |----------|-------------|
 | `MIDDAY_API_KEY` | API key (skip `auth login`) |
-| `MIDDAY_API_URL` | Override API endpoint |
+| `MIDDAY_API_URL` | Override API endpoint (default: `apiUrl` from config.json) |
 | `MIDDAY_DASHBOARD_URL` | Override dashboard URL for OAuth |
 | `NO_COLOR` | Disable colored output |
 

@@ -18,6 +18,8 @@ export type PublicConfig = {
   /** Support contact for error pages; null hides it. */
   supportEmail: string | null;
   desktopScheme: string;
+  /** Fork releases page for the desktop app; null hides the app-store card. */
+  desktopDownloadUrl: string | null;
   sentry: { dsn: string; environment: string; release?: string } | null;
   openpanelClientId: string | null;
   /** logo.dev publishable token; logos fall back to initials when null. */

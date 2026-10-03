@@ -20,6 +20,7 @@ export function getPublicConfig(): PublicConfig {
         : null,
     supportEmail: ENV.SUPPORT_EMAIL || null,
     desktopScheme: ENV.DESKTOP_SCHEME,
+    desktopDownloadUrl: ENV.DESKTOP_RELEASES_URL || null,
     sentry: ENV.SENTRY_DSN
       ? {
           dsn: ENV.SENTRY_DSN,

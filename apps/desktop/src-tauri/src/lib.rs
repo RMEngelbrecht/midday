@@ -1,6 +1,7 @@
+mod server;
+
 use serde_json;
-use std::env;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use tauri::{
     Emitter, Listener, Manager, PhysicalPosition, Position, TitleBarStyle, WebviewUrl,
     WebviewWindowBuilder,
@@ -16,6 +17,85 @@ use image;
 
 // Global state for search window availability
 type SearchWindowState = Arc<Mutex<bool>>;
+
+/// The self-hosted server the app is connected to (None until first-run setup
+/// completes). Read by the navigation handler and the search window.
+#[derive(Default)]
+struct ServerState(RwLock<Option<server::ServerConfig>>);
+
+/// Static local capability; the remote one is derived from it at runtime.
+const BASE_CAPABILITY: &str = include_str!("../capabilities/default.json");
+
+fn current_server(app: &tauri::AppHandle) -> Option<server::ServerConfig> {
+    app.state::<ServerState>().0.read().unwrap().clone()
+}
+
+/// Grant IPC to the configured origins and remember them. Must run before a
+/// webview navigates to the server.
+fn apply_server(app: &tauri::AppHandle, config: &server::ServerConfig) -> Result<(), String> {
+    let capability = server::remote_capability(BASE_CAPABILITY, config)?;
+    app.add_capability(capability.to_string())
+        .map_err(|e| e.to_string())?;
+    *app.state::<ServerState>().0.write().unwrap() = Some(config.clone());
+    Ok(())
+}
+
+fn config_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    app.path().app_config_dir().map_err(|e| e.to_string())
+}
+
+/// First-run / change-server: validate the entered dashboard URL against its
+/// `/api/instance` endpoint, persist it, and load it in the main window.
+#[tauri::command]
+async fn connect_server(app: tauri::AppHandle, url: String) -> Result<server::ServerConfig, String> {
+    let config = server::discover(&url).await?;
+    server::save_config(&config_dir(&app)?, &config)?;
+    apply_server(&app, &config)?;
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "Main window not found".to_string())?;
+    window
+        .navigate(tauri::Url::parse(&config.app_url).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+    Ok(config)
+}
+
+/// Saved server, used to prefill the setup screen.
+#[tauri::command]
+fn get_server_config(app: tauri::AppHandle) -> Option<server::ServerConfig> {
+    server::load_config(&config_dir(&app).ok()?)
+}
+
+/// Leave the setup screen without changing anything.
+#[tauri::command]
+fn cancel_setup(app: tauri::AppHandle) -> Result<(), String> {
+    let config = current_server(&app).ok_or_else(|| "No server configured".to_string())?;
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "Main window not found".to_string())?;
+    window
+        .navigate(tauri::Url::parse(&config.app_url).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())
+}
+
+/// The updater is only wired up when the build config has `plugins.updater`
+/// (see scripts/build-release.mjs). Without it there is no update feed.
+fn updater_enabled(app: &tauri::AppHandle) -> bool {
+    app.config().plugins.0.contains_key("updater")
+}
+
+/// Deep-link schemes this build was configured with (tauri.conf.json).
+fn deep_link_schemes(app: &tauri::AppHandle) -> Vec<String> {
+    app.config()
+        .plugins
+        .0
+        .get("deep-link")
+        .and_then(|v| v.get("desktop"))
+        .and_then(|v| v.get("schemes"))
+        .and_then(|v| v.as_array())
+        .map(|a| a.iter().filter_map(|s| s.as_str().map(String::from)).collect())
+        .unwrap_or_default()
+}
 
 #[tauri::command]
 fn show_window(window: tauri::Window) -> Result<(), String> {
@@ -92,6 +172,15 @@ async fn check_for_updates(app: tauri::AppHandle) -> Result<(), String> {
     
     #[cfg(desktop)]
     {
+        if !updater_enabled(&app) {
+            app.dialog()
+                .message("This build has no update feed configured.")
+                .title("Updates Not Available")
+                .kind(MessageDialogKind::Info)
+                .buttons(MessageDialogButtons::Ok)
+                .blocking_show();
+            return Ok(());
+        }
         if let Ok(updater) = app.updater() {
             match updater.check().await {
                 Ok(Some(update)) => {
@@ -187,7 +276,10 @@ fn toggle_search_window(
     } else {
         println!("🔍 Search window doesn't exist, creating it now...");
         // Create search window on-demand
-        let app_url = get_app_url();
+        let Some(server) = current_server(app) else {
+            return Ok(());
+        };
+        let app_url = server.app_url;
         let app_clone = app.clone();
 
         // Use blocking approach for shortcut/tray handlers to ensure window is created
@@ -332,62 +424,12 @@ async fn create_preloaded_search_window(
     Ok(())
 }
 
-fn get_app_url() -> String {
-    // Try runtime environment variable first, then fall back to compile-time
-    let env = env::var("MIDDAY_ENV")
-        .unwrap_or_else(|_| {
-            option_env!("MIDDAY_ENV")
-                .unwrap_or("development")
-                .to_string()
-        });
-
-    println!("🌍 Environment detected: {}", env);
-
-    match env.as_str() {
-        "development" | "dev" => {
-            let url = "http://localhost:3001".to_string();
-            println!("🌍 Using development URL: {}", url);
-            url
-        },
-        "staging" => {
-            let url = "https://beta.midday.ai".to_string();
-            println!("🌍 Using staging URL: {}", url);
-            url
-        },
-        "production" | "prod" => {
-            let url = "https://app.midday.ai".to_string();
-            println!("🌍 Using production URL: {}", url);
-            url
-        },
-        _ => {
-            eprintln!("Unknown environment: {}, defaulting to development", env);
-            let url = "http://localhost:3001".to_string();
-            println!("🌍 Using fallback development URL: {}", url);
-            url
-        }
-    }
-}
-
-fn is_external_url(url: &str, app_url: &str) -> bool {
-    // Parse both URLs to compare domains
-    if let (Ok(target_url), Ok(base_url)) = (tauri::Url::parse(url), tauri::Url::parse(app_url)) {
-        // Check if schemes are http/https
-        let is_http_scheme = target_url.scheme() == "http" || target_url.scheme() == "https";
-
-        // Check if it's a different domain/host
-        let is_different_host = target_url.host() != base_url.host();
-
-        return is_http_scheme && is_different_host;
-    }
-    false
-}
-
 fn handle_deep_link_event(app_handle: &tauri::AppHandle, urls: Vec<String>) {
     for url in &urls {
-        // Only handle midday schemes (midday://, midday-dev://, midday-staging://)
+        // Only handle the scheme this build registered (tauri.conf.json)
         if let Some(idx) = url.find("://") {
             let scheme = &url[..idx];
-            if !scheme.contains("midday") {
+            if !deep_link_schemes(app_handle).iter().any(|s| s == scheme) {
                 continue;
             }
             let path = &url[idx + 3..];
@@ -410,24 +452,36 @@ fn handle_deep_link_event(app_handle: &tauri::AppHandle, urls: Vec<String>) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let app_url = get_app_url();
-
     tauri::Builder::default()
+        .manage(ServerState::default())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_upload::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![show_window, check_for_updates])
+        .invoke_handler(tauri::generate_handler![show_window, check_for_updates, connect_server, get_server_config, cancel_setup])
         .setup(move |app| {
-            // Add updater plugin conditionally for desktop
+            // Resolve the configured server (or first-run setup) before any window exists.
+            let cfg_dir = app.path().app_config_dir()?;
+            let change_requested = server::take_change_request(&cfg_dir);
+            let saved_config = server::load_config(&cfg_dir);
+            if let Some(config) = &saved_config {
+                apply_server(app.handle(), config)?;
+            }
+            let start = server::resolve_start(saved_config.as_ref(), change_requested);
+
+            // The updater is opt-in: only registered when the build config carries
+            // `plugins.updater` (a fork release feed), never by default.
+            let updater_enabled = updater_enabled(app.handle());
             #[cfg(desktop)]
-            app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
+            if updater_enabled {
+                app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
+            }
 
             // Check for updates on startup (after a short delay) and every 4 hours
             #[cfg(desktop)]
-            {
+            if updater_enabled {
                 let app_handle_for_updates = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
                     // Wait 5 seconds after startup before first check
@@ -446,7 +500,6 @@ pub fn run() {
                 });
             }
 
-            let app_url_clone = app_url.clone();
             let app_handle = app.handle().clone();
 
             // Create shared search window state
@@ -523,11 +576,20 @@ pub fn run() {
                 handle_deep_link_event(&app_handle_for_deep_links, url_strings);
             });
 
-            let win_builder = WebviewWindowBuilder::new(
-                app,
-                "main",
-                WebviewUrl::External(tauri::Url::parse(&app_url).unwrap()),
-            )
+            let main_url = match &start {
+                server::StartTarget::Server(url) => {
+                    WebviewUrl::External(tauri::Url::parse(url)?)
+                }
+                server::StartTarget::Setup => WebviewUrl::App("index.html".into()),
+            };
+            let dev_origin = app
+                .config()
+                .build
+                .dev_url
+                .as_ref()
+                .map(|u| u.origin().ascii_serialization());
+
+            let win_builder = WebviewWindowBuilder::new(app, "main", main_url)
             .title("Midday")
             .inner_size(1450.0, 910.0)
             .min_inner_size(1450.0, 910.0)
@@ -547,8 +609,13 @@ pub fn run() {
             .on_navigation(move |url| {
                 let url_str = url.as_str();
 
-                // Check if this is an external URL
-                if is_external_url(url_str, &app_url_clone) {
+                // Anything outside the configured dashboard/API origins (and the
+                // local setup page) opens in the system browser instead.
+                let mut allowed = current_server(&app_handle_for_navigation)
+                    .map(|c| server::allowed_origins(&c))
+                    .unwrap_or_default();
+                allowed.extend(dev_origin.clone());
+                if server::is_external_url(url_str, &allowed) {
                     // Clone the URL string to avoid lifetime issues
                     let url_string = url_str.to_string();
                     let app_handle_clone = app_handle_for_navigation.clone();
@@ -620,7 +687,25 @@ pub fn run() {
 
             // Set the default app menu to restore the Midday menu
             let app_menu = Menu::default(app.handle())?;
+            // "Change Server..." lives in the first (application) submenu.
+            if let Some(submenu) = app_menu
+                .items()?
+                .iter()
+                .find_map(|item| item.as_submenu().cloned())
+            {
+                let item = MenuItem::with_id(app, "change_server", "Change Server...", true, None::<&str>)?;
+                submenu.insert(&item, 1)?;
+            }
             app.set_menu(app_menu)?;
+            app.on_menu_event(|app, event| {
+                if event.id == "change_server" {
+                    if let Ok(dir) = config_dir(app) {
+                        if server::request_change(&dir).is_ok() {
+                            app.restart();
+                        }
+                    }
+                }
+            });
 
             // Setup simple system tray for search toggle only
             // Load custom tray icon
@@ -633,8 +718,12 @@ pub fn run() {
             };
 
             // Create tray menu
-            let check_updates_item = MenuItem::with_id(app, "check_updates", "Check for Updates...", true, None::<&str>)?;
-            let tray_menu = Menu::with_items(app, &[&check_updates_item])?;
+            let change_server_item = MenuItem::with_id(app, "change_server", "Change Server...", true, None::<&str>)?;
+            let tray_menu = Menu::with_items(app, &[&change_server_item])?;
+            if updater_enabled {
+                let check_updates_item = MenuItem::with_id(app, "check_updates", "Check for Updates...", true, None::<&str>)?;
+                tray_menu.append(&check_updates_item)?;
+            }
 
             let _tray = TrayIconBuilder::new()
                 .icon(tray_icon)

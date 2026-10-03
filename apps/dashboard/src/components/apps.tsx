@@ -25,8 +25,11 @@ export function Apps() {
   const queryClient = useQueryClient();
   const { data: user } = useUserQuery();
   const router = useRouter();
-  const { features, apiUrl } = usePublicConfig();
-  const appStoreApps = getEnabledApps(allAppStoreApps, features.integrations);
+  const { features, apiUrl, desktopDownloadUrl } = usePublicConfig();
+  const appStoreApps = getEnabledApps(
+    allAppStoreApps,
+    features.integrations,
+  ).filter((app) => app.id !== "midday-desktop" || desktopDownloadUrl);
 
   // Global listener for OAuth completion messages
   useEffect(() => {
@@ -144,9 +147,11 @@ export function Apps() {
       inboxAccountId: inboxAccount?.id,
       // Include installUrl for apps with external download pages
       installUrl:
-        "installUrl" in app && typeof app.installUrl === "string"
-          ? app.installUrl
-          : undefined,
+        app.id === "midday-desktop"
+          ? (desktopDownloadUrl ?? undefined)
+          : "installUrl" in app && typeof app.installUrl === "string"
+            ? app.installUrl
+            : undefined,
     };
   });
 

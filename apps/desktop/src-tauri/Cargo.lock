@@ -7,6 +7,7 @@ name = "Midday"
 version = "0.5.0"
 dependencies = [
  "image",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "tauri",

@@ -1,3 +1,5 @@
+import { getConfig } from "../config/store.js";
+
 export function isTTY(): boolean {
   return Boolean(process.stdout.isTTY);
 }
@@ -33,13 +35,21 @@ export function shouldShowUI(flags: {
   return true;
 }
 
+/** Resolution order: environment variable, then `~/.config/midday/config.json`
+ * (written by `midday auth login --server`), then a local development default. */
 export function getApiUrl(): string {
-  return process.env.MIDDAY_API_URL || "http://localhost:3003";
+  return (
+    process.env.MIDDAY_API_URL || getConfig().apiUrl || "http://localhost:3003"
+  );
 }
 
 export function getDashboardUrl(): string {
   if (process.env.MIDDAY_DASHBOARD_URL) {
     return process.env.MIDDAY_DASHBOARD_URL;
+  }
+  const configured = getConfig().appUrl;
+  if (configured && !process.env.MIDDAY_API_URL) {
+    return configured;
   }
   const apiUrl = getApiUrl();
   if (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {

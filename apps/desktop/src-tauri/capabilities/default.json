@@ -1,8 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default capabilities for Midday desktop app including download support",
-  "windows": ["main", "search"],
+  "description": "Local (setup screen) capabilities for the Midday desktop app. The configured server origins get the same permissions through a runtime capability (see src/server.rs).",
+  "windows": [
+    "main",
+    "search"
+  ],
   "permissions": [
     "core:default",
     "core:webview:default",
@@ -40,12 +43,7 @@
     "fs:allow-truncate",
     "fs:scope"
   ],
-  "remote": {
-    "urls": [
-      "http://localhost:3001/**",
-      "https://beta.midday.ai/**",
-      "https://app.midday.ai/**"
-    ]
-  },
-  "platforms": ["macOS"]
+  "platforms": [
+    "macOS"
+  ]
 }
