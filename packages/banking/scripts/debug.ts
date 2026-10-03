@@ -20,12 +20,12 @@ import {
   transactions as transactionsTable,
 } from "@midday/db/schema";
 import { setLogLevel } from "@midday/logger";
+import { and, desc, eq } from "drizzle-orm";
 import {
   type ApiAccount,
   type DbAccount,
   findMatchingAccount,
-} from "@midday/supabase/account-matching";
-import { and, desc, eq } from "drizzle-orm";
+} from "../../../apps/worker/src/utils/account-matching";
 import { Provider } from "../src/index";
 import { EnableBankingApi } from "../src/providers/enablebanking/enablebanking-api";
 import {

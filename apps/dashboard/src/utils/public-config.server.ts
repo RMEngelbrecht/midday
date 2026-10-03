@@ -19,13 +19,6 @@ export function getPublicConfig(): PublicConfig {
           }
         : null,
     desktopScheme: ENV.DESKTOP_SCHEME,
-    supabase:
-      ENV.SUPABASE_URL && ENV.SUPABASE_PUBLISHABLE_KEY
-        ? {
-            url: ENV.SUPABASE_URL,
-            publishableKey: ENV.SUPABASE_PUBLISHABLE_KEY,
-          }
-        : null,
     sentry: ENV.SENTRY_DSN
       ? {
           dsn: ENV.SENTRY_DSN,

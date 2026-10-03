@@ -34,7 +34,6 @@
     "@midday/invoice": "workspace:*",
     "@midday/location": "workspace:*",
     "@midday/mcp-apps": "workspace:*",
-    "@midday/supabase": "workspace:*",
     "@midday/trpc": "workspace:*",
     "@midday/ui": "workspace:*",
     "@midday/utils": "workspace:*",

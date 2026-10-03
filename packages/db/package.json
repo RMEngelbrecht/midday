@@ -39,6 +39,7 @@
     "./utils/tax": "./src/utils/tax.ts",
     "./utils/blocklist": "./src/utils/blocklist.ts",
     "./utils/invoice-recurring": "./src/utils/invoice-recurring.ts",
+    "./listen": "./src/listen.ts",
     "./migrate": "./src/migrate.ts",
     "./vault": "./src/vault.ts"
   },

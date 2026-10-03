@@ -55,3 +55,12 @@ export async function getTeamsByUserId(db: Database, userId: string) {
     logoUrl: row?.team?.logoUrl,
   }));
 }
+
+export async function getTeamIdsByUserId(db: Database, userId: string) {
+  const rows = await db
+    .select({ teamId: usersOnTeam.teamId })
+    .from(usersOnTeam)
+    .where(eq(usersOnTeam.userId, userId));
+
+  return rows.map((row) => row.teamId);
+}

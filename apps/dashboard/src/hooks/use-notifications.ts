@@ -70,8 +70,8 @@ export function useNotifications() {
     filter: `user_id=eq.${user?.id}`,
     onEvent: (payload) => {
       // Only handle new notifications (priority <= 3), not archived updates
-      const newRecord = payload?.new as any; // Supabase payload type
-      if (newRecord?.priority && newRecord.priority <= 3) {
+      const { priority } = payload.new;
+      if (priority && priority <= 3) {
         // Invalidate both inbox and archived queries
         queryClient.invalidateQueries({
           queryKey: trpc.notifications.list.queryKey(),

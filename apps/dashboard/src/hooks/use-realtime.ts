@@ -1,117 +1,76 @@
 "use client";
 
-import { createClient } from "@midday/supabase/client";
-import type { Database } from "@midday/supabase/types";
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
 import { useEffect, useRef } from "react";
+import { usePublicConfig } from "@/components/public-config-provider";
+import {
+  type ChangeType,
+  getRealtime,
+  matchesFilter,
+  type RealtimeRows,
+  type RealtimeTable,
+} from "@/lib/realtime";
 
-type PublicSchema = Database[Extract<keyof Database, "public">];
-type Tables = PublicSchema["Tables"];
-type TableName = keyof Tables;
-
-type EventType = "INSERT" | "UPDATE" | "DELETE";
-
-interface UseRealtimeProps<TN extends TableName> {
-  channelName: string;
-  /** Specific events to listen for. Defaults to ["INSERT", "UPDATE"]. Don't use "*" - it causes issues with Supabase. */
-  events?: EventType[];
+export type RealtimePayload<TN extends RealtimeTable> = {
+  eventType: ChangeType;
   table: TN;
+  /** The trigger's columns for this table; `{}` on DELETE. */
+  new: Partial<RealtimeRows[TN]>;
+  /** Same columns before the change; `{}` on INSERT. */
+  old: Partial<RealtimeRows[TN]>;
+};
+
+interface UseRealtimeProps<TN extends RealtimeTable> {
+  /** Kept for call-site readability; all subscriptions share one stream. */
+  channelName: string;
+  /** Specific events to listen for. Defaults to ["INSERT", "UPDATE"]. */
+  events?: ChangeType[];
+  table: TN;
+  /** `column=eq.value`; nothing is subscribed until it is set. */
   filter?: string;
-  onEvent: (payload: RealtimePostgresChangesPayload<Tables[TN]["Row"]>) => void;
-}
-
-// Singleton supabase client for realtime - avoids creating multiple instances
-let supabaseClient: ReturnType<typeof createClient> | null = null;
-
-function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createClient();
-  }
-  return supabaseClient;
+  onEvent: (payload: RealtimePayload<TN>) => void;
 }
 
 /**
- * Hook for subscribing to Supabase Realtime postgres changes.
- *
- * IMPORTANT:
- * - Use specific events (INSERT, UPDATE, DELETE), not "*"
- * - Place in components that don't re-render frequently, or use at a parent level
- * - If changing RLS policies, may need to use a new channel name to avoid stale state
+ * Subscribes to row changes pushed by the API (`API_URL/realtime`). Payloads
+ * carry ids and a few status columns only (see RealtimeRows); refetch the
+ * relevant query for anything else. The server already limits events to
+ * the user's teams; `filter` narrows them further.
  */
-export function useRealtime<TN extends TableName>({
-  channelName,
+export function useRealtime<TN extends RealtimeTable>({
   events = ["INSERT", "UPDATE"],
   table,
   filter,
   onEvent,
 }: UseRealtimeProps<TN>) {
+  const { apiUrl } = usePublicConfig();
   const onEventRef = useRef(onEvent);
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const eventsRef = useRef(events);
 
-  // Update the ref when onEvent changes (avoids re-subscription)
   useEffect(() => {
     onEventRef.current = onEvent;
-  }, [onEvent]);
+    eventsRef.current = events;
+  });
 
   useEffect(() => {
     if (!filter) {
       return;
     }
 
-    const supabase = getSupabaseClient();
-
-    // Unique suffix avoids reusing an already-subscribed channel when React
-    // Strict Mode (or a dependency change) re-runs this effect before the
-    // previous removeChannel() has fully completed.
-    const id = Math.random().toString(36).slice(2, 8);
-    const channel = supabase.channel(`${channelName}:${id}`);
-    channelRef.current = channel;
-
-    if (events.includes("INSERT")) {
-      channel.on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table, filter },
-        (payload) =>
-          onEventRef.current(
-            payload as RealtimePostgresChangesPayload<Tables[TN]["Row"]>,
-          ),
-      );
-    }
-    if (events.includes("UPDATE")) {
-      channel.on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table, filter },
-        (payload) =>
-          onEventRef.current(
-            payload as RealtimePostgresChangesPayload<Tables[TN]["Row"]>,
-          ),
-      );
-    }
-    if (events.includes("DELETE")) {
-      channel.on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table, filter },
-        (payload) =>
-          onEventRef.current(
-            payload as RealtimePostgresChangesPayload<Tables[TN]["Row"]>,
-          ),
-      );
-    }
-
-    channel.subscribe((status, err) => {
-      if (status === "CHANNEL_ERROR") {
-        console.error(`[Realtime] Channel error for ${channelName}:`, err);
-      } else if (status === "TIMED_OUT") {
-        console.warn(`[Realtime] Subscription timed out for ${channelName}`);
+    return getRealtime(apiUrl).subscribe((event) => {
+      if (
+        event.table !== table ||
+        !eventsRef.current.includes(event.type) ||
+        !matchesFilter(event, filter)
+      ) {
+        return;
       }
-    });
 
-    return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
-    };
-  }, [channelName, table, filter]);
+      onEventRef.current({
+        eventType: event.type,
+        table,
+        new: event.new as Partial<RealtimeRows[TN]>,
+        old: event.old as Partial<RealtimeRows[TN]>,
+      });
+    });
+  }, [apiUrl, table, filter]);
 }

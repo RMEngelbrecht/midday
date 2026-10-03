@@ -1,6 +1,5 @@
 "use client";
 
-import { configureSupabaseClient } from "@midday/supabase/client";
 import * as Sentry from "@sentry/nextjs";
 import { createContext, type ReactNode, useContext } from "react";
 import type { PublicConfig } from "@/utils/public-config";
@@ -15,10 +14,6 @@ let sentryInitialized = false;
 function applyConfig(config: PublicConfig) {
   if (currentConfig === config) return;
   currentConfig = config;
-
-  if (config.supabase) {
-    configureSupabaseClient(config.supabase);
-  }
 
   if (typeof window !== "undefined" && config.sentry && !sentryInitialized) {
     sentryInitialized = true;

@@ -21,8 +21,7 @@
     "paths": {
       "@worker/*": ["./src/*"],
       "@api/*": ["../../apps/api/src/*"],
-      "@documents/*": ["../../packages/documents/src/*"],
-      "@supabase/*": ["../../packages/supabase/src/*"]
+      "@documents/*": ["../../packages/documents/src/*"]
     },
     "types": ["bun"]
   },

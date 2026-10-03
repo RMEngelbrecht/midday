@@ -316,7 +316,7 @@ issues new account identifiers. The `reconnect-connection` job
 2. Matching them to existing DB accounts via `findMatchingAccount`
 3. Updating `account_id`, `account_reference`, and `iban` on matched rows
 
-The matching algorithm (`packages/supabase/src/utils/account-matching.ts`) uses a
+The matching algorithm (`apps/worker/src/utils/account-matching.ts`) uses a
 **tiered strategy**:
 
 1. **resource_id / account_reference** — the identifier we already track, most direct match
