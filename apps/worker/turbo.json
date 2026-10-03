@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "typecheck": { "dependsOn": ["workbench#build"] },
+    "dev": { "dependsOn": ["workbench#build"] },
+    "start": { "dependsOn": ["workbench#build"] }
+  }
+}
