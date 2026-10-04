@@ -9,21 +9,66 @@ export type SignupPolicy = "first-user" | "invite-only" | "open";
  * Whether a new account may be created.
  *
  * - open: anyone
- * - first-user: the very first account, then only invited emails
- * - invite-only: only emails with a pending team invite
+ * - first-user: the very first account, then invited or allowlisted emails
+ * - invite-only: only invited (team or instance invite) or allowlisted emails
  */
 export function canSignUp(
   policy: SignupPolicy,
-  state: { userCount: number; hasPendingInvite: boolean },
+  state: {
+    userCount: number;
+    hasPendingInvite: boolean;
+    isAllowlisted: boolean;
+  },
 ): boolean {
+  if (state.hasPendingInvite || state.isAllowlisted) return true;
   switch (policy) {
     case "open":
       return true;
     case "first-user":
-      return state.userCount === 0 || state.hasPendingInvite;
+      return state.userCount === 0;
     case "invite-only":
-      return state.hasPendingInvite;
+      return false;
   }
+}
+
+/**
+ * Parses SIGNUP_ALLOWED_EMAILS / ADMIN_EMAILS: comma-separated exact
+ * addresses and `@domain` entries, trimmed and lowercased.
+ */
+export function parseEmailList(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
+ * Whether `email` is in a parsed list. `@example.com` matches any address at
+ * exactly that domain; subdomains need their own entry.
+ */
+export function matchesAllowlist(email: string, list: string[]): boolean {
+  const address = email.trim().toLowerCase();
+  const domain = address.slice(address.lastIndexOf("@"));
+  return list.some((entry) =>
+    entry.startsWith("@") ? entry === domain : entry === address,
+  );
+}
+
+/**
+ * Instance admins: the first account ever created, plus ADMIN_EMAILS. Derived
+ * on every check (no stored role), so editing ADMIN_EMAILS takes effect on
+ * restart and there is nothing to migrate or get out of sync.
+ */
+export function isInstanceAdmin(params: {
+  userId: string;
+  email: string;
+  firstUserId: string | undefined;
+  adminEmails: string[];
+}): boolean {
+  return (
+    params.userId === params.firstUserId ||
+    matchesAllowlist(params.email, params.adminEmails)
+  );
 }
 
 function isIpOrLocal(hostname: string) {

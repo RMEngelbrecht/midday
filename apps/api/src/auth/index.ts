@@ -1,6 +1,10 @@
 import { ENV } from "@api/env";
 import { authSchema, authUser } from "@midday/db/auth-schema";
 import { db } from "@midday/db/client";
+import {
+  deleteInstanceInviteByEmail,
+  hasInstanceInvite,
+} from "@midday/db/queries";
 import { userInvites } from "@midday/db/schema";
 import { triggerJob } from "@midday/job-client";
 import { logger } from "@midday/logger";
@@ -16,11 +20,13 @@ import {
   twoFactor,
 } from "better-auth/plugins";
 import { count, sql } from "drizzle-orm";
+import { signupAllowlist } from "./instance-admin";
 import { mfaGate } from "./mfa-gate";
 import {
   canSignUp,
   cookieSharingProblem,
   deriveCookieDomain,
+  matchesAllowlist,
   type SignupPolicy,
   socialProvidersFromEnv,
 } from "./policy";
@@ -52,27 +58,33 @@ const trustedOrigins = [
   ...(socialProviders.apple ? ["https://appleid.apple.com"] : []),
 ];
 
+/**
+ * Gates every account creation: better-auth runs the user create hooks for
+ * email + password sign-up, email OTP and social (OAuth) sign-in alike.
+ */
 async function assertSignupAllowed(email: string) {
   const policy = ENV.ALLOW_SIGNUP as SignupPolicy;
   if (policy === "open") return;
 
-  const [[users], [invites]] = await Promise.all([
+  const [[users], [teamInvites], instanceInvite] = await Promise.all([
     db.select({ value: count() }).from(authUser),
     db
       .select({ value: count() })
       .from(userInvites)
       .where(sql`lower(${userInvites.email}) = lower(${email})`),
+    hasInstanceInvite(db, email),
   ]);
 
   const allowed = canSignUp(policy, {
     userCount: users?.value ?? 0,
-    hasPendingInvite: (invites?.value ?? 0) > 0,
+    hasPendingInvite: (teamInvites?.value ?? 0) > 0 || instanceInvite,
+    isAllowlisted: matchesAllowlist(email, signupAllowlist),
   });
 
   if (!allowed) {
     throw new APIError("FORBIDDEN", {
       code: "SIGNUP_DISABLED",
-      message: "Sign-up is by invitation only. Ask a team admin to invite you.",
+      message: "Sign-up is by invitation only. Ask an admin to invite you.",
     });
   }
 }
@@ -124,6 +136,14 @@ export const auth = betterAuth({
         },
         after: async (user) => {
           // public.users is inserted by the on_auth_user_created trigger.
+          try {
+            await deleteInstanceInviteByEmail(db, user.email);
+          } catch (error) {
+            logger.error("Failed to consume instance invite", {
+              userId: user.id,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
           try {
             // The onboard-team processor applies its own delay.
             await triggerJob("onboard-team", { userId: user.id }, "teams");

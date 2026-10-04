@@ -19,6 +19,7 @@ export * from "./inbox-blocklist";
 export * from "./inbox-matching";
 export * from "./insights";
 
+export * from "./instance-invites";
 export * from "./institutions";
 export * from "./invoice-products";
 export * from "./invoice-recurring";

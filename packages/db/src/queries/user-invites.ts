@@ -64,7 +64,7 @@ export async function acceptTeamInvite(
   await db.insert(usersOnTeam).values({
     userId: params.userId,
     role: inviteData.role,
-    teamId: inviteData.teamId!,
+    teamId: inviteData.teamId,
   });
 
   // Delete the invite

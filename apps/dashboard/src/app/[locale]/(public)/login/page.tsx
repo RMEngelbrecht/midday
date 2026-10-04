@@ -22,9 +22,17 @@ const PROVIDER_ORDER: OAuthProvider[] = [
   "github",
 ];
 
-export default async function Page() {
+type Props = {
+  searchParams: Promise<{ email?: string }>;
+};
+
+export default async function Page({ searchParams }: Props) {
   const cookieStore = await cookies();
-  const preferred = cookieStore.get(Cookies.PreferredSignInProvider)?.value;
+  // Invite links (`/login?email=`) lead with the email + password sign-up.
+  const { email: invitedEmail } = await searchParams;
+  const preferred = invitedEmail
+    ? undefined
+    : cookieStore.get(Cookies.PreferredSignInProvider)?.value;
 
   // Only providers configured on the API (AUTH_<PROVIDER>_CLIENT_ID/SECRET).
   const { auth } = getFeatures();

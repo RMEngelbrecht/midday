@@ -15,6 +15,7 @@ import { documentsRouter } from "./documents";
 
 import { inboxRouter } from "./inbox";
 import { inboxAccountsRouter } from "./inbox-accounts";
+import { instanceRouter } from "./instance";
 
 import { institutionsRouter } from "./institutions";
 import { invoiceRouter } from "./invoice";
@@ -58,6 +59,7 @@ export const appRouter = createTRPCRouter({
 
   inbox: inboxRouter,
   inboxAccounts: inboxAccountsRouter,
+  instance: instanceRouter,
 
   institutions: institutionsRouter,
   invoice: invoiceRouter,

@@ -146,7 +146,25 @@ Secret used to sign sessions, cookies and encrypt 2FA secrets. Generate with `op
 
 type `enum(first-user, invite-only, open)` · default `first-user`
 
-Who may create an account: - first-user: the first account can sign up, then only invited emails - invite-only: only emails with a pending team invite - open: anyone
+Who may create an account: - first-user: the first account can sign up, then only invited or
+
+```
+  allowlisted emails
+```
+
+- invite-only: only invited (team or instance invite) or allowlisted emails - open: anyone
+
+### `SIGNUP_ALLOWED_EMAILS`
+
+e.g. `@example.com, jane@other.org`
+
+Emails that may always sign up, whatever ALLOW_SIGNUP says. Comma-separated exact addresses and/or `@domain` entries (`@example.com` matches anyone@example.com, not sub.example.com). Case-insensitive.
+
+### `ADMIN_EMAILS`
+
+e.g. `ops@example.com`
+
+Instance admins, besides the first account ever created. Same format as SIGNUP_ALLOWED_EMAILS, and these emails may always sign up. Admins can send instance invites (Settings > Instance): invitees sign up and create their own team.
 
 ### `AUTH_COOKIE_DOMAIN`
 

@@ -3,27 +3,134 @@ import {
   canSignUp,
   cookieSharingProblem,
   deriveCookieDomain,
+  isInstanceAdmin,
+  matchesAllowlist,
+  parseEmailList,
   socialProvidersFromEnv,
 } from "./policy";
 
 describe("canSignUp", () => {
-  const empty = { userCount: 0, hasPendingInvite: false };
-  const taken = { userCount: 1, hasPendingInvite: false };
-  const invited = { userCount: 3, hasPendingInvite: true };
+  const none = { hasPendingInvite: false, isAllowlisted: false };
+  const empty = { userCount: 0, ...none };
+  const taken = { userCount: 1, ...none };
+  const invited = {
+    userCount: 3,
+    hasPendingInvite: true,
+    isAllowlisted: false,
+  };
+  const allowlisted = {
+    userCount: 3,
+    hasPendingInvite: false,
+    isAllowlisted: true,
+  };
 
-  it("first-user: only the first account, then invited emails", () => {
+  it("first-user: the first account, then invited or allowlisted emails", () => {
     expect(canSignUp("first-user", empty)).toBe(true);
     expect(canSignUp("first-user", taken)).toBe(false);
     expect(canSignUp("first-user", invited)).toBe(true);
+    expect(canSignUp("first-user", allowlisted)).toBe(true);
   });
 
-  it("invite-only: requires an invite, even for the first account", () => {
+  it("invite-only: requires an invite or the allowlist, even for the first account", () => {
     expect(canSignUp("invite-only", empty)).toBe(false);
     expect(canSignUp("invite-only", invited)).toBe(true);
+    expect(canSignUp("invite-only", allowlisted)).toBe(true);
+    expect(
+      canSignUp("invite-only", { userCount: 0, ...none, isAllowlisted: true }),
+    ).toBe(true);
   });
 
   it("open: anyone", () => {
     expect(canSignUp("open", taken)).toBe(true);
+  });
+});
+
+describe("parseEmailList / matchesAllowlist", () => {
+  const list = parseEmailList(" @Allowed.test , VIP@example.test,, ");
+
+  it("parses, trims and lowercases entries, dropping empties", () => {
+    expect(list).toEqual(["@allowed.test", "vip@example.test"]);
+    expect(parseEmailList(undefined)).toEqual([]);
+    expect(parseEmailList(" , ")).toEqual([]);
+  });
+
+  it("matches exact addresses", () => {
+    expect(matchesAllowlist("vip@example.test", list)).toBe(true);
+    expect(matchesAllowlist("other@example.test", list)).toBe(false);
+  });
+
+  it("matches whole domains", () => {
+    expect(matchesAllowlist("anyone@allowed.test", list)).toBe(true);
+    expect(matchesAllowlist("anyone@notallowed.test", list)).toBe(false);
+  });
+
+  it("does not match subdomains unless listed", () => {
+    expect(matchesAllowlist("x@sub.allowed.test", list)).toBe(false);
+    expect(matchesAllowlist("x@sub.allowed.test", ["@sub.allowed.test"])).toBe(
+      true,
+    );
+  });
+
+  it("ignores case and surrounding whitespace", () => {
+    expect(matchesAllowlist(" VIP@Example.TEST ", list)).toBe(true);
+    expect(matchesAllowlist("X@ALLOWED.TEST", list)).toBe(true);
+  });
+
+  it("an exact entry does not act as a domain", () => {
+    expect(matchesAllowlist("allowed.test", list)).toBe(false);
+    expect(
+      matchesAllowlist("evil@vip@example.test", ["vip@example.test"]),
+    ).toBe(false);
+  });
+
+  it("an empty list matches nothing", () => {
+    expect(matchesAllowlist("a@b.test", [])).toBe(false);
+    expect(matchesAllowlist("a@b.test", parseEmailList(""))).toBe(false);
+  });
+});
+
+describe("isInstanceAdmin", () => {
+  const adminEmails = parseEmailList("ops@example.test");
+
+  it("the first user is an admin", () => {
+    expect(
+      isInstanceAdmin({
+        userId: "u1",
+        email: "first@x.test",
+        firstUserId: "u1",
+        adminEmails,
+      }),
+    ).toBe(true);
+  });
+
+  it("ADMIN_EMAILS are admins", () => {
+    expect(
+      isInstanceAdmin({
+        userId: "u2",
+        email: "OPS@example.test",
+        firstUserId: "u1",
+        adminEmails,
+      }),
+    ).toBe(true);
+  });
+
+  it("everyone else is not", () => {
+    expect(
+      isInstanceAdmin({
+        userId: "u3",
+        email: "guest@other.test",
+        firstUserId: "u1",
+        adminEmails,
+      }),
+    ).toBe(false);
+    expect(
+      isInstanceAdmin({
+        userId: "u3",
+        email: "guest@other.test",
+        firstUserId: undefined,
+        adminEmails: [],
+      }),
+    ).toBe(false);
   });
 });
 

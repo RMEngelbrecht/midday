@@ -933,6 +933,17 @@ const dbQueriesMock = new Proxy(
     switchUserTeam: mocks.switchUserTeam,
     deleteUser: mocks.deleteUser,
 
+    // Instance invites and admin checks
+    getInstanceInvites: createDefaultMock(),
+    hasInstanceInvite: mock(() => Promise.resolve(false)) as MockFn,
+    createInstanceInvite: createDefaultMock(),
+    deleteInstanceInvite: createDefaultMock(),
+    deleteInstanceInviteByEmail: createDefaultMock(),
+    authUserExists: mock(() => Promise.resolve(false)) as MockFn,
+    getInstanceAdminFacts: mock(() =>
+      Promise.resolve({ email: undefined, firstUserId: undefined }),
+    ) as MockFn,
+
     // Transaction categories
     getCategories: createDefaultMock(),
     getCategoryById: createDefaultMock(),

@@ -319,10 +319,17 @@ export const teamRouter = createTRPCRouter({
         });
       }
 
+      if (!teamId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Create or switch to a team before inviting members",
+        });
+      }
+
       const ip = geo.ip ?? "127.0.0.1";
 
       const data = await createTeamInvites(db, {
-        teamId: teamId!,
+        teamId,
         invites: input.map((invite) => ({
           ...invite,
           invitedBy: session.user.id,

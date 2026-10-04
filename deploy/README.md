@@ -14,7 +14,8 @@ docker compose up -d           # pulls images from GHCR; use `build` to build lo
 ```
 
 Open `APP_URL` and sign up. With the default `ALLOW_SIGNUP=first-user` the first
-account can register, after that only invited emails can.
+account can register, after that only invited or allowlisted emails can
+(`SIGNUP_ALLOWED_EMAILS`, instance invites; see docs/self-hosting.md).
 
 Caddy serves `app.$DOMAIN` (dashboard) and `api.$DOMAIN` (API, including the
 `/realtime` event stream, which is not buffered) and obtains Let's Encrypt

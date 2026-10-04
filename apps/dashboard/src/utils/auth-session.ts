@@ -65,3 +65,25 @@ export async function fetchAuthSession(
     return { session: null, setCookies: [] };
   }
 }
+
+/** Whether the signed-in user is an instance admin (decided by the API). */
+export async function fetchIsInstanceAdmin(
+  apiUrl: string,
+  accessToken: string | null,
+): Promise<boolean> {
+  if (!accessToken) return false;
+
+  try {
+    const res = await fetch(`${apiUrl}/trpc/instance.isAdmin`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as {
+      result?: { data?: { json?: unknown } };
+    };
+    return body.result?.data?.json === true;
+  } catch {
+    return false;
+  }
+}

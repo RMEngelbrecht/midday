@@ -1,3 +1,4 @@
+import { checkInstanceAdmin } from "@api/auth/instance-admin";
 import { ENV } from "@api/env";
 import type { Session } from "@api/utils/auth";
 import { verifyAccessToken } from "@api/utils/auth";
@@ -131,6 +132,20 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+/** Instance admins only (first account or ADMIN_EMAILS); FORBIDDEN otherwise. */
+export const instanceAdminProcedure = protectedProcedure.use(async (opts) => {
+  const { db, session } = opts.ctx;
+
+  if (!(await checkInstanceAdmin(db, session.user.id))) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only instance admins can do this",
+    });
+  }
+
+  return opts.next();
+});
 
 /**
  * Internal procedure for service-to-service calls ONLY.

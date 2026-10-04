@@ -8,7 +8,7 @@ What you get with no configuration at all: email + password login, local file st
 - [Requirements](#requirements)
 - [URLs and cookies](#urls-and-cookies)
 - [Configuration](#configuration)
-- [Optional services](#optional-services): [mail](#outbound-email-smtp), [inbound email](#inbound-email), [storage](#file-storage-local-or-s3), [AI](#ai), [bank data](#bank-data), [OAuth integrations](#oauth-integrations), [social sign-in](#social-sign-in)
+- [Optional services](#optional-services): [mail](#outbound-email-smtp), [inbound email](#inbound-email), [storage](#file-storage-local-or-s3), [AI](#ai), [bank data](#bank-data), [OAuth integrations](#oauth-integrations), [sign-up and instance admins](#sign-up-and-instance-admins), [social sign-in](#social-sign-in)
 - [Desktop app and CLI](#desktop-app-and-cli)
 - [Backups](#backups) and [upgrades](#upgrades)
 - [Verifying a deployment](#verifying-a-deployment) (the Playwright suite)
@@ -24,7 +24,7 @@ $EDITOR .env                 # set DOMAIN, APP_URL, API_URL
 docker compose up -d         # pulls ghcr.io/<MIDDAY_OWNER>/midday-* images
 ```
 
-Open `APP_URL` and choose **New here? Create an account**. With the default `ALLOW_SIGNUP=first-user` the first account can register and create the team; after that only people invited to a team can sign up.
+Open `APP_URL` and choose **New here? Create an account**. With the default `ALLOW_SIGNUP=first-user` the first account can register and create the team; after that only invited or allowlisted people can sign up (see [Sign-up and instance admins](#sign-up-and-instance-admins)).
 
 To build the images yourself instead of pulling them: `docker compose up -d --build`.
 
@@ -154,6 +154,27 @@ Gmail, Outlook, Xero, QuickBooks, Fortnox and Slack each need an OAuth app regis
 | Slack | `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET`, `SLACK_STATE_SECRET` | `API_URL/apps/slack/oauth-callback`; events `API_URL/apps/slack/webhook`; interactivity `API_URL/apps/slack/interactions` | `SLACK_OAUTH_REDIRECT_URL` |
 
 Set each redirect env var to exactly the URL you registered. Gmail and Outlook add the "Connect Gmail/Outlook" buttons to the inbox; the others appear under Apps. Stripe (invoice payments), WhatsApp, Telegram and Sendblue are configured the same way; see [env-reference.md](./env-reference.md).
+
+### Sign-up and instance admins
+
+`ALLOW_SIGNUP` decides who may create an account:
+
+| Value | Who can sign up |
+|---|---|
+| `first-user` (default) | The first account, then invited or allowlisted emails |
+| `invite-only` | Only invited or allowlisted emails, including the first account |
+| `open` | Anyone who can reach `APP_URL` |
+
+The check covers every way an account gets created: email + password, email codes and social sign-in.
+
+There are two kinds of invite:
+
+- **Team invite** (Settings > Members). The invitee signs up and joins your team.
+- **Instance invite** (Settings > Instance, admins only). The invitee signs up and creates their **own** team; they see nothing of yours. The email links to `APP_URL/login?email=...`, which opens the sign-up form with the address filled in. The invite is used up when they sign up; revoking it before then blocks the sign-up again.
+
+`SIGNUP_ALLOWED_EMAILS` lets people sign up without an invite, for example everyone at your company: `SIGNUP_ALLOWED_EMAILS=@example.com, friend@other.org`. Entries are comma-separated, case-insensitive, and `@example.com` does not cover `sub.example.com`. Allowlisted people also create their own team.
+
+**Instance admins** are the first account ever created plus everyone in `ADMIN_EMAILS` (same format; these addresses may always sign up). Admins see Settings > Instance. Admin status is computed from these two rules on every request, so changing `ADMIN_EMAILS` takes effect after a restart; there is no role stored in the database.
 
 ### Social sign-in
 

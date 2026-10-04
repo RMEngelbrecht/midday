@@ -109,12 +109,32 @@ export type CoercedEnvSchema = {
   /**
    * **ALLOW_SIGNUP**  
    * Who may create an account:  
-   * - first-user: the first account can sign up, then only invited emails  
-   * - invite-only: only emails with a pending team invite  
+   * - first-user: the first account can sign up, then only invited or  
+   * allowlisted emails  
+   * - invite-only: only invited (team or instance invite) or allowlisted emails  
    * - open: anyone  
    * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M7.885%2010.23L12%203.463l4.116%206.769zm9.606%2011q-1.558%200-2.64-1.081t-1.082-2.64t1.082-2.649t2.64-1.09t2.649%201.09t1.09%202.649t-1.09%202.64t-2.649%201.082m-13.722-.5v-6.462h6.462v6.462z%22%2F%3E%3C%2Fsvg%3E)   
    */
   ALLOW_SIGNUP: "first-user" | "invite-only" | "open";
+  
+  /**
+   * **SIGNUP_ALLOWED_EMAILS**  
+   * Emails that may always sign up, whatever ALLOW_SIGNUP says. Comma-separated  
+   * exact addresses and/or `@domain` entries (`@example.com` matches  
+   * anyone@example.com, not sub.example.com). Case-insensitive.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  SIGNUP_ALLOWED_EMAILS?: string;
+  
+  /**
+   * **ADMIN_EMAILS**  
+   * Instance admins, besides the first account ever created. Same format as  
+   * SIGNUP_ALLOWED_EMAILS, and these emails may always sign up. Admins can send  
+   * instance invites (Settings > Instance): invitees sign up and create their own  
+   * team.  
+   * ![icon](data:image/svg+xml;utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23808080%22%20d%3D%22M29%2022h-5a2.003%202.003%200%200%201-2-2v-6a2%202%200%200%201%202-2h5v2h-5v6h5ZM18%2012h-4V8h-2v14h6a2.003%202.003%200%200%200%202-2v-6a2%202%200%200%200-2-2m-4%208v-6h4v6Zm-6-8H3v2h5v2H4a2%202%200%200%200-2%202v2a2%202%200%200%200%202%202h6v-8a2%202%200%200%200-2-2m0%208H4v-2h4Z%22%2F%3E%3C%2Fsvg%3E)   
+   */
+  ADMIN_EMAILS?: string;
   
   /**
    * **AUTH_COOKIE_DOMAIN**  
@@ -925,7 +945,7 @@ export type CoercedEnvSchema = {
   
 };
 
-type _CoercedEnvSchema_ae1c6097 = CoercedEnvSchema;
+type _CoercedEnvSchema_2ac51060 = CoercedEnvSchema;
 
 export type EnvSchemaAsStrings = {
   [Property in keyof CoercedEnvSchema]:
@@ -933,9 +953,9 @@ export type EnvSchemaAsStrings = {
       : (NonNullable<CoercedEnvSchema[Property]> extends boolean ? ('true' | 'false') : string)
 };
 
-type _EnvSchemaAsStrings_ae1c6097 = EnvSchemaAsStrings;
+type _EnvSchemaAsStrings_2ac51060 = EnvSchemaAsStrings;
 
-export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'API_RATE_LIMIT' | 'MCP_API_RATE_LIMIT' | 'CHAT_RATE_LIMIT' | 'DB_POOL_STATS_INTERVAL_MS' | 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'ALLOWED_API_ORIGINS' | 'DESKTOP_SCHEME' | 'ALLOW_SIGNUP' | 'AUTH_COOKIE_DOMAIN' | 'AUTH_GOOGLE_CLIENT_ID' | 'AUTH_GITHUB_CLIENT_ID' | 'AUTH_APPLE_CLIENT_ID' | 'AUTH_MICROSOFT_CLIENT_ID' | 'AUTH_MICROSOFT_TENANT_ID' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STRIPE_CONNECT_CLIENT_ID' | 'TELEGRAM_BOT_USERNAME' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'AI_PROVIDER' | 'AI_BASE_URL' | 'AI_MODEL_CHAT' | 'AI_MODEL_FAST' | 'AI_MODEL_VISION' | 'AI_MODEL_EXTRACTION' | 'AI_EMBEDDING_PROVIDER' | 'AI_EMBEDDING_BASE_URL' | 'AI_EMBEDDING_MODEL' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM'>>;
+export type PublicCoercedEnvSchema = Readonly<Pick<CoercedEnvSchema, 'PORT' | 'API_RATE_LIMIT' | 'MCP_API_RATE_LIMIT' | 'CHAT_RATE_LIMIT' | 'DB_POOL_STATS_INTERVAL_MS' | 'NODE_ENV' | 'APP_ENV' | 'APP_URL' | 'API_URL' | 'ALLOWED_API_ORIGINS' | 'DESKTOP_SCHEME' | 'ALLOW_SIGNUP' | 'SIGNUP_ALLOWED_EMAILS' | 'ADMIN_EMAILS' | 'AUTH_COOKIE_DOMAIN' | 'AUTH_GOOGLE_CLIENT_ID' | 'AUTH_GITHUB_CLIENT_ID' | 'AUTH_APPLE_CLIENT_ID' | 'AUTH_MICROSOFT_CLIENT_ID' | 'AUTH_MICROSOFT_TENANT_ID' | 'INBOX_WEBHOOK_USERNAME' | 'PLAID_CLIENT_ID' | 'PLAID_ENVIRONMENT' | 'SLACK_CLIENT_ID' | 'SLACK_OAUTH_REDIRECT_URL' | 'STRIPE_CONNECT_CLIENT_ID' | 'TELEGRAM_BOT_USERNAME' | 'SENTRY_DSN' | 'GIT_COMMIT_SHA' | 'XERO_CLIENT_ID' | 'XERO_OAUTH_REDIRECT_URL' | 'QUICKBOOKS_CLIENT_ID' | 'QUICKBOOKS_OAUTH_REDIRECT_URL' | 'FORTNOX_CLIENT_ID' | 'FORTNOX_OAUTH_REDIRECT_URL' | 'LOG_LEVEL' | 'LOG_PRETTY' | 'AI_PROVIDER' | 'AI_BASE_URL' | 'AI_MODEL_CHAT' | 'AI_MODEL_FAST' | 'AI_MODEL_VISION' | 'AI_MODEL_EXTRACTION' | 'AI_EMBEDDING_PROVIDER' | 'AI_EMBEDDING_BASE_URL' | 'AI_EMBEDDING_MODEL' | 'SIMPLEFIN_ENABLED' | 'ENABLEBANKING_APPLICATION_ID' | 'ENABLEBANKING_REDIRECT_URL' | 'LOGO_DEV_TOKEN' | 'EXCHANGE_RATES_URL' | 'STORAGE_DRIVER' | 'S3_BUCKET' | 'INBOX_EMAIL_DOMAIN' | 'TELLER_APPLICATION_ID' | 'GMAIL_CLIENT_ID' | 'OUTLOOK_CLIENT_ID' | 'WHATSAPP_PHONE_NUMBER_ID' | 'OPENPANEL_CLIENT_ID' | 'DEFAULT_COUNTRY' | 'DEFAULT_TIMEZONE' | 'STORAGE_LOCAL_DIR' | 'STORAGE_MAX_UPLOAD_MB' | 'S3_ENDPOINT' | 'S3_REGION' | 'S3_FORCE_PATH_STYLE' | 'S3_PUBLIC_ENDPOINT' | 'S3_PUBLIC_URL' | 'TELEGRAM_API_BASE_URL' | 'SENDBLUE_FROM_NUMBER' | 'SENDBLUE_STATUS_CALLBACK_URL' | 'DATABASE_POOL_MAX' | 'DB_POOL_EVENT_LOGGING' | 'DEBUG_PERF' | 'MATCH_AUTO_ENABLED' | 'DATABASE_SSL' | 'INBOX_EMAIL_LOCAL_PART' | 'GMAIL_REDIRECT_URI' | 'OUTLOOK_REDIRECT_URI' | 'MAIL_FROM'>>;
 
 // re-export of the runtime ENV proxy, typed to this package's schema
 export const ENV = _ENV as unknown as Readonly<CoercedEnvSchema>;

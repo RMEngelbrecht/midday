@@ -33,14 +33,18 @@ type Props = {
  * "Create account" is subject to the server's ALLOW_SIGNUP policy.
  */
 export function PasswordSignIn({ className }: Props) {
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const searchParams = useSearchParams();
+  // Invite links (`/login?email=`) open the sign-up form, email prefilled.
+  const invitedEmail = searchParams.get("email") ?? "";
+  const [mode, setMode] = useState<"sign-in" | "sign-up">(
+    invitedEmail ? "sign-up" : "sign-in",
+  );
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: invitedEmail, password: "" },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {

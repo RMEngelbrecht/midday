@@ -1260,7 +1260,7 @@ export const userInvites = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
-    teamId: uuid("team_id"),
+    teamId: uuid("team_id").notNull(),
     email: text(),
     role: teamRolesEnum(),
     code: text().default(sql`nanoid(24)`),
@@ -1283,6 +1283,35 @@ export const userInvites = pgTable(
     }).onDelete("cascade"),
     unique("unique_team_invite").on(table.teamId, table.email),
     unique("user_invites_code_key").on(table.code),
+  ],
+);
+
+/**
+ * Invites to create an account on this instance (not to join a team). Sent
+ * by instance admins; the invitee signs up and creates their own team. The
+ * row is deleted when the invitee signs up. Separate from user_invites, whose
+ * rows always belong to a team (role, accept/decline, team settings lists).
+ */
+export const instanceInvites = pgTable(
+  "instance_invites",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    email: text().notNull(),
+    invitedBy: uuid("invited_by"),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.invitedBy],
+      foreignColumns: [users.id],
+      name: "instance_invites_invited_by_fkey",
+    }).onDelete("set null"),
+    uniqueIndex("instance_invites_email_key").using(
+      "btree",
+      sql`lower(${table.email})`,
+    ),
   ],
 );
 

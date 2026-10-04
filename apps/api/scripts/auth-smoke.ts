@@ -110,6 +110,7 @@ const queue = new Queue("teams", { connection: { url: REDIS_URL } });
 // --- reset --------------------------------------------------------------
 await db.query(`DELETE FROM auth."user"`);
 await db.query("DELETE FROM public.user_invites");
+await db.query("DELETE FROM public.instance_invites");
 await db.query("DELETE FROM public.teams");
 await queue.obliterate({ force: true });
 
@@ -132,7 +133,7 @@ check(
   r.json,
 );
 
-await db.query("INSERT INTO public.user_invites (email) VALUES ($1)", [
+await db.query("INSERT INTO public.instance_invites (email) VALUES ($1)", [
   "Carol@example.com",
 ]);
 r = await req(new Jar(), auth("/sign-up/email"), {

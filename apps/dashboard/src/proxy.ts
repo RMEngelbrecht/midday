@@ -4,6 +4,7 @@ import { ENV } from "@/env";
 import {
   type AuthSession,
   fetchAuthSession,
+  fetchIsInstanceAdmin,
   hasPendingTwoFactor,
 } from "@/utils/auth-session";
 
@@ -106,6 +107,15 @@ export async function proxy(request: NextRequest) {
   if (isAuthenticated) {
     if (newUrl.pathname === "/login" || newUrl.pathname === "/mfa/verify") {
       return NextResponse.redirect(new URL("/", ORIGIN));
+    }
+
+    // Instance settings: a real redirect for non-admins. A redirect() in the
+    // page would answer 200, since the response status is committed first.
+    if (
+      newUrl.pathname === "/settings/instance" &&
+      !(await fetchIsInstanceAdmin(ENV.API_INTERNAL_URL, session.accessToken))
+    ) {
+      return NextResponse.redirect(new URL("/settings", ORIGIN));
     }
 
     if (newUrl.pathname !== "/onboarding" && newUrl.pathname !== "/teams") {
