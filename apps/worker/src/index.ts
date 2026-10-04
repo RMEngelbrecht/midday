@@ -8,6 +8,7 @@ import {
   checkDependencies,
 } from "@midday/health/checker";
 import { workerDependencies } from "@midday/health/probes";
+import { triggerJob } from "@midday/job-client";
 import { createLoggerWithContext } from "@midday/logger";
 import * as Sentry from "@sentry/bun";
 import { Worker } from "bullmq";
@@ -124,6 +125,15 @@ registerStaticSchedulers().catch((error) => {
     error: error instanceof Error ? error.message : String(error),
   });
   process.exit(1);
+});
+
+// Also sync institutions once on boot: the daily scheduler only runs at 03:00
+// UTC, so a fresh install or a newly configured bank provider would otherwise
+// show an empty bank search until the next night.
+triggerJob("sync-institutions", {}, "institutions").catch((error) => {
+  logger.warn("Failed to enqueue startup institution sync", {
+    error: error instanceof Error ? error.message : String(error),
+  });
 });
 
 // Create Hono app

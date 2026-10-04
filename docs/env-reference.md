@@ -413,7 +413,7 @@ Enable Banking (EU/UK). Create an app at https://enablebanking.com/cp/applicatio
 
 secret
 
-PEM private key for the Enable Banking application.
+Base64-encoded PEM private key of the Enable Banking application (`base64 -i <app-id>.pem | tr -d "\n"`), not the raw PEM.
 
 ### `ENABLEBANKING_REDIRECT_URL`
 
