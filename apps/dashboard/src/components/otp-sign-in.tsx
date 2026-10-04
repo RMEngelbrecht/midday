@@ -17,7 +17,7 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v3";
-import { getAuthClient } from "@/lib/auth-client";
+import { getAuthClient, UNREACHABLE_MESSAGE } from "@/lib/auth-client";
 import { afterSignIn } from "@/utils/after-sign-in";
 
 const formSchema = z.object({
@@ -49,12 +49,18 @@ export function OTPSignIn({ className }: Props) {
     setEmail(email);
     setError(null);
 
-    const { error } = await getAuthClient().emailOtp.sendVerificationOtp({
-      email,
-      type: "sign-in",
-    });
+    const result = await getAuthClient()
+      .emailOtp.sendVerificationOtp({ email, type: "sign-in" })
+      .catch(() => null);
 
     setLoading(false);
+
+    if (!result) {
+      setError(UNREACHABLE_MESSAGE);
+      return;
+    }
+
+    const { error } = result;
 
     if (error) {
       setError(error.message ?? "Could not send a sign-in code");
@@ -70,10 +76,17 @@ export function OTPSignIn({ className }: Props) {
     setIsVerifying(true);
     setError(null);
 
-    const { data, error } = await getAuthClient().signIn.emailOtp({
-      email,
-      otp: token,
-    });
+    const result = await getAuthClient()
+      .signIn.emailOtp({ email, otp: token })
+      .catch(() => null);
+
+    if (!result) {
+      setIsVerifying(false);
+      setError(UNREACHABLE_MESSAGE);
+      return;
+    }
+
+    const { data, error } = result;
 
     if (error || !data) {
       setIsVerifying(false);

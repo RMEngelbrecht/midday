@@ -15,7 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v3";
-import { getAuthClient } from "@/lib/auth-client";
+import { getAuthClient, UNREACHABLE_MESSAGE } from "@/lib/auth-client";
 import { afterSignIn } from "@/utils/after-sign-in";
 
 const formSchema = z.object({
@@ -48,17 +48,25 @@ export function PasswordSignIn({ className }: Props) {
     setError(null);
 
     const client = getAuthClient();
-    const { data, error } =
-      mode === "sign-up"
-        ? await client.signUp.email({
-            email: values.email,
-            password: values.password,
-            name: values.name?.trim() ?? "",
-          })
-        : await client.signIn.email({
-            email: values.email,
-            password: values.password,
-          });
+    const result = await (mode === "sign-up"
+      ? client.signUp.email({
+          email: values.email,
+          password: values.password,
+          name: values.name?.trim() ?? "",
+        })
+      : client.signIn.email({
+          email: values.email,
+          password: values.password,
+        })
+    ).catch(() => null);
+
+    if (!result) {
+      setLoading(false);
+      setError(UNREACHABLE_MESSAGE);
+      return;
+    }
+
+    const { data, error } = result;
 
     if (error || !data) {
       setLoading(false);

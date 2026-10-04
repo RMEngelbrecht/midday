@@ -9,6 +9,11 @@ import { getClientPublicConfig } from "@/components/public-config-provider";
 /** Mounted on the API (apps/api/src/auth). */
 export const AUTH_BASE_PATH = "/auth";
 
+// Shown when an auth request never reaches the API (wrong API_URL, http vs
+// https mismatch, API down). better-auth only reports HTTP errors itself.
+export const UNREACHABLE_MESSAGE =
+  "Can't reach the server. Check that API_URL is correct and reachable from your browser.";
+
 function create(apiUrl: string) {
   return createAuthClient({
     baseURL: `${apiUrl}${AUTH_BASE_PATH}`,
