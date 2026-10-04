@@ -234,7 +234,22 @@ Database migrations run automatically when the stack starts.
 
 ## 9. Adding people
 
-Invite them to your team from **Settings → Members**. They sign up with the invited email address and join your team.
+Midday has two kinds of invite. People always sign up with the exact email address that was invited or allowed.
+
+| You want them to… | How |
+|---|---|
+| Join **your** team | **Settings → Members → Invite**. |
+| Use the instance with **their own** team, without seeing yours | **Settings → Instance → Invite**. This is only visible to instance admins. After signing up, they create their own team during onboarding. |
+| Sign up without a personal invite, for everyone at a domain or a fixed list | Set `SIGNUP_ALLOWED_EMAILS` in `.env`. They create their own team. |
+
+Instance admins are the first account plus anyone listed in `ADMIN_EMAILS`. Admins on that list can always sign up. Both settings take exact addresses or whole domains (`@yourcompany.com`); subdomains are not matched unless you list them:
+
+```
+SIGNUP_ALLOWED_EMAILS=alice@example.com,@yourcompany.com
+ADMIN_EMAILS=you@yourdomain.com
+```
+
+After changing `.env`, run `docker compose up -d` for it to take effect. Pending instance invites can be revoked from the Instance page.
 
 ## 10. Backups
 
