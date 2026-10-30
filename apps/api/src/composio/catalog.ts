@@ -69,6 +69,9 @@ async function fetchCatalog(): Promise<CatalogEntry[]> {
 }
 
 export async function getCatalog(): Promise<CatalogEntry[]> {
+  // Connectors run on Composio: without a key none of them can work.
+  if (!ENV.COMPOSIO_API_KEY) return [];
+
   return connectorsCache.getOrSet<CatalogEntry[]>(
     CACHE_KEY,
     CACHE_TTL,

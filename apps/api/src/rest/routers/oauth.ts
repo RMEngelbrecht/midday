@@ -13,6 +13,7 @@ import {
 } from "@api/schemas/oauth-flow";
 import { verifyAccessToken } from "@api/utils/auth";
 import { validateClientCredentials } from "@api/utils/oauth";
+import { isAllowedDcrRedirectUri } from "@api/utils/oauth-redirect";
 import { validateResponse } from "@api/utils/validate-response";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import type { Database } from "@midday/db/client";
@@ -115,14 +116,9 @@ app.openapi(
     }
 
     for (const uri of body.redirect_uris) {
-      const isHttps = uri.startsWith("https://");
-      const isLocalhost = uri.startsWith("http://localhost");
-      const isNativeScheme =
-        /^[a-z][a-z0-9+.-]*:\/\//i.test(uri) && !uri.startsWith("http://");
-
-      if (!isHttps && !isLocalhost && !isNativeScheme) {
+      if (!isAllowedDcrRedirectUri(uri)) {
         throw new HTTPException(400, {
-          message: `redirect_uri must use HTTPS or a native app scheme: ${uri}`,
+          message: `redirect_uri must use HTTPS, a loopback address or a native app scheme: ${uri}`,
         });
       }
     }

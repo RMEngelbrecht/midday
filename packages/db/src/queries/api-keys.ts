@@ -47,7 +47,7 @@ export async function upsertApiKey(db: Database, data: UpsertApiKeyData) {
         name: data.name,
         scopes: data.scopes,
       })
-      .where(eq(apiKeys.id, data.id))
+      .where(and(eq(apiKeys.id, data.id), eq(apiKeys.teamId, data.teamId)))
       .returning({
         keyHash: apiKeys.keyHash,
       });

@@ -16,12 +16,12 @@ const appFeatureKey: Record<string, string> = {
   sendblue: "sendblue",
 };
 
-/** Apps whose required integration env is configured. */
-export function getEnabledApps<T extends { id: string }>(
-  allApps: readonly T[],
-  integrations: Record<string, boolean>,
-): T[] {
+/** Active apps whose required integration env is configured. */
+export function getEnabledApps<
+  T extends { id: string; active?: boolean | null },
+>(allApps: readonly T[], integrations: Record<string, boolean>): T[] {
   return allApps.filter((app) => {
+    if (app.active === false) return false;
     const key = appFeatureKey[app.id];
     return key === undefined || integrations[key] === true;
   });

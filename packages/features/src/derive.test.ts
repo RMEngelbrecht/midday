@@ -116,6 +116,7 @@ describe("deriveFeatures", () => {
       SLACK_CLIENT_ID: "a",
       SLACK_CLIENT_SECRET: "b",
       SLACK_SIGNING_SECRET: "c",
+      SLACK_STATE_SECRET: "d",
       STRIPE_SECRET_KEY: "sk",
       STRIPE_CONNECT_CLIENT_ID: "ca",
       COMPOSIO_API_KEY: "k",
@@ -124,6 +125,25 @@ describe("deriveFeatures", () => {
     expect(integrations.stripe).toBe(true);
     expect(integrations.composio).toBe(true);
     expect(integrations.xero).toBe(false);
+  });
+
+  it("needs every key an integration depends on", () => {
+    const whatsapp = {
+      WHATSAPP_PHONE_NUMBER_ID: "a",
+      WHATSAPP_ACCESS_TOKEN: "b",
+    };
+    expect(deriveFeatures(whatsapp).integrations.whatsapp).toBe(false);
+    expect(
+      deriveFeatures({
+        ...whatsapp,
+        WHATSAPP_APP_SECRET: "c",
+        WHATSAPP_VERIFY_TOKEN: "d",
+        WHATSAPP_NUMBER: "e",
+      }).integrations.whatsapp,
+    ).toBe(true);
+    expect(
+      deriveFeatures({ TELEGRAM_BOT_TOKEN: "a" }).integrations.telegram,
+    ).toBe(false);
   });
 });
 

@@ -142,7 +142,7 @@ MAIL_FROM="Midday <noreply@rme.gg>"
 
 ### 5.3 Sign-up policy
 
-By default (`first-user`), only the very first account can sign up, and that account becomes the owner. Everyone after that needs an invite. Leave it like this. Section 12 explains how to add people.
+By default (`first-user`), only the very first account can sign up, and that account becomes the owner. Everyone after that needs an invite. Leave it like this. Section 13 explains how to add people.
 
 ## 6. Start it
 
@@ -354,9 +354,29 @@ This lets you message the assistant and send receipt photos from WhatsApp. It us
 
 Then try "what did I spend last month?", and send a photo of a receipt.
 
-**Backup: Telegram.** Midday has the same assistant for Telegram, which is free, takes minutes with @BotFather, and has no such policy. Set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` and `TELEGRAM_WEBHOOK_SECRET_TOKEN`. It's a good way to prove the assistant works before dealing with Meta.
+**Backup: Telegram.** Midday has the same assistant for Telegram, which is free, takes minutes, and has no such policy. It's a good way to prove the assistant works before dealing with Meta.
 
-## 11. Updating
+1. Create a bot with @BotFather and set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` (without the `@`) and `TELEGRAM_WEBHOOK_SECRET_TOKEN` (a random string) in `.env`. Apply with `docker compose up -d --no-build`.
+2. Register the webhook once. Midday doesn't do this for you:
+
+   ```bash
+   curl "https://api.telegram.org/bot<token>/setWebhook" -d "url=https://api.midday.rme.gg/webhook/telegram" -d "secret_token=<secret>"
+   ```
+
+3. Connect from **Apps → Telegram** in Midday.
+
+## 11. MCP: use Midday from Claude, ChatGPT or Cursor
+
+MCP lets an AI client read and update Midday directly: about 100 tools covering transactions, invoices, customers, inbox, reports and time tracking. **It needs no AI key on your server,** because the client supplies the model and pays for it. If you already pay for an AI client, this is the cheapest way to get an assistant.
+
+Your server address is `https://api.midday.rme.gg/mcp`. The exact steps for each client are under **Apps** in Midday.
+
+- **OAuth (Claude, ChatGPT and similar):** paste the URL, log in and approve in the browser. You choose what the client may access; a read-only approval can't change anything.
+- **API key (scripts, n8n):** create a key under **Settings → Developer**, then send `Authorization: Bearer <key>`.
+
+Web clients such as claude.ai connect from their own servers, so they need your public HTTPS address. A local install at `lvh.me` only works with clients running on the same machine.
+
+## 12. Updating
 
 On your Mac, push `main` and tag a new version:
 
@@ -380,7 +400,7 @@ cd ~/midday && docker compose pull && docker compose up -d --no-build
 
 Database migrations run automatically on start. If `deploy/` changed, rsync it again first (the `--exclude .env` keeps your settings).
 
-## 12. Adding people
+## 13. Adding people
 
 Midday has two kinds of invite. People always sign up with the exact email address that was invited or allowed.
 
@@ -399,7 +419,7 @@ ADMIN_EMAILS=you@yourdomain.com
 
 After changing `.env`, run `docker compose up -d` for it to take effect. Pending instance invites can be revoked from the Instance page.
 
-## 13. Backups
+## 14. Backups
 
 Two things hold all your data: the Postgres database and the `storage-data` volume (uploaded files). A nightly dump of the database:
 
@@ -409,7 +429,7 @@ docker compose exec -T postgres pg_dump -U midday -Fc midday > ~/backups/midday-
 
 Copy those dumps and the storage volume off the server, for example with restic or rclone to object storage. Restore steps are in [deploy/README.md](../deploy/README.md).
 
-## 14. Troubleshooting
+## 15. Troubleshooting
 
 | Symptom | Likely cause |
 |---|---|

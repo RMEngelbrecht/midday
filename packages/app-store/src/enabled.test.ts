@@ -39,6 +39,19 @@ describe("getEnabledApps", () => {
     expect(visible).toContain("e-invoice");
   });
 
+  it("hides inactive apps", () => {
+    const visible = ids(
+      getEnabledApps(
+        [
+          { id: "active", active: true },
+          { id: "inactive", active: false },
+        ],
+        {},
+      ),
+    );
+    expect(visible).toEqual(["active"]);
+  });
+
   it("shows an integration once it is enabled", () => {
     const visible = ids(getEnabledApps(apps, { slack: true, stripe: true }));
     expect(visible).toContain("slack");

@@ -8,10 +8,12 @@ import { flushSync } from "react-dom";
 import { useChatState } from "@/components/chat/chat-context";
 import { InputBar } from "@/components/chat/chat-view";
 import { filesToUIParts } from "@/components/chat/file-utils";
+import { usePublicConfig } from "@/components/public-config-provider";
 import { useTRPC } from "@/trpc/client";
 import { ConnectorsBar } from "./connectors-bar";
 
 export function AskMidday({ onChatOpen }: { onChatOpen: () => void }) {
+  const { features } = usePublicConfig();
   const {
     sendMessage,
     setMessages,
@@ -93,7 +95,7 @@ export function AskMidday({ onChatOpen }: { onChatOpen: () => void }) {
           onRemoveMention={removeMentionedApp}
         />
       </div>
-      <ConnectorsBar />
+      {features.integrations.composio && <ConnectorsBar />}
     </div>
   );
 }

@@ -144,6 +144,8 @@ Providers appear in the "Connect bank" dialog only when configured. Exchange rat
 
 Gmail, Outlook, Xero, QuickBooks, Fortnox and Slack each need an OAuth app registered by you with that vendor. Set the client id and secret, and register the redirect URL under `API_URL`:
 
+Redirect URLs default to the values below, derived from `API_URL`, so you only need the override variable for something unusual. Register the same URL with the provider.
+
 | Integration | Keys | Redirect URL to register | Env for the redirect |
 |---|---|---|---|
 | Gmail | `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET` | `API_URL/apps/gmail/oauth-callback` | `GMAIL_REDIRECT_URI` |

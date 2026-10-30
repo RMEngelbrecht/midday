@@ -195,7 +195,10 @@ export function Apps() {
     (connections ?? []).map((c) => [c.slug, c.connectedAccountId]),
   );
 
-  const transformedConnectorApps: UnifiedApp[] = catalog.map(
+  // Connectors only act through the AI assistant.
+  const transformedConnectorApps: UnifiedApp[] = (
+    features.ai ? catalog : []
+  ).map(
     (c: {
       slug: string;
       name: string;

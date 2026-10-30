@@ -497,7 +497,7 @@ Optional key for encrypting multi-workspace Slack installations.
 
 ### `SLACK_OAUTH_REDIRECT_URL`
 
-type `url`
+type `url` · default `${API_URL}/apps/slack/oauth-callback`
 
 ### `XERO_CLIENT_ID`
 
@@ -507,7 +507,7 @@ secret
 
 ### `XERO_OAUTH_REDIRECT_URL`
 
-type `url`
+type `url` · default `${API_URL}/apps/xero/oauth-callback`
 
 ### `QUICKBOOKS_CLIENT_ID`
 
@@ -517,7 +517,7 @@ secret
 
 ### `QUICKBOOKS_OAUTH_REDIRECT_URL`
 
-type `url`
+type `url` · default `${API_URL}/apps/quickbooks/oauth-callback`
 
 ### `FORTNOX_CLIENT_ID`
 
@@ -527,7 +527,7 @@ secret
 
 ### `FORTNOX_OAUTH_REDIRECT_URL`
 
-type `url`
+type `url` · default `${API_URL}/apps/fortnox/oauth-callback`
 
 ### `GMAIL_CLIENT_ID`
 
@@ -537,7 +537,7 @@ secret
 
 ### `GMAIL_REDIRECT_URI`
 
-type `url`
+type `url` · default `${API_URL}/apps/gmail/oauth-callback`
 
 ### `OUTLOOK_CLIENT_ID`
 
@@ -547,7 +547,7 @@ secret
 
 ### `OUTLOOK_REDIRECT_URI`
 
-type `url`
+type `url` · default `${API_URL}/apps/outlook/oauth-callback`
 
 ### `COMPOSIO_API_KEY`
 

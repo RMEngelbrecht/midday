@@ -10,6 +10,7 @@ import {
 import { Badge } from "@midday/ui/badge";
 import { Button } from "@midday/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@midday/ui/card";
+import { cn } from "@midday/ui/cn";
 import { Icons } from "@midday/ui/icons";
 import { ScrollArea } from "@midday/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader } from "@midday/ui/sheet";
@@ -37,6 +38,30 @@ import {
 } from "./mcp-setup-instructions";
 
 // OAuth app configuration
+function AppLogoImage({
+  app,
+  className,
+}: {
+  app: { name: string; logo?: unknown };
+  className?: string;
+}) {
+  if (typeof app.logo === "string" && app.logo) {
+    return <img src={app.logo} alt={app.name} className={className} />;
+  }
+
+  return (
+    <div
+      aria-label={app.name}
+      className={cn(
+        "flex items-center justify-center bg-secondary text-sm font-medium",
+        className,
+      )}
+    >
+      {app.name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
 const oauthAppConfig: Record<
   string,
   { endpoint: string; queryKey: "apps" | "inboxAccounts" | "stripeStatus" }
@@ -192,7 +217,7 @@ function AppHeroBanner({ app }: { app: UnifiedApp }) {
         {app.type === "official" && app.logo && typeof app.logo !== "string" ? (
           <app.logo />
         ) : (
-          <img src={app.logo as string} alt={app.name} />
+          <AppLogoImage app={app} />
         )}
         <style>
           {
@@ -467,7 +492,7 @@ export function UnifiedAppComponent({ app }: UnifiedAppProps) {
           typeof app.logo !== "string" ? (
             <app.logo />
           ) : (
-            <img src={app.logo as string} alt={app.name} className="w-8 h-8" />
+            <AppLogoImage app={app} className="w-8 h-8" />
           )}
 
           <div className="flex items-center gap-2">
