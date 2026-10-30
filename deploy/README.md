@@ -19,7 +19,9 @@ account can register, after that only invited or allowlisted emails can
 
 Caddy serves `app.$DOMAIN` (dashboard) and `api.$DOMAIN` (API, including the
 `/realtime` event stream, which is not buffered) and obtains Let's Encrypt
-certificates automatically. The two hosts must share a parent domain.
+certificates automatically. The two hosts must share a parent domain. For other
+names, set `APP_HOST` and `API_HOST` (for example `midday.example.com` and
+`api.midday.example.com`) instead of `DOMAIN`.
 
 **Local trial without DNS:** in `.env` set `DOMAIN=lvh.me`, `CADDY_SCHEME=http://`,
 `HTTP_PORT=8080`, `APP_URL=http://app.lvh.me:8080`, `API_URL=http://api.lvh.me:8080`.

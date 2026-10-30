@@ -3,3 +3,31 @@
 **/.env
 **/.env.local
 **/.env.*.local
+
+# Installed and built inside the image; copying local copies only slows builds.
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/out
+**/coverage
+**/*.tsbuildinfo
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/gen
+
+# Version control and local tooling
+.git
+.jj
+.github
+.vscode
+.claude
+**/.DS_Store
+
+# Tests and docs output
+e2e/test-results
+e2e/playwright-report
+docs
+
+# Deployment config and runtime data
+deploy
+data

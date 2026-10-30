@@ -4,9 +4,13 @@ permissions:
   contents: read
   packages: write
 
+# Builds for linux/amd64 by default. For an ARM server, set the repository
+# variable IMAGE_PLATFORMS to linux/arm64 or linux/amd64,linux/arm64; those builds
+# run under emulation and take much longer.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 jobs:
   images:
@@ -39,13 +43,14 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=sha
             type=raw,value=latest
 
       - uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/${{ matrix.service }}/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ vars.IMAGE_PLATFORMS || 'linux/amd64' }}
           push: true
           build-args: GIT_COMMIT_SHA=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}

@@ -20,6 +20,14 @@ test.describe("instance", () => {
     });
   });
 
+  test("static images load without a session", async ({ request }) => {
+    for (const path of ["/assets/bg-login.jpg", "/images/gmail.svg"]) {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status(), path).toBe(200);
+      expect(response.headers()["content-type"], path).toMatch(/^image\//);
+    }
+  });
+
   test("unknown routes return a real 404", async ({ request }) => {
     // Signed-in request (storage state), so the proxy lets it through.
     const response = await request.get("/this/page/does/not-exist", {
