@@ -1,0 +1,59 @@
+name: Release
+run-name: Release ${{ github.ref_name }}
+
+# Forgejo counterpart of .github/workflows/release.yml, for a host-type runner
+# labelled `host-builder`. Plain docker commands: the host daemon keeps its layer
+# cache between runs, and images build one at a time to go easy on a small server.
+#
+# Needs on the repository: secret GHCR_TOKEN (classic token with write:packages)
+# and variable GHCR_OWNER (lowercase GitHub user or organisation).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  images:
+    runs-on: host-builder
+    timeout-minutes: 120
+    env:
+      OWNER: ${{ vars.GHCR_OWNER }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      REF: ${{ github.ref_name }}
+      SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "$OWNER" --password-stdin
+
+      - name: Build and push
+        run: |
+          set -eu
+          case "$REF" in
+            v*) TAGS="${REF#v} latest" ;;
+            *) TAGS="sha-$(printf %s "$SHA" | cut -c1-7)" ;;
+          esac
+
+          for service in api worker dashboard; do
+            image="ghcr.io/$OWNER/midday-$service"
+            started=$(date +%s)
+            DOCKER_BUILDKIT=1 docker build \
+              -f "apps/$service/Dockerfile" \
+              --build-arg "GIT_COMMIT_SHA=$SHA" \
+              -t "$image:build-$SHA" .
+            for tag in $TAGS; do
+              docker tag "$image:build-$SHA" "$image:$tag"
+              docker push "$image:$tag"
+            done
+            docker rmi "$image:build-$SHA" >/dev/null
+            echo "$service took $(( $(date +%s) - started ))s"
+          done
+
+      - name: Log out of GHCR
+        if: always()
+        run: docker logout ghcr.io
+
+      - name: Trim old build cache
+        if: always()
+        run: docker builder prune -f --filter "until=336h"

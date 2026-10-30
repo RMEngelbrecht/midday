@@ -81,6 +81,16 @@ Watch it under the repository's **Actions** tab. It publishes `ghcr.io/<you>/mid
 
 **ARM server (Hetzner CAX, Oracle Ampere)?** Before tagging, set the repository variable `IMAGE_PLATFORMS` to `linux/arm64` under Settings → Secrets and variables → Actions → Variables. ARM builds run under emulation and take much longer. Private repositories use your Actions minutes, so a public repository or an amd64 server keeps this free.
 
+**Building on your own Forgejo instead (optional).** `.forgejo/workflows/release.yml` builds the same images on a Forgejo runner and still pushes them to GHCR.
+
+1. On the runner machine, install Docker, Git and Node.js (`actions/checkout` runs on Node), then the [Forgejo runner](https://forgejo.org/docs/latest/admin/actions/installation/binary/). Add its user to the `docker` group.
+2. In the repository's **Settings → Actions → Runners**, click **Create new runner**, and put the UUID and token in the `server` section of the runner config. Register it on the repository, not the instance: a host runner has no isolation, and Docker access amounts to root on that machine.
+3. In the runner config, set `labels: ["host-builder:host"]` and `capacity: 1`.
+4. In the repository settings, add the secret `GHCR_TOKEN` (a classic GitHub token with `write:packages`) and the variable `GHCR_OWNER` (your GitHub username in lowercase). Make sure Actions is enabled for the repository.
+5. Push `main` and a `v*` tag to the Forgejo remote. Each image's build time is printed at the end of its build.
+
+The Next.js build needs several GB of free memory. If the machine also runs other services, add swap and watch for out-of-memory kills.
+
 **On the VPS,** the images are private by default, so log in once. Create a classic GitHub token with only the `read:packages` scope, then:
 
 ```bash
