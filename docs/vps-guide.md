@@ -60,6 +60,10 @@ jj git remote add origin git@github.com:<you>/midday.git
 ```
 
 ```bash
+jj bookmark track main@origin
+```
+
+```bash
 jj git push --bookmark main --remote origin
 ```
 
