@@ -16,7 +16,6 @@ FROM base AS build
 WORKDIR /app
 COPY --from=builder /app/out/worker/json/ .
 COPY bunfig.toml .
-RUN rm -f bun.lock
 RUN bun install
 COPY --from=builder /app/out/worker/full/ .
 RUN cd packages/workbench && bun run build
@@ -28,15 +27,16 @@ RUN apt-get update && apt-get install -y python3 build-essential \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/out/worker/json/ .
 COPY bunfig.toml .
-RUN rm -f bun.lock
-RUN bun install --production \
-    && find node_modules \( -name "*.map" -o -name "*.md" -o -name "*.d.ts" -o -name "*.d.mts" -o -name "*.d.cts" -o -name "__tests__" \) -prune -exec rm -rf {} + ; \
+# --production implies a frozen lockfile, which turbo's pruned lockfile fails.
+# Reconcile it first: this keeps the pinned versions.
+RUN set -e; bun install --lockfile-only; bun install --production; \
+    find node_modules \( -name "*.map" -o -name "*.md" -o -name "*.d.ts" -o -name "*.d.mts" -o -name "*.d.cts" -o -name "__tests__" \) -prune -exec rm -rf {} +; \
     # Build/dev-only packages that bun pulls in as peers or workspace devDeps,
     # plus native binaries for other libc/arch variants.
     rm -rf node_modules/next node_modules/@next/swc-* node_modules/typescript node_modules/drizzle-kit \
         node_modules/@esbuild-kit node_modules/@biomejs node_modules/turbo node_modules/@turbo \
-        node_modules/.cache \
-    && find node_modules -maxdepth 3 -type d \( -name "*-musl" -o -name "*-musl-*" -o -name "*-win32-*" -o -name "*-darwin-*" -o -name "*-android-*" -o -name "*-freebsd-*" \) -prune -exec rm -rf {} + ; \
+        node_modules/.cache; \
+    find node_modules -maxdepth 3 -type d \( -name "*-musl" -o -name "*-musl-*" -o -name "*-win32-*" -o -name "*-darwin-*" -o -name "*-android-*" -o -name "*-freebsd-*" \) -prune -exec rm -rf {} +; \
     rm -rf /root/.bun/install/cache
 COPY --from=builder /app/out/worker/full/ .
 COPY --from=build /app/packages/workbench/dist ./packages/workbench/dist
