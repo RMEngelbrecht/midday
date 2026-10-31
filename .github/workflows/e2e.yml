@@ -1,15 +1,13 @@
 name: E2E
 
 # Drives a real docker compose deployment with Playwright. Slow (builds the
-# images), so it runs nightly and on demand rather than on every pull request.
+# images), so it only runs on demand.
 
 permissions:
   contents: read
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * *"
 
 concurrency:
   group: e2e-${{ github.ref }}
@@ -27,6 +25,12 @@ jobs:
         # full: s3 (Garage) + dev (Mailpit) profiles, STORAGE_DRIVER=s3.
         mode: [zero-config, full]
     steps:
+      # Building all the images on one runner fills its default disk.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup

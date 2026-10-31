@@ -10,7 +10,7 @@ For the reference material (every environment variable, the optional services, b
 
 ## 1. Prerequisites
 
-- **A VPS** running Ubuntu 22.04+ or Debian 12+ with at least **2 GB of RAM**. Nothing is built on it. Images default to amd64; see section 4 for ARM servers.
+- **A VPS** running Ubuntu 22.04+ or Debian 12+ with at least **2 GB of RAM free** and about 5 GB of disk, plus room for your data. The stack uses about 1.5 GB when idle, and more while it processes jobs. Nothing is built on it. Images default to amd64; see section 4 for ARM servers.
 - **A domain** where you can create DNS records.
 - **A GitHub account.** Actions builds the images.
 - **An email sending provider** (step 5.2) and a **mailbox for forwarded receipts** (section 9).
@@ -31,6 +31,8 @@ The dashboard and API **must share a parent domain**, because the login cookie i
 
 **If your DNS is on Cloudflare,** set both records to **DNS only** (grey cloud). Caddy gets its own certificates, and Cloudflare's free certificate doesn't cover two-level names like `api.midday.rme.gg`.
 
+To keep the Cloudflare proxy on (orange cloud) on the free plan, use a one-level API name such as `midday-api.rme.gg`. Set SSL/TLS to **Full (strict)**, install a Cloudflare Origin Certificate on a reverse proxy in front of Midday (see "Sharing the server" in section 3), and use the new name for `API_HOST` and `API_URL`. The login cookie is then set on `rme.gg`, so browsers also send it to every other site under that domain. Only do this if you control and trust all of them.
+
 Wait until `dig +short api.midday.rme.gg` returns your IP before starting the stack.
 
 ## 3. Prepare the server
@@ -50,6 +52,30 @@ Open the firewall for SSH, HTTP and HTTPS:
 ```bash
 sudo ufw allow OpenSSH && sudo ufw allow 80,443/tcp && sudo ufw allow 443/udp && sudo ufw enable
 ```
+
+**Sharing the server with other services?** Do these two checks first.
+
+Add swap if the server has none, so a burst of jobs slows down instead of getting killed:
+
+```bash
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+Then see whether something already uses ports 80 and 443:
+
+```bash
+sudo ss -tlnp | grep -E ':(80|443) '
+```
+
+If so, keep your existing proxy and put Midday behind it. In step 5.1, use these values instead:
+
+```
+CADDY_SCHEME=http://
+HTTP_PORT=127.0.0.1:8081
+HTTPS_PORT=127.0.0.1:8443
+```
+
+Keep the `https://` values for `APP_URL` and `API_URL`. Then have your proxy send both hostnames to `127.0.0.1:8081`, passing the original `Host` header, and let it handle certificates. If you use nginx, turn off buffering for the API host (`proxy_buffering off;`) so live updates aren't held back, and raise `client_max_body_size` so uploads aren't rejected.
 
 ## 4. Build the images on GitHub
 
@@ -111,7 +137,7 @@ cd ~/midday && cp .env.example .env
 
 ## 5. Configure `.env`
 
-Open `~/midday/deploy/.env` and set the following.
+Open `~/midday/.env` and set the following.
 
 ### 5.1 Domain and images
 
@@ -126,7 +152,7 @@ CADDY_SCHEME=
 HTTP_PORT=80
 HTTPS_PORT=443
 MIDDAY_OWNER=<you>
-MIDDAY_VERSION=0.1.0
+MIDDAY_VERSION=0.1.1
 ```
 
 `MIDDAY_OWNER` must be lowercase, and `MIDDAY_VERSION` has no leading `v`.
@@ -137,12 +163,14 @@ Midday sends sign-in codes, team invites, invoices and notifications. Without `S
 
 | Provider | `SMTP_URL` | Notes |
 |---|---|---|
-| Resend | `smtps://resend:<API_KEY>@smtp.resend.com:465` | Free tier available. Easiest to set up. |
+| Resend | `smtp://resend:<API_KEY>@smtp.resend.com:587` | Free tier available. Easiest to set up. |
 | Postmark | `smtp://<SERVER_TOKEN>:<SERVER_TOKEN>@smtp.postmarkapp.com:587` | Very good deliverability. |
 | Amazon SES | `smtp://<SMTP_USER>:<SMTP_PASS>@email-smtp.<region>.amazonaws.com:587` | Cheapest at volume. |
 | Mailgun / Brevo / your own server | `smtp://user:pass@host:587` | Any SMTP server works. |
 
 If the password contains special characters (`@ : / ? #`), URL-encode them. For example, `@` becomes `%40`.
+
+Use port 587. Some VPS hosts, including Hetzner, block outgoing connections on ports 25 and 465 by default.
 
 Then:
 
@@ -150,7 +178,7 @@ Then:
 2. Set the sender address. It must be on the verified domain.
 
 ```
-SMTP_URL=smtps://resend:re_xxxxxxxx@smtp.resend.com:465
+SMTP_URL=smtp://resend:re_xxxxxxxx@smtp.resend.com:587
 MAIL_FROM="Midday <noreply@rme.gg>"
 ```
 
