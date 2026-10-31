@@ -1030,7 +1030,7 @@ export const exchangeRates = pgTable(
   {
     id: uuid().defaultRandom().primaryKey().notNull(),
     base: text(),
-    rate: numericCasted({ precision: 10, scale: 2 }),
+    rate: numericCasted(),
     target: text(),
     updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
   },

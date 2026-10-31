@@ -50,6 +50,13 @@
       "when": 1791119672362,
       "tag": "0006_instance_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793452544942,
+      "tag": "0007_exchange_rate_precision",
+      "breakpoints": true
     }
   ]
 }
