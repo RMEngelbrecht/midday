@@ -48,11 +48,11 @@ exports[`Transform credit card payment - should be credit-card-payment 1`] = `
   "currency_rate": null,
   "currency_source": null,
   "date": "2024-04-04",
-  "description": null,
+  "description": "Credit Card Payment",
   "id": "payment123",
   "merchant_name": null,
   "method": "payment",
-  "name": "Credit Card Payment",
+  "name": "Bank Payment",
   "status": "posted",
 }
 `;

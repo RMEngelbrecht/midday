@@ -57,6 +57,13 @@
       "when": 1793452544942,
       "tag": "0007_exchange_rate_precision",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795522548551,
+      "tag": "0008_enablebanking_counterparty_names",
+      "breakpoints": true
     }
   ]
 }

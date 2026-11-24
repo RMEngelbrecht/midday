@@ -12,6 +12,7 @@ import {
   eq,
   gte,
   inArray,
+  isNotNull,
   isNull,
   lt,
   lte,
@@ -43,7 +44,10 @@ import {
   calculateCurrencyScore,
   calculateDateScore,
   calculateNameScore,
+  isGenericName,
+  SIMILAR_TRANSACTION_THRESHOLD,
   scoreMatch,
+  scoreSimilarTransaction,
 } from "../utils/transaction-matching";
 import { createActivity } from "./activities";
 import { type Attachment, createAttachments } from "./transaction-attachments";
@@ -972,8 +976,6 @@ export async function deleteTransactionsByInternalIds(
     .returning({ id: transactions.id });
 }
 
-const MIN_SIMILARITY_THRESHOLD = 0.6;
-const EXACT_MERCHANT_SCORE = 0.95;
 const MAX_CANDIDATES = 200;
 
 type GetSimilarTransactionsParams = {
@@ -985,7 +987,8 @@ type GetSimilarTransactionsParams = {
 };
 
 /**
- * Find similar transactions using pg_trgm + multi-field name scoring.
+ * Find similar transactions: pg_trgm retrieves candidates, then
+ * scoreSimilarTransaction decides by merchant, counterparty, then name.
  * Designed for vendor matching: when a user changes a category or frequency,
  * find all other transactions from the same vendor across all time.
  */
@@ -995,11 +998,14 @@ export async function getSimilarTransactions(
 ) {
   const { name, teamId, categorySlug, transactionId } = params;
 
-  // Resolve the source transaction's merchant_name when we have a transactionId
   let sourceMerchantName: string | null = null;
+  let sourceCounterpartyName: string | null = null;
   if (transactionId) {
     const source = await db
-      .select({ merchantName: transactions.merchantName })
+      .select({
+        merchantName: transactions.merchantName,
+        counterpartyName: transactions.counterpartyName,
+      })
       .from(transactions)
       .where(
         and(
@@ -1010,21 +1016,46 @@ export async function getSimilarTransactions(
       .limit(1);
 
     sourceMerchantName = source[0]?.merchantName ?? null;
+    sourceCounterpartyName = source[0]?.counterpartyName ?? null;
   }
 
-  // Build OR conditions for candidate retrieval:
-  // Path A: exact merchant_name match (handles "AMZN MKTP US" ↔ "Amazon.com" via enrichment)
-  // Path B: trigram similarity on name/merchant fields
-  const candidateConditions: SQL[] = [
-    sql`(${name} %> ${transactions.name} OR ${name} %> ${transactions.merchantName})`,
-  ];
+  const counterpartiesWithName = await db
+    .selectDistinct({ counterpartyName: transactions.counterpartyName })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.teamId, teamId),
+        sql`LOWER(${transactions.name}) = LOWER(${name})`,
+        isNotNull(transactions.counterpartyName),
+      ),
+    )
+    .limit(20);
+
+  const genericName = isGenericName(
+    counterpartiesWithName.map((row) => row.counterpartyName!),
+  );
+
+  // Candidates come from exact merchant/counterparty matches (handles
+  // "AMZN MKTP US" ↔ "Amazon.com" via enrichment) and trigram similarity of
+  // any source identity to the candidate's name, merchant or counterparty.
+  const candidateConditions: SQL[] = [];
+
+  for (const identity of [name, sourceMerchantName, sourceCounterpartyName]) {
+    if (!identity) continue;
+    candidateConditions.push(
+      sql`(${identity} %> ${transactions.name} OR ${identity} %> ${transactions.merchantName} OR ${identity} %> ${transactions.counterpartyName})`,
+    );
+  }
 
   if (sourceMerchantName) {
     candidateConditions.push(
       sql`LOWER(${transactions.merchantName}) = LOWER(${sourceMerchantName})`,
     );
+  }
+
+  if (sourceCounterpartyName) {
     candidateConditions.push(
-      sql`(${sourceMerchantName} %> ${transactions.name} OR ${sourceMerchantName} %> ${transactions.merchantName})`,
+      sql`LOWER(${transactions.counterpartyName}) = LOWER(${sourceCounterpartyName})`,
     );
   }
 
@@ -1058,62 +1089,47 @@ export async function getSimilarTransactions(
         categorySlug: transactions.categorySlug,
         frequency: transactions.frequency,
         merchantName: transactions.merchantName,
+        counterpartyName: transactions.counterpartyName,
       })
       .from(transactions)
       .where(and(...(whereConditions.filter(Boolean) as SQL[])))
       .orderBy(
         sql`GREATEST(
           word_similarity(${name}, ${transactions.merchantName}),
-          word_similarity(${name}, ${transactions.name})
+          word_similarity(${name}, ${transactions.name}),
+          word_similarity(${sourceCounterpartyName ?? name}, ${transactions.counterpartyName})
         ) DESC`,
       )
       .limit(MAX_CANDIDATES);
   });
 
-  // Score each candidate using a cross-field comparison matrix
+  const source = {
+    name,
+    merchantName: sourceMerchantName,
+    counterpartyName: sourceCounterpartyName,
+  };
+
   const scored = candidates
-    .map((candidate) => {
-      // Exact merchant_name match is the strongest signal
-      if (
-        sourceMerchantName &&
-        candidate.merchantName &&
-        sourceMerchantName.toLowerCase() ===
-          candidate.merchantName.toLowerCase()
-      ) {
-        return { ...candidate, score: EXACT_MERCHANT_SCORE };
-      }
-
-      // Cross-field comparison matrix: try source name and source merchant
-      // against candidate name and candidate merchant. calculateNameScore
-      // already compares the first arg against both the second and third args.
-      const scores: number[] = [
-        calculateNameScore(name, candidate.name, candidate.merchantName),
-      ];
-
-      if (sourceMerchantName) {
-        scores.push(
-          calculateNameScore(
-            sourceMerchantName,
-            candidate.name,
-            candidate.merchantName,
-          ),
-        );
-      }
-
-      return { ...candidate, score: Math.max(...scores) };
-    })
-    .filter((r) => r.score >= MIN_SIMILARITY_THRESHOLD)
+    .map((candidate) => ({
+      ...candidate,
+      score: scoreSimilarTransaction(source, candidate, genericName),
+    }))
+    .filter((r) => r.score >= SIMILAR_TRANSACTION_THRESHOLD)
     .sort((a, b) => b.score - a.score);
 
   logger.info("getSimilarTransactions completed", {
     name,
     teamId,
     sourceMerchantName,
+    sourceCounterpartyName,
+    genericName,
     candidatesRetrieved: candidates.length,
     resultsAfterScoring: scored.length,
   });
 
-  return scored.map(({ merchantName: _m, score: _s, ...rest }) => rest);
+  return scored.map(
+    ({ merchantName: _m, counterpartyName: _c, score: _s, ...rest }) => rest,
+  );
 }
 
 type SearchTransactionMatchParams = {

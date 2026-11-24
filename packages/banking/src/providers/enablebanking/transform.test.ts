@@ -150,6 +150,44 @@ test("generateTransactionId - different nullable fields produce different IDs", 
   expect(txA.id).not.toBe(txB.id);
 });
 
+test("Transform transaction - counterparty names it, remittance text describes it", () => {
+  const remittance =
+    "Naam: Fluitshop Omschrijving: 1018362 IBAN: NL87KNAB0255228813 Datum/Tijd: 20-11-2026 14:37:53 Valutadatum: 20-11-2026";
+
+  const result = transformTransaction({
+    accountType: "depository",
+    transaction: {
+      entry_reference: "ing-1",
+      merchant_category_code: null,
+      transaction_amount: { currency: "EUR", amount: "42.50" },
+      creditor: { name: "Fluitshop" },
+      creditor_account: null,
+      creditor_agent: null,
+      debtor: null,
+      debtor_account: null,
+      debtor_agent: null,
+      bank_transaction_code: null,
+      credit_debit_indicator: "DBIT",
+      status: "BOOK",
+      booking_date: "2026-11-20",
+      value_date: "2026-11-20",
+      transaction_date: null,
+      balance_after_transaction: null,
+      reference_number: null,
+      remittance_information: [remittance],
+      debtor_account_additional_identification: null,
+      creditor_account_additional_identification: null,
+      exchange_rate: null,
+      note: null,
+      transaction_id: null,
+    },
+  });
+
+  expect(result.name).toBe("Fluitshop");
+  expect(result.counterparty_name).toBe("Fluitshop");
+  expect(result.description).toStartWith("Naam Fluitshop Omschrijving 1018362");
+});
+
 test("Transform credit card payment - should be credit-card-payment", () => {
   expect(
     transformTransaction({

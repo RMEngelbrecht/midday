@@ -227,15 +227,10 @@ export const transformConnectionStatus = (
 export const transformTransactionName = (
   transaction: GetTransaction,
 ): string => {
-  // Try to get name from remittance information first
-  if (
-    transaction.remittance_information?.length &&
-    transaction.remittance_information[0] !== ""
-  ) {
-    return transaction.remittance_information[0]!;
-  }
-
-  // Try creditor/debtor name
+  // The counterparty is the cleanest name when the bank sends one. Remittance
+  // text is free-form per bank (ING packs "Naam: … Omschrijving: … IBAN: …"
+  // into it, German banks put the payment reference there), so it only names
+  // the transaction when there is no counterparty, as with many Nordic banks.
   if (
     transaction.credit_debit_indicator === "CRDT" &&
     transaction.debtor?.name
@@ -247,6 +242,13 @@ export const transformTransactionName = (
     transaction.creditor?.name
   ) {
     return transaction.creditor.name;
+  }
+
+  if (
+    transaction.remittance_information?.length &&
+    transaction.remittance_information[0] !== ""
+  ) {
+    return transaction.remittance_information[0]!;
   }
 
   // Fall back to bank transaction description if available

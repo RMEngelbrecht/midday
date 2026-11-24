@@ -358,6 +358,84 @@ export function calculateNameScore(
   return scores.length > 0 ? Math.max(...scores) : 0;
 }
 
+/**
+ * Vendor identity for comparison: suffixes, punctuation and number-only
+ * tokens removed, so "Fluitshop B.V." equals "FLUITSHOP BV" and
+ * "Albert Heijn 1234" equals "Albert Heijn 5678".
+ */
+export function vendorKey(name: string | null | undefined): string {
+  // Dots go first so "B.V." becomes the "bv" suffix instead of "b v".
+  return normalizeNameTokens((name ?? "").replaceAll(".", ""))
+    .filter((token) => !/^\d+$/.test(token))
+    .join(" ");
+}
+
+function isSameVendor(a: string, b: string): boolean {
+  const keyA = vendorKey(a);
+  const keyB = vendorKey(b);
+  if (!keyA || !keyB) return a.trim().toLowerCase() === b.trim().toLowerCase();
+  // 0.85 is containment: "Albert Heijn" vs "Albert Heijn Amsterdam".
+  return keyA === keyB || calculateNameScore(keyA, keyB, null) >= 0.85;
+}
+
+/** Above the 0.6 a shared first word scores, so "Naam …" or "CB …" alone never links. */
+export const SIMILAR_TRANSACTION_THRESHOLD = 0.65;
+
+const SAME_VENDOR_SCORE = 0.95;
+
+export type SimilarityFields = {
+  name: string;
+  merchantName: string | null;
+  counterpartyName: string | null;
+};
+
+/**
+ * How likely `candidate` is from the same vendor as `source` (0-1). The most
+ * specific identity both have decides: the merchant (from the provider or AI
+ * enrichment), then the counterparty the bank reported. Different
+ * counterparties are different vendors however alike the names, which keeps
+ * bank labels like "Sepa Overschrijving" from linking unrelated payments.
+ * Names are only compared when neither identity is on both sides, and not at
+ * all when `genericName` says the source name is such a label.
+ */
+export function scoreSimilarTransaction(
+  source: SimilarityFields,
+  candidate: SimilarityFields,
+  genericName: boolean,
+): number {
+  for (const field of ["merchantName", "counterpartyName"] as const) {
+    const a = source[field];
+    const b = candidate[field];
+    if (a && b) return isSameVendor(a, b) ? SAME_VENDOR_SCORE : 0;
+  }
+
+  if (genericName) return 0;
+
+  const sourceNames = [
+    source.name,
+    source.merchantName,
+    source.counterpartyName,
+  ].filter((name): name is string => Boolean(name));
+
+  return Math.max(
+    ...sourceNames.map((name) =>
+      calculateNameScore(
+        name,
+        candidate.name,
+        candidate.merchantName ?? candidate.counterpartyName,
+      ),
+    ),
+  );
+}
+
+/**
+ * A name is a bank label rather than a vendor when it is shared by several
+ * distinct counterparties, e.g. "Sepa Overschrijving".
+ */
+export function isGenericName(counterpartyNames: string[]): boolean {
+  return new Set(counterpartyNames.map(vendorKey).filter(Boolean)).size > 1;
+}
+
 type ScoreMatchInput = {
   nameScore: number;
   amountScore: number;

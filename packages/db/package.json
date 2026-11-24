@@ -5,7 +5,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "migrate": "varlock run -- bun run src/scripts/migrate.ts",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && biome format --write migrations/meta",
     "test": "APP_ENV=test varlock run -- bun test --exit",
     "eval:matching:db": "varlock run -- bun run src/scripts/matching-eval-db.ts",
     "eval:progress": "varlock run -- bun run src/scripts/matching-progress.ts",
