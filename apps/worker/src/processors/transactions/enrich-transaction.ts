@@ -5,7 +5,7 @@ import {
   type UpdateTransactionEnrichmentParams,
   updateTransactionEnrichments,
 } from "@midday/db/queries";
-import { generateObject } from "ai";
+import { APICallError, generateObject, RetryError } from "ai";
 import type { Job } from "bullmq";
 import type { EnrichTransactionsPayload } from "../../schemas/transactions";
 import { getDb } from "../../utils/db";
@@ -19,6 +19,10 @@ import { processBatch } from "../../utils/process-batch";
 import { BaseProcessor } from "../base";
 
 const BATCH_SIZE = 50;
+
+function isProviderError(error: unknown): boolean {
+  return APICallError.isInstance(error) || RetryError.isInstance(error);
+}
 
 /**
  * Enriches transactions with AI (merchant names, categories)
@@ -208,8 +212,20 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
             teamId,
           });
 
-          // Even if enrichment fails, mark all transactions as completed to prevent infinite loading
-          // The enrichment_completed field indicates process completion, not success
+          // Provider errors (quota, unknown model, outage) are temporary or
+          // fixable by config: leave the batch pending so the
+          // enrich-transactions-scheduler retries it.
+          if (isProviderError(error)) {
+            this.logger.warn("Left batch pending for a later retry", {
+              count: batch.length,
+              teamId,
+            });
+            return [];
+          }
+
+          // Otherwise (e.g. unusable model output) mark the batch completed so
+          // it is not retried forever. enrichment_completed means the process
+          // finished, not that it succeeded.
           try {
             // Defensive handling for potentially falsy transactions
             const validTransactionIds = batch

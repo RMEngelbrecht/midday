@@ -6,6 +6,7 @@ import { institutionsStaticSchedulers } from "./institutions.config";
 import { invoicesStaticSchedulers } from "./invoices.config";
 import { notificationsStaticSchedulers } from "./notifications.config";
 import { ratesStaticSchedulers } from "./rates.config";
+import { transactionsStaticSchedulers } from "./transactions.config";
 
 /**
  * All static scheduler configurations
@@ -19,4 +20,5 @@ export const staticSchedulerConfigs: StaticSchedulerConfig[] = [
   ...ratesStaticSchedulers,
   ...insightsStaticSchedulers,
   ...bankingStaticSchedulers,
+  ...transactionsStaticSchedulers,
 ];

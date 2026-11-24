@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Database } from "../client";
 import { transactions } from "../schema";
 
@@ -190,4 +190,21 @@ export async function markTransactionsAsEnriched(
       `Failed to mark transactions as enriched: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
+}
+
+/**
+ * Transactions still waiting for enrichment, newest first, across all teams.
+ * Picks up rows synced while AI was off or whose enrichment hit a provider
+ * error.
+ */
+export async function getTransactionsPendingEnrichment(
+  db: Database,
+  params: { limit: number },
+): Promise<Array<{ id: string; teamId: string }>> {
+  return db
+    .select({ id: transactions.id, teamId: transactions.teamId })
+    .from(transactions)
+    .where(eq(transactions.enrichmentCompleted, false))
+    .orderBy(desc(transactions.date))
+    .limit(params.limit);
 }

@@ -66,6 +66,12 @@ export type EnrichTransactionsPayload = z.infer<
   typeof enrichTransactionsSchema
 >;
 
+export const enrichTransactionsSchedulerSchema = z.object({});
+
+export type EnrichTransactionsSchedulerPayload = z.infer<
+  typeof enrichTransactionsSchedulerSchema
+>;
+
 export const importTransactionsSchema = z.object({
   inverted: z.boolean(),
   filePath: z.array(z.string()).optional(),
