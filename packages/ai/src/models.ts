@@ -19,6 +19,7 @@ import {
   supportsPdfInput,
 } from "./config";
 import { ENV } from "./env";
+import { withRateLimitRetry } from "./rate-limit";
 
 export class AIDisabledError extends Error {
   constructor() {
@@ -159,6 +160,9 @@ function embeddingModelFor(e: EmbeddingConfig): EmbeddingModel {
     case "google":
       // The Gemini API rejects batches over 100 texts, but @ai-sdk/google
       // reports 2048, so embedMany would send larger batches in one call.
+      // The free tier also allows only 100 texts per minute: batches go one
+      // at a time and a 429 waits for the delay Google asks for, so large
+      // jobs (the chat tool index) finish slowly instead of failing.
       return wrapEmbeddingModel({
         model: createGoogleGenerativeAI({
           apiKey: e.apiKey,
@@ -167,6 +171,8 @@ function embeddingModelFor(e: EmbeddingConfig): EmbeddingModel {
         middleware: {
           specificationVersion: "v3",
           overrideMaxEmbeddingsPerCall: () => GEMINI_MAX_EMBEDDINGS_PER_CALL,
+          overrideSupportsParallelCalls: () => false,
+          wrapEmbed: ({ doEmbed }) => withRateLimitRetry(doEmbed),
         },
       });
     case "mistral":
