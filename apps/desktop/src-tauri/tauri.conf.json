@@ -19,6 +19,7 @@
     "targets": "all",
     "createUpdaterArtifacts": false,
     "macOS": {
+      "signingIdentity": "-",
       "dmg": {
         "background": "./images/installer.png"
       }

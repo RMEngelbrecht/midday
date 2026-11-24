@@ -35,6 +35,21 @@ bun run tauri:build      # release build, no auto-update
 cd src-tauri && cargo test   # server URL/config logic
 ```
 
+Builds are ad-hoc signed (`bundle.macOS.signingIdentity: "-"`), not notarized.
+Without a signature, Apple Silicon reports a downloaded app as "damaged";
+ad-hoc signed, macOS asks once to approve it under System Settings > Privacy &
+Security > **Open Anyway**. Set `APPLE_SIGNING_IDENTITY` to sign with a
+Developer ID instead.
+
+## Releases
+
+`.github/workflows/desktop.yml` builds DMGs for Apple Silicon (`aarch64`) and
+Intel (`x64`). Bump `version` in `src-tauri/Cargo.toml`, then push a matching
+`desktop-v<version>` tag to attach them to a GitHub release; running the
+workflow by hand only uploads them as artifacts. Point the server's
+`DESKTOP_RELEASES_URL` at `https://github.com/<owner>/<repo>/releases/latest`
+to show the download card in the dashboard.
+
 ## Updates
 
 The updater is off by default. To ship updates from your fork's GitHub Releases:
