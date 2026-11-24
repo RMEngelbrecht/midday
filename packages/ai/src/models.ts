@@ -6,6 +6,7 @@ import {
   embedMany as aiEmbedMany,
   type EmbeddingModel,
   type LanguageModel,
+  wrapEmbeddingModel,
 } from "ai";
 import {
   type AIConfig,
@@ -141,6 +142,8 @@ export function getWebSearchTool(
   return null;
 }
 
+const GEMINI_MAX_EMBEDDINGS_PER_CALL = 100;
+
 function embeddingModelFor(e: EmbeddingConfig): EmbeddingModel {
   switch (e.provider) {
     case "openai":
@@ -154,10 +157,18 @@ function embeddingModelFor(e: EmbeddingConfig): EmbeddingModel {
         baseURL: e.baseURL,
       }).embeddingModel(e.model);
     case "google":
-      return createGoogleGenerativeAI({
-        apiKey: e.apiKey,
-        baseURL: e.baseURL,
-      }).embeddingModel(e.model);
+      // The Gemini API rejects batches over 100 texts, but @ai-sdk/google
+      // reports 2048, so embedMany would send larger batches in one call.
+      return wrapEmbeddingModel({
+        model: createGoogleGenerativeAI({
+          apiKey: e.apiKey,
+          baseURL: e.baseURL,
+        }).embeddingModel(e.model),
+        middleware: {
+          specificationVersion: "v3",
+          overrideMaxEmbeddingsPerCall: () => GEMINI_MAX_EMBEDDINGS_PER_CALL,
+        },
+      });
     case "mistral":
       return createMistral({
         apiKey: e.apiKey,
