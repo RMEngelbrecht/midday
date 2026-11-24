@@ -190,7 +190,7 @@ export function TransactionEditForm({ transaction }: Props) {
   } else {
     // Amount is 0, check category as fallback
     transactionType =
-      transaction.category?.slug === "income" ? "income" : "expense";
+      transaction.category?.kind === "income" ? "income" : "expense";
   }
 
   // Local state only for debounced inputs
@@ -280,8 +280,8 @@ export function TransactionEditForm({ transaction }: Props) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              // Clear income category if switching to expense
-              if (transaction.category?.slug === "income") {
+              // Clear an income category if switching to expense
+              if (transaction.category?.kind === "income") {
                 updateTransactionMutation.mutate({
                   id: transaction.id,
                   categorySlug: "uncategorized",

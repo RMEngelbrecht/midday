@@ -1,7 +1,3 @@
-import {
-  CONTRA_REVENUE_CATEGORIES,
-  REVENUE_CATEGORIES,
-} from "@midday/categories";
 import { buildSearchQuery } from "@midday/db/utils/search-query";
 import { createLoggerWithContext } from "@midday/logger";
 import { resolveTaxValues } from "@midday/utils/tax";
@@ -39,6 +35,7 @@ import {
   transactionTags,
   users,
 } from "../schema";
+import { categorySlugsOfKind } from "../utils/category-kinds";
 import {
   calculateAmountScore,
   calculateCurrencyScore,
@@ -371,13 +368,24 @@ export async function getTransactions(
   // Type filter (expense/income)
   if (type === "expense") {
     whereConditions.push(lt(transactions.amount, 0));
-    whereConditions.push(ne(transactions.categorySlug, "transfer"));
+    // Uncategorised expenses stay in; only transfer-kind categories drop out.
+    whereConditions.push(
+      or(
+        isNull(transactions.categorySlug),
+        not(
+          inArray(
+            transactions.categorySlug,
+            categorySlugsOfKind(db, teamId, ["transfer"]),
+          ),
+        ),
+      )!,
+    );
   } else if (type === "income") {
     whereConditions.push(
-      inArray(transactions.categorySlug, REVENUE_CATEGORIES),
-    );
-    whereConditions.push(
-      not(inArray(transactions.categorySlug, CONTRA_REVENUE_CATEGORIES)),
+      inArray(
+        transactions.categorySlug,
+        categorySlugsOfKind(db, teamId, ["income"]),
+      ),
     );
   }
 
@@ -607,6 +615,7 @@ export async function getTransactions(
         slug: transactionCategories.slug,
         taxRate: transactionCategories.taxRate,
         taxType: transactionCategories.taxType,
+        kind: transactionCategories.kind,
       },
       account: {
         id: bankAccounts.id,
@@ -814,6 +823,7 @@ export async function getTransactionById(
         slug: transactionCategories.slug,
         taxRate: transactionCategories.taxRate,
         taxType: transactionCategories.taxType,
+        kind: transactionCategories.kind,
       },
       account: {
         id: bankAccounts.id,
@@ -1990,14 +2000,46 @@ export async function upsertTransactions(
   params: UpsertTransactionsParams,
 ): Promise<Array<{ id: string }>> {
   // Exclude teamId from the params
-  const { transactions: transactionsData, teamId: _teamId } = params;
+  const { transactions: transactionsData, teamId } = params;
   if (transactionsData.length === 0) {
     return [];
   }
 
+  // Bank providers and imports send built-in slugs ("income", "travel", ...)
+  // that a team may have deleted. Drop those so the category foreign key
+  // doesn't reject the whole batch; enrichment can categorise them instead.
+  const requestedSlugs = [
+    ...new Set(
+      transactionsData
+        .map((row) => row.categorySlug)
+        .filter((slug): slug is string => !!slug),
+    ),
+  ];
+  let knownSlugs = new Set<string>();
+  if (requestedSlugs.length > 0) {
+    const rows = await db
+      .select({ slug: transactionCategories.slug })
+      .from(transactionCategories)
+      .where(
+        and(
+          eq(transactionCategories.teamId, teamId),
+          inArray(transactionCategories.slug, requestedSlugs),
+        ),
+      );
+    knownSlugs = new Set(
+      rows.map((row) => row.slug).filter(Boolean) as string[],
+    );
+  }
+
+  const rowsToInsert = transactionsData.map((row) =>
+    row.categorySlug && !knownSlugs.has(row.categorySlug)
+      ? { ...row, categorySlug: null }
+      : row,
+  );
+
   const upserted = await db
     .insert(transactions)
-    .values(transactionsData)
+    .values(rowsToInsert)
     .onConflictDoNothing({
       target: [transactions.internalId],
     })

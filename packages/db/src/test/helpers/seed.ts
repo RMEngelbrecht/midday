@@ -1,4 +1,5 @@
 import { UTCDate } from "@date-fns/utc";
+import { getDefaultCategoryKind } from "@midday/categories";
 import { format, subMonths } from "date-fns";
 import type { Database } from "../../client";
 import {
@@ -145,238 +146,258 @@ async function seedTeams(db: Database): Promise<void> {
   ]);
 }
 
+type CategoryRow = typeof transactionCategories.$inferInsert;
+
+/** Give seeded categories the kind a real team's built-ins start with. */
+function withKinds(rows: CategoryRow[]): CategoryRow[] {
+  const slugById = new Map(rows.map((row) => [row.id, row.slug]));
+  return rows.map((row) => ({
+    ...row,
+    kind:
+      row.kind ??
+      getDefaultCategoryKind(
+        row.slug ?? "",
+        row.parentId ? slugById.get(row.parentId) : null,
+      ),
+  }));
+}
+
 async function seedCategories(db: Database): Promise<void> {
   // Team USD categories
-  await db.insert(transactionCategories).values([
-    // Revenue categories (members of REVENUE_CATEGORIES)
-    {
-      id: CAT_IDS.revenue,
-      teamId: TEAM_USD_ID,
-      slug: "revenue",
-      name: "Revenue",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.income,
-      teamId: TEAM_USD_ID,
-      slug: "income",
-      name: "Income",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.productSales,
-      teamId: TEAM_USD_ID,
-      slug: "product-sales",
-      name: "Product Sales",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.consultingRevenue,
-      teamId: TEAM_USD_ID,
-      slug: "consulting-revenue",
-      name: "Consulting Revenue",
-      system: true,
-      excluded: false,
-    },
+  await db.insert(transactionCategories).values(
+    withKinds([
+      // Revenue categories (members of REVENUE_CATEGORIES)
+      {
+        id: CAT_IDS.revenue,
+        teamId: TEAM_USD_ID,
+        slug: "revenue",
+        name: "Revenue",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.income,
+        teamId: TEAM_USD_ID,
+        slug: "income",
+        name: "Income",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.productSales,
+        teamId: TEAM_USD_ID,
+        slug: "product-sales",
+        name: "Product Sales",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.consultingRevenue,
+        teamId: TEAM_USD_ID,
+        slug: "consulting-revenue",
+        name: "Consulting Revenue",
+        system: true,
+        excluded: false,
+      },
 
-    // Contra-revenue (member of CONTRA_REVENUE_CATEGORIES)
-    {
-      id: CAT_IDS.customerRefunds,
-      teamId: TEAM_USD_ID,
-      slug: "customer-refunds",
-      name: "Customer Refunds",
-      system: true,
-      excluded: false,
-    },
+      // Contra-revenue (member of CONTRA_REVENUE_CATEGORIES)
+      {
+        id: CAT_IDS.customerRefunds,
+        teamId: TEAM_USD_ID,
+        slug: "customer-refunds",
+        name: "Customer Refunds",
+        system: true,
+        excluded: false,
+      },
 
-    // COGS parent (NOT itself counted as COGS in profit calc — only children are)
-    {
-      id: CAT_IDS.cogsParent,
-      teamId: TEAM_USD_ID,
-      slug: "cost-of-goods-sold",
-      name: "Cost of Goods Sold",
-      system: true,
-      excluded: false,
-    },
-    // COGS children
-    {
-      id: CAT_IDS.materials,
-      teamId: TEAM_USD_ID,
-      slug: "materials",
-      name: "Materials",
-      system: true,
-      excluded: false,
-      parentId: CAT_IDS.cogsParent,
-    },
-    {
-      id: CAT_IDS.directLabor,
-      teamId: TEAM_USD_ID,
-      slug: "direct-labor",
-      name: "Direct Labor",
-      system: true,
-      excluded: false,
-      parentId: CAT_IDS.cogsParent,
-    },
+      // COGS parent (kind cost_of_goods, like its children)
+      {
+        id: CAT_IDS.cogsParent,
+        teamId: TEAM_USD_ID,
+        slug: "cost-of-goods-sold",
+        name: "Cost of Goods Sold",
+        system: true,
+        excluded: false,
+      },
+      // COGS children
+      {
+        id: CAT_IDS.materials,
+        teamId: TEAM_USD_ID,
+        slug: "materials",
+        name: "Materials",
+        system: true,
+        excluded: false,
+        parentId: CAT_IDS.cogsParent,
+      },
+      {
+        id: CAT_IDS.directLabor,
+        teamId: TEAM_USD_ID,
+        slug: "direct-labor",
+        name: "Direct Labor",
+        system: true,
+        excluded: false,
+        parentId: CAT_IDS.cogsParent,
+      },
 
-    // Regular expense categories
-    {
-      id: CAT_IDS.officeSupplies,
-      teamId: TEAM_USD_ID,
-      slug: "office-supplies",
-      name: "Office Supplies",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.software,
-      teamId: TEAM_USD_ID,
-      slug: "software",
-      name: "Software",
-      system: true,
-      excluded: false,
-      taxRate: 20,
-      taxType: "vat",
-    },
-    {
-      id: CAT_IDS.travel,
-      teamId: TEAM_USD_ID,
-      slug: "travel",
-      name: "Travel",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.rent,
-      teamId: TEAM_USD_ID,
-      slug: "rent",
-      name: "Rent",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.marketing,
-      teamId: TEAM_USD_ID,
-      slug: "marketing",
-      name: "Marketing",
-      system: true,
-      excluded: false,
-      taxRate: 10,
-      taxType: "sales_tax",
-    },
+      // Regular expense categories
+      {
+        id: CAT_IDS.officeSupplies,
+        teamId: TEAM_USD_ID,
+        slug: "office-supplies",
+        name: "Office Supplies",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.software,
+        teamId: TEAM_USD_ID,
+        slug: "software",
+        name: "Software",
+        system: true,
+        excluded: false,
+        taxRate: 20,
+        taxType: "vat",
+      },
+      {
+        id: CAT_IDS.travel,
+        teamId: TEAM_USD_ID,
+        slug: "travel",
+        name: "Travel",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.rent,
+        teamId: TEAM_USD_ID,
+        slug: "rent",
+        name: "Rent",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.marketing,
+        teamId: TEAM_USD_ID,
+        slug: "marketing",
+        name: "Marketing",
+        system: true,
+        excluded: false,
+        taxRate: 10,
+        taxType: "sales_tax",
+      },
 
-    // EXCLUDED categories — these MUST NOT appear in any financial calculation
-    {
-      id: CAT_IDS.creditCardPayment,
-      teamId: TEAM_USD_ID,
-      slug: "credit-card-payment",
-      name: "Credit Card Payment",
-      system: true,
-      excluded: true,
-    },
-    {
-      id: CAT_IDS.internalTransfer,
-      teamId: TEAM_USD_ID,
-      slug: "internal-transfer",
-      name: "Internal Transfer",
-      system: true,
-      excluded: true,
-    },
-    {
-      id: CAT_IDS.inventory,
-      teamId: TEAM_USD_ID,
-      slug: "inventory",
-      name: "Inventory",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.prepaidExpenses,
-      teamId: TEAM_USD_ID,
-      slug: "prepaid-expenses",
-      name: "Prepaid Expenses",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.loanProceeds,
-      teamId: TEAM_USD_ID,
-      slug: "loan-proceeds",
-      name: "Loan Proceeds",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.deferredRevenue,
-      teamId: TEAM_USD_ID,
-      slug: "deferred-revenue",
-      name: "Deferred Revenue",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.capitalInvestment,
-      teamId: TEAM_USD_ID,
-      slug: "capital-investment",
-      name: "Capital Investment",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.ownerDraws,
-      teamId: TEAM_USD_ID,
-      slug: "owner-draws",
-      name: "Owner Draws",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_IDS.cleaning,
-      teamId: TEAM_USD_ID,
-      slug: "cleaning",
-      name: "Cleaning Services",
-      system: true,
-      excluded: false,
-    },
-  ]);
+      // EXCLUDED categories — these MUST NOT appear in any financial calculation
+      {
+        id: CAT_IDS.creditCardPayment,
+        teamId: TEAM_USD_ID,
+        slug: "credit-card-payment",
+        name: "Credit Card Payment",
+        system: true,
+        excluded: true,
+      },
+      {
+        id: CAT_IDS.internalTransfer,
+        teamId: TEAM_USD_ID,
+        slug: "internal-transfer",
+        name: "Internal Transfer",
+        system: true,
+        excluded: true,
+      },
+      {
+        id: CAT_IDS.inventory,
+        teamId: TEAM_USD_ID,
+        slug: "inventory",
+        name: "Inventory",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.prepaidExpenses,
+        teamId: TEAM_USD_ID,
+        slug: "prepaid-expenses",
+        name: "Prepaid Expenses",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.loanProceeds,
+        teamId: TEAM_USD_ID,
+        slug: "loan-proceeds",
+        name: "Loan Proceeds",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.deferredRevenue,
+        teamId: TEAM_USD_ID,
+        slug: "deferred-revenue",
+        name: "Deferred Revenue",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.capitalInvestment,
+        teamId: TEAM_USD_ID,
+        slug: "capital-investment",
+        name: "Capital Investment",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.ownerDraws,
+        teamId: TEAM_USD_ID,
+        slug: "owner-draws",
+        name: "Owner Draws",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_IDS.cleaning,
+        teamId: TEAM_USD_ID,
+        slug: "cleaning",
+        name: "Cleaning Services",
+        system: true,
+        excluded: false,
+      },
+    ]),
+  );
 
   // Team EUR categories (for isolation testing)
-  await db.insert(transactionCategories).values([
-    {
-      id: CAT_EUR_IDS.revenue,
-      teamId: TEAM_EUR_ID,
-      slug: "revenue",
-      name: "Revenue",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_EUR_IDS.officeSupplies,
-      teamId: TEAM_EUR_ID,
-      slug: "office-supplies",
-      name: "Office Supplies",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_EUR_IDS.rent,
-      teamId: TEAM_EUR_ID,
-      slug: "rent",
-      name: "Rent",
-      system: true,
-      excluded: false,
-    },
-    {
-      id: CAT_EUR_IDS.software,
-      teamId: TEAM_EUR_ID,
-      slug: "software",
-      name: "Software",
-      system: true,
-      excluded: false,
-    },
-  ]);
+  await db.insert(transactionCategories).values(
+    withKinds([
+      {
+        id: CAT_EUR_IDS.revenue,
+        teamId: TEAM_EUR_ID,
+        slug: "revenue",
+        name: "Revenue",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_EUR_IDS.officeSupplies,
+        teamId: TEAM_EUR_ID,
+        slug: "office-supplies",
+        name: "Office Supplies",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_EUR_IDS.rent,
+        teamId: TEAM_EUR_ID,
+        slug: "rent",
+        name: "Rent",
+        system: true,
+        excluded: false,
+      },
+      {
+        id: CAT_EUR_IDS.software,
+        teamId: TEAM_EUR_ID,
+        slug: "software",
+        name: "Software",
+        system: true,
+        excluded: false,
+      },
+    ]),
+  );
 }
 
 async function seedBankAccounts(db: Database): Promise<void> {

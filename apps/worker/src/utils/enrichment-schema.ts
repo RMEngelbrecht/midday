@@ -1,74 +1,18 @@
 import { z } from "zod";
 
-// Transaction categories that the LLM can assign (only categories suitable for AI categorization)
-export const transactionCategories = [
-  // Core operational expenses (high confidence)
-  "software", // SaaS subscriptions, development tools
-  "travel", // Business trips, transportation
-  "meals", // Business dining, client meals
-  "office-supplies", // Stationery, consumables
-  "equipment", // Computers, furniture, tools
-  "utilities", // Electric, water, gas bills
-  "rent", // Office space, co-working
-  "internet-and-telephone", // ISP, phone bills
-  "facilities-expenses", // Building maintenance
-  "shipping", // Shipping costs
-
-  // Marketing & advertising
-  "marketing", // Marketing services, agencies
-  "advertising", // Ad platforms, campaigns
-  "website", // Domain, hosting, web development
-  "events", // Conferences, trade shows
-  "promotional-materials", // Brochures, branded items
-
-  // Professional services
-  "professional-services-fees", // Legal, accounting, consulting
-  "insurance", // Business insurance premiums
-  "contractors", // Freelancer payments
-
-  // Human resources
-  "training", // Courses, certifications
-  "employer-taxes", // Payroll taxes
-  "benefits", // Health insurance, retirement
-
-  // Technology
-  "non-software-subscriptions", // Non-software subscriptions
-
-  // Entertainment & activities
-  "activity", // Team building, entertainment
-
-  // Banking & finance
-  "transfer", // Bank transfers
-  "credit-card-payment", // Credit card charges
-  "banking-fees", // Bank fees
-  "interest-expense", // Loan interest payments
-  "payouts", // Payment platform payouts
-  "processor-fees", // Payment processing fees
-  "fees", // General fees
-
-  // Assets
-  "fixed-assets", // Equipment, furniture purchases
-  "prepaid-expenses", // Prepaid services
-
-  // Liabilities
-  "leases", // Equipment or property leases
-
-  // Fallback categories
-  "uncategorized", // When uncertain
-  "other", // Miscellaneous expenses
-] as const;
-
 // Structured output schema for LLM response (for use with output: "array")
 export const enrichmentSchema = z.object({
   merchant: z
     .string()
     .nullable()
     .describe("The formal legal business entity name"),
+  // A slug from the team's categories listed in the prompt. Checked against
+  // that list afterwards, since every team has its own categories.
   category: z
-    .enum(transactionCategories)
+    .string()
     .nullable()
     .describe(
-      "The category of the transaction - only return if confidence is high",
+      "The slug of the transaction's category from the allowed list - only return if confidence is high",
     ),
   categoryConfidence: z
     .number()

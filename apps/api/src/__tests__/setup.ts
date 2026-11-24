@@ -950,6 +950,13 @@ const dbQueriesMock = new Proxy(
     createTransactionCategory: createDefaultMock(),
     updateTransactionCategory: createDefaultMock(),
     deleteTransactionCategory: createDefaultMock(),
+    getCategoryUsage: createDefaultMock(),
+    CategoryDeleteError: class CategoryDeleteError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = "CategoryDeleteError";
+      }
+    },
 
     // Tracker
     getTrackerRecordsByDate: mocks.getTrackerRecordsByDate,

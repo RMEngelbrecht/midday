@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import {
+  CategoryDeleteError,
   createTransactionCategory,
   deleteTransactionCategory,
   getCategories,
@@ -299,6 +300,32 @@ describe("tRPC: transactionCategories.delete", () => {
         teamId: "test-team-id",
       }),
     );
+  });
+
+  test("passes the replacement category through", async () => {
+    const caller = createCaller(createTestContext());
+    await caller.delete({ id: CATEGORY_ID, replacementSlug: "other-income" });
+
+    expect(deleteTransactionCategory).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ replacementSlug: "other-income" }),
+    );
+  });
+
+  test("turns a refused delete into a BAD_REQUEST with its message", async () => {
+    asMock(deleteTransactionCategory).mockImplementation(() =>
+      Promise.reject(
+        new CategoryDeleteError(
+          "This category is needed by the app and can't be deleted.",
+        ),
+      ),
+    );
+
+    const caller = createCaller(createTestContext());
+    await expect(caller.delete({ id: CATEGORY_ID })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "This category is needed by the app and can't be deleted.",
+    });
   });
 
   test("returns undefined when nothing was deleted", async () => {

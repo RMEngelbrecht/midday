@@ -54,6 +54,15 @@ export const numericCasted = customType<{
   toDriver: (value: number) => value.toString(),
 });
 
+// Mirrors CATEGORY_KINDS in @midday/categories.
+export const transactionCategoryKindEnum = pgEnum("transaction_category_kind", [
+  "expense",
+  "income",
+  "refund",
+  "cost_of_goods",
+  "transfer",
+]);
+
 export const accountTypeEnum = pgEnum("account_type", [
   "depository",
   "credit",
@@ -2307,6 +2316,7 @@ export const transactionCategories = pgTable(
     excluded: boolean("excluded").default(false),
     description: text(),
     parentId: uuid("parent_id"),
+    kind: transactionCategoryKindEnum("kind").notNull().default("expense"),
   },
   (table) => [
     index("transaction_categories_team_id_idx").using(

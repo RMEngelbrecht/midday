@@ -1,4 +1,10 @@
 import { z } from "@hono/zod-openapi";
+import { CATEGORY_KINDS } from "@midday/categories";
+
+const categoryKindSchema = z.enum(CATEGORY_KINDS).openapi({
+  description:
+    "What the category means for reports: expense, income, refund (contra-income), cost_of_goods or transfer",
+});
 
 export const createTransactionCategorySchema = z.object({
   name: z.string(),
@@ -9,6 +15,7 @@ export const createTransactionCategorySchema = z.object({
   taxReportingCode: z.string().optional(),
   excluded: z.boolean().optional(),
   parentId: z.string().optional(),
+  kind: categoryKindSchema.optional(),
 });
 
 export const updateTransactionCategorySchema = z.object({
@@ -21,9 +28,18 @@ export const updateTransactionCategorySchema = z.object({
   taxReportingCode: z.string().nullable(),
   excluded: z.boolean().nullable(),
   parentId: z.string().nullable().optional(),
+  kind: categoryKindSchema.optional(),
 });
 
-export const deleteTransactionCategorySchema = z.object({ id: z.string() });
+export const deleteTransactionCategorySchema = z.object({
+  id: z.string(),
+  replacementSlug: z.string().nullable().optional().openapi({
+    description:
+      'Slug of the category that receives the deleted category\'s transactions. Defaults to "uncategorized"; null leaves them without a category.',
+  }),
+});
+
+export const getCategoryUsageSchema = z.object({ id: z.string() });
 
 export const getCategoriesSchema = z
   .object({

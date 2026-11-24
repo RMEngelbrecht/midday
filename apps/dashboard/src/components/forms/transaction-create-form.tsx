@@ -118,6 +118,22 @@ export function TransactionCreateForm() {
     trpc.transactionCategories.get.queryOptions(),
   );
 
+  const allCategories = (categories ?? []).flatMap((parent) => [
+    parent,
+    ...(parent.children ?? []),
+  ]);
+  const categoryKind = (slug: string | undefined) =>
+    allCategories.find((category) => category.slug === slug)?.kind;
+  // The built-in "Income" category if the team still has it as income,
+  // otherwise its first income category.
+  const incomeCategories = allCategories.filter(
+    (category) => category.kind === "income",
+  );
+  const defaultIncomeSlug = (
+    incomeCategories.find((category) => category.slug === "income") ??
+    incomeCategories[0]
+  )?.slug;
+
   const createTransactionMutation = useMutation(
     trpc.transactions.create.mutationOptions({
       onSuccess: () => {
@@ -228,8 +244,11 @@ export function TransactionCreateForm() {
                       e.preventDefault();
                       e.stopPropagation();
                       field.onChange("expense");
-                      // Clear income category if switching to expense
-                      if (form.getValues("categorySlug") === "income") {
+                      // Clear an income category if switching to expense
+                      if (
+                        categoryKind(form.getValues("categorySlug")) ===
+                        "income"
+                      ) {
                         form.setValue("categorySlug", undefined);
                       }
                       // Update amount to negative if there's an amount
@@ -259,9 +278,9 @@ export function TransactionCreateForm() {
                       if (currentAmount) {
                         const positiveAmount = Math.abs(currentAmount);
                         form.setValue("amount", positiveAmount);
-                        // Auto-select income category if amount is positive
-                        if (positiveAmount > 0) {
-                          form.setValue("categorySlug", "income");
+                        // Auto-select an income category if amount is positive
+                        if (positiveAmount > 0 && defaultIncomeSlug) {
+                          form.setValue("categorySlug", defaultIncomeSlug);
                         }
                       }
                     }}

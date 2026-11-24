@@ -21,6 +21,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useI18n } from "@/locales/client";
+import { getCategoryKindLabel } from "@/utils/category-kinds";
 
 export interface CategoriesTableMeta {
   deleteCategory: (id: string) => void;
@@ -199,6 +200,14 @@ export const columns: ColumnDef<any>[] = [
             </span>
           )}
 
+          {row.original.kind !== "expense" && (
+            <div className="pl-2">
+              <span className="border border-border rounded-full py-1 px-2 text-[10px] text-[#878787] font-mono">
+                {getCategoryKindLabel(row.original.kind)}
+              </span>
+            </div>
+          )}
+
           {row.original.system && (
             <div className="pl-2">
               <span className="border border-border rounded-full py-1 px-2 text-[10px] text-[#878787] font-mono">
@@ -252,13 +261,11 @@ export const columns: ColumnDef<any>[] = [
                 Edit
               </DropdownMenuItem>
 
-              {!row.original.system && (
-                <DropdownMenuItem
-                  onClick={() => meta?.deleteCategory?.(row.original.id)}
-                >
-                  Remove
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem
+                onClick={() => meta?.deleteCategory?.(row.original.id)}
+              >
+                Remove
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

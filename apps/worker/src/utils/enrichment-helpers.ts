@@ -1,4 +1,7 @@
-import type { TransactionForEnrichment } from "@midday/db/queries";
+import type {
+  CategoryForEnrichment,
+  TransactionForEnrichment,
+} from "@midday/db/queries";
 import type {
   EnrichmentResult,
   TransactionData,
@@ -7,8 +10,34 @@ import type {
 import {
   shouldUseCategoryResult,
   shouldUseMerchantResult,
-  transactionCategories,
 } from "./enrichment-schema";
+
+/**
+ * Categories the AI may give a transaction. Enrichment only categorises
+ * outgoing money, so income and refund categories are left out, and
+ * Uncategorized is the fallback rather than a choice.
+ */
+export function assignableCategories(
+  categories: CategoryForEnrichment[],
+): CategoryForEnrichment[] {
+  return categories.filter(
+    (category) =>
+      category.kind !== "income" &&
+      category.kind !== "refund" &&
+      category.slug !== "uncategorized",
+  );
+}
+
+function formatCategoryList(categories: CategoryForEnrichment[]): string {
+  return categories
+    .map((category) => {
+      const description = category.description
+        ? ` - ${category.description}`
+        : "";
+      return `• ${category.slug}: ${category.name}${description}`;
+    })
+    .join("\n");
+}
 
 /**
  * Generates the enrichment prompt for the LLM
@@ -16,6 +45,7 @@ import {
 export function generateEnrichmentPrompt(
   transactionData: TransactionData[],
   batch: TransactionForEnrichment[],
+  categories: CategoryForEnrichment[],
 ): string {
   const transactionList = transactionData
     .map((tx, index) => {
@@ -26,7 +56,8 @@ export function generateEnrichmentPrompt(
     })
     .join("\n");
 
-  const needsCategories = batch.some((tx) => !tx.categorySlug);
+  const needsCategories =
+    categories.length > 0 && batch.some((tx) => !tx.categorySlug);
 
   let returnInstructions = "Return:\n";
 
@@ -66,8 +97,8 @@ REQUIREMENTS:
 
 CONFIDENCE SCORING:
 - categoryConfidence: Rate your confidence in the category assignment (0-1)
-  • 1.0 = Very certain (e.g., "Slack" → software)
-  • 0.8 = Quite confident (e.g., "Hotel booking" → travel)  
+  • 1.0 = Very certain (e.g., a well-known software vendor → a software category)
+  • 0.8 = Quite confident (e.g., a hotel booking → a travel category)
   • 0.5 = Unsure (e.g., ambiguous merchant)
   • 0.2 = Very uncertain
 - merchantConfidence: Rate your confidence in the merchant name (0-1)
@@ -84,34 +115,12 @@ CATEGORIZATION RULES:
 Assign categories based on merchant name and business purpose. Only return category if confidence >= 0.7, otherwise return null.
 
 CONFIDENCE EXAMPLES:
-• "Slack Technologies" → software (0.95)
-• "Delta Air Lines" → travel (0.95)
-• "ConEd Electric" → utilities (0.90)
+• A software company → the software category, if one is listed (0.95)
+• An airline → the travel category, if one is listed (0.95)
 • "ABC Corp payment" → null (0.4) (too uncertain)
 
-COMMON CATEGORIES (only use if confident):
-• software: SaaS tools (Slack, Google Workspace, GitHub, AWS)
-• travel: Business trips (airlines, hotels, Uber to meetings)
-• meals: Business dining (restaurants, client meals, catering)
-• office-supplies: Stationery, consumables (paper, pens, supplies)
-• equipment: Computers, furniture, tools >$500
-• utilities: Utility bills (electric, water, gas, internet)
-• rent: Office space, co-working, storage facilities
-• marketing: Marketing services, agencies, SEO
-• advertising: Ad platforms (Google Ads, Facebook Ads)
-• insurance: Business insurance premiums
-• contractors: Freelancer payments, 1099 contractors
-• fees: Bank charges, processing fees, service fees
-• website: Domains, hosting, web development
-• domain-hosting: Specific hosting services (GoDaddy, Cloudflare)
-• cloud-storage: Cloud services (Dropbox, Google Drive, AWS S3)
-• training: Courses, certifications, conferences
-• maintenance-repairs: Equipment repairs, building maintenance
-• cleaning-supplies: Cleaning services, janitorial supplies
-• security: Security systems, monitoring services
-• credit-card-payment: Credit card transactions
-• interest-expense: Loan interest payments
-• uncategorized: Use when uncertain
+ALLOWED CATEGORIES (slug: name - description). Return the slug exactly as written, or null:
+${formatCategoryList(categories)}
 
 RULES:
 1. Only categorize if confidence >= 0.7
@@ -169,15 +178,6 @@ export function prepareTransactionData(
 }
 
 /**
- * Validates if a category is in the allowed list
- */
-function isValidCategory(category: string): boolean {
-  return transactionCategories.includes(
-    category as (typeof transactionCategories)[number],
-  );
-}
-
-/**
  * Prepares update data, enhancing merchant names to legal entity names and category classifications
  */
 export function prepareUpdateData(
@@ -187,6 +187,12 @@ export function prepareUpdateData(
     amount: number;
   },
   result: EnrichmentResult,
+  categories: {
+    /** Slugs the AI may assign (see assignableCategories). */
+    allowed: ReadonlySet<string>;
+    /** Whether the team has the "uncategorized" fallback. */
+    hasUncategorized: boolean;
+  },
 ): UpdateData {
   const updateData: UpdateData = {};
 
@@ -200,11 +206,11 @@ export function prepareUpdateData(
     if (
       shouldUseCategoryResult(result) &&
       result.category &&
-      isValidCategory(result.category)
+      categories.allowed.has(result.category)
     ) {
       // High confidence: use the suggested category
       updateData.categorySlug = result.category;
-    } else {
+    } else if (categories.hasUncategorized) {
       // Low confidence or no category: mark as uncategorized to prevent reprocessing
       updateData.categorySlug = "uncategorized";
     }

@@ -322,6 +322,7 @@ export const mcpCategoryDetailSchema = z.object({
   taxType: z.string().nullable().optional(),
   taxReportingCode: z.string().nullable().optional(),
   parentId: z.string().nullable().optional(),
+  kind: z.string().nullable().optional(),
   children: z
     .array(
       z.object({

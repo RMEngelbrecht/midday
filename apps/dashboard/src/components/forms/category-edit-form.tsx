@@ -17,6 +17,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { z } from "zod/v3";
 import { InputColor } from "@/components/input-color";
+import { SelectCategoryKind } from "@/components/select-category-kind";
 import { SelectParentCategory } from "@/components/select-parent-category";
 import { SelectTaxType } from "@/components/select-tax-type";
 import { TaxRateInput } from "@/components/tax-rate-input";
@@ -24,6 +25,7 @@ import { useCategoryParams } from "@/hooks/use-category-params";
 import { useInvalidateTransactionQueries } from "@/hooks/use-invalidate-transaction-queries";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useTRPC } from "@/trpc/client";
+import { CATEGORY_KIND_OPTIONS } from "@/utils/category-kinds";
 
 const formSchema = z.object({
   id: z.string().uuid(),
@@ -35,6 +37,14 @@ const formSchema = z.object({
   taxReportingCode: z.string().optional().nullable(),
   excluded: z.boolean().optional().nullable(),
   parentId: z.string().optional().nullable(),
+  kind: z
+    .enum(
+      CATEGORY_KIND_OPTIONS.map((option) => option.value) as [
+        (typeof CATEGORY_KIND_OPTIONS)[number]["value"],
+        ...(typeof CATEGORY_KIND_OPTIONS)[number]["value"][],
+      ],
+    )
+    .optional(),
 });
 
 type UpdateCategoriesFormValues = z.infer<typeof formSchema>;
@@ -59,6 +69,7 @@ export function CategoryEditForm({ data }: Props) {
     taxReportingCode: data?.taxReportingCode || "",
     excluded: data?.excluded || false,
     parentId: data?.parentId || undefined,
+    kind: data?.kind,
   };
 
   const form = useZodForm(formSchema, {
@@ -81,11 +92,12 @@ export function CategoryEditForm({ data }: Props) {
           queryKey: trpc.transactionCategories.getById.queryKey(),
         });
 
-        // Check if excluded or taxRate changed (affects calculations)
+        // Check if excluded, taxRate or kind changed (affects calculations)
         const excludedChanged = data?.excluded !== variables.excluded;
         const taxRateChanged = data?.taxRate !== variables.taxRate;
+        const kindChanged = data?.kind !== variables.kind;
 
-        if (excludedChanged || taxRateChanged) {
+        if (excludedChanged || taxRateChanged || kindChanged) {
           invalidateTransactionQueries();
         }
 
@@ -105,6 +117,7 @@ export function CategoryEditForm({ data }: Props) {
       taxReportingCode: string | null;
       excluded: boolean | null;
       parentId?: string | null;
+      kind?: typeof values.kind;
     } = {
       id: values.id,
       name: values.name,
@@ -114,6 +127,7 @@ export function CategoryEditForm({ data }: Props) {
       taxType: values.taxType || null,
       taxReportingCode: values.taxReportingCode || null,
       excluded: values.excluded ?? null,
+      kind: values.kind,
     };
 
     // Only include parentId if it has changed from the original value
@@ -192,6 +206,25 @@ export function CategoryEditForm({ data }: Props) {
                   </FormItem>
                 );
               }}
+            />
+
+            <FormField
+              control={form.control}
+              name="kind"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-xs text-[#878787] font-normal">
+                    Type
+                  </FormLabel>
+                  <FormControl>
+                    <SelectCategoryKind
+                      value={field.value ?? undefined}
+                      onChange={field.onChange}
+                      placeholder={"Select a type"}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
             />
 
             <FormField

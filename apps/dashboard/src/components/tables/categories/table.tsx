@@ -9,17 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@midday/ui/table";
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import React from "react";
+import { DeleteCategoryDialog } from "@/components/delete-category-dialog";
 import { useCategoryParams } from "@/hooks/use-category-params";
 import { useTRPC } from "@/trpc/client";
 import {
@@ -35,22 +32,15 @@ export function DataTable() {
   >(new Set());
 
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
   const { setParams } = useCategoryParams();
 
   const { data } = useSuspenseQuery(
     trpc.transactionCategories.get.queryOptions(),
   );
 
-  const deleteCategoryMutation = useMutation(
-    trpc.transactionCategories.delete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.transactionCategories.get.queryKey(),
-        });
-      },
-    }),
-  );
+  const [deletingCategoryId, setDeletingCategoryId] = React.useState<
+    string | null
+  >(null);
 
   // Flatten categories - include all parents and all children
   const flattenedData = React.useMemo(() => {
@@ -113,7 +103,7 @@ export function DataTable() {
 
   const tableMeta: CategoriesTableMeta = {
     deleteCategory: (id: string) => {
-      deleteCategoryMutation.mutate({ id });
+      setDeletingCategoryId(id);
     },
     onEdit: (id: string) => {
       setParams({ categoryId: id });
@@ -176,6 +166,11 @@ export function DataTable() {
           ))}
         </TableBody>
       </Table>
+
+      <DeleteCategoryDialog
+        categoryId={deletingCategoryId}
+        onOpenChange={(open) => !open && setDeletingCategoryId(null)}
+      />
     </div>
   );
 }

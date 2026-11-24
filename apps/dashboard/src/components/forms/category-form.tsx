@@ -17,6 +17,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { z } from "zod/v3";
 import { InputColor } from "@/components/input-color";
+import { SelectCategoryKind } from "@/components/select-category-kind";
 import { SelectParentCategory } from "@/components/select-parent-category";
 import { SelectTaxType } from "@/components/select-tax-type";
 import { TaxRateInput } from "@/components/tax-rate-input";
@@ -24,6 +25,7 @@ import { useCategoryParams } from "@/hooks/use-category-params";
 import { useUserQuery } from "@/hooks/use-user";
 import { useZodForm } from "@/hooks/use-zod-form";
 import { useTRPC } from "@/trpc/client";
+import { CATEGORY_KIND_OPTIONS } from "@/utils/category-kinds";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -34,6 +36,14 @@ const formSchema = z.object({
   taxReportingCode: z.string().optional(),
   excluded: z.boolean().optional(),
   parentId: z.string().optional(),
+  kind: z
+    .enum(
+      CATEGORY_KIND_OPTIONS.map((option) => option.value) as [
+        (typeof CATEGORY_KIND_OPTIONS)[number]["value"],
+        ...(typeof CATEGORY_KIND_OPTIONS)[number]["value"][],
+      ],
+    )
+    .optional(),
 });
 
 type CreateCategoriesFormValues = z.infer<typeof formSchema>;
@@ -132,6 +142,25 @@ export function CategoryForm({ data }: Props) {
                         field.onChange(parent?.id ?? undefined);
                       }}
                       excludeIds={[]}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="kind"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-xs text-[#878787] font-normal">
+                    Type
+                  </FormLabel>
+                  <FormControl>
+                    <SelectCategoryKind
+                      value={field.value ?? undefined}
+                      onChange={field.onChange}
+                      placeholder={"Expense, or the parent category's type"}
                     />
                   </FormControl>
                 </FormItem>

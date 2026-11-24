@@ -107,7 +107,7 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
       {
         title: "Create Transaction Category",
         description:
-          "Create a custom transaction category. Name is required. Optionally set color, description, tax rate, and parent category to create a subcategory.",
+          "Create a custom transaction category. Name is required. Optionally set color, description, tax rate, kind (expense, income, refund, cost_of_goods, transfer; a subcategory defaults to its parent's kind) and parent category to create a subcategory.",
         inputSchema: {
           name: createTransactionCategorySchema.shape.name,
           color: createTransactionCategorySchema.shape.color,
@@ -117,6 +117,7 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
           taxReportingCode:
             createTransactionCategorySchema.shape.taxReportingCode,
           parentId: createTransactionCategorySchema.shape.parentId,
+          kind: createTransactionCategorySchema.shape.kind,
         },
         annotations: WRITE_ANNOTATIONS,
       },
@@ -132,6 +133,7 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
             taxType: params.taxType,
             taxReportingCode: params.taxReportingCode,
             parentId: params.parentId,
+            kind: params.kind,
           });
 
           if (!result) {
@@ -180,6 +182,7 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
           taxReportingCode:
             updateTransactionCategorySchema.shape.taxReportingCode,
           parentId: updateTransactionCategorySchema.shape.parentId,
+          kind: updateTransactionCategorySchema.shape.kind,
         },
         annotations: WRITE_ANNOTATIONS,
       },
@@ -195,6 +198,7 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
             taxType: params.taxType,
             taxReportingCode: params.taxReportingCode,
             parentId: params.parentId,
+            kind: params.kind,
           });
 
           if (!result) {
@@ -234,22 +238,28 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
       {
         title: "Delete Transaction Category",
         description:
-          "Delete a custom transaction category by ID. System default categories cannot be deleted. Returns the deleted category.",
+          'Delete a transaction category by ID, built-in or custom. Its transactions move to replacementSlug (default "uncategorized") and its subcategories become top-level. Uncategorized and Internal Transfer cannot be deleted. Returns the deleted category.',
         inputSchema: {
           id: deleteTransactionCategorySchema.shape.id,
+          replacementSlug:
+            deleteTransactionCategorySchema.shape.replacementSlug,
         },
         annotations: DESTRUCTIVE_ANNOTATIONS,
       },
-      async ({ id }) => {
+      async ({ id, replacementSlug }) => {
         try {
-          const result = await deleteTransactionCategory(db, { id, teamId });
+          const result = await deleteTransactionCategory(db, {
+            id,
+            teamId,
+            replacementSlug,
+          });
 
           if (!result) {
             return {
               content: [
                 {
                   type: "text",
-                  text: "Category not found or is a system category (cannot be deleted)",
+                  text: "Category not found",
                 },
               ],
               isError: true,

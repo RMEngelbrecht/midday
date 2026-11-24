@@ -1,17 +1,6 @@
 "use client";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@midday/ui/alert-dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,7 +8,9 @@ import {
 } from "@midday/ui/dropdown-menu";
 import { Icons } from "@midday/ui/icons";
 import { Sheet, SheetContent, SheetHeader } from "@midday/ui/sheet";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { DeleteCategoryDialog } from "@/components/delete-category-dialog";
 import { useCategoryParams } from "@/hooks/use-category-params";
 import { useTRPC } from "@/trpc/client";
 import { CategoryEditForm } from "../forms/category-edit-form";
@@ -51,16 +42,7 @@ export function CategoryEditSheet() {
     ),
   );
 
-  const deleteCategoryMutation = useMutation(
-    trpc.transactionCategories.delete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.transactionCategories.get.queryKey(),
-        });
-        setParams(null);
-      },
-    }),
-  );
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
     <Sheet open={isOpen} onOpenChange={() => setParams(null)}>
@@ -76,44 +58,24 @@ export function CategoryEditSheet() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent sideOffset={10} align="end">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onSelect={(e) => e.preventDefault()}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you absolutely sure?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the category and remove its data from our
-                        servers.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() =>
-                          deleteCategoryMutation.mutate({ id: categoryId })
-                        }
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onSelect={() => setDeleteOpen(true)}
+                >
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </SheetHeader>
 
         <CategoryEditForm data={category} key={category?.id} />
+
+        <DeleteCategoryDialog
+          categoryId={deleteOpen ? (categoryId ?? null) : null}
+          onOpenChange={setDeleteOpen}
+          onDeleted={() => setParams(null)}
+        />
       </SheetContent>
     </Sheet>
   );

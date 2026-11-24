@@ -1,5 +1,6 @@
 import { getModel, isAIEnabled } from "@midday/ai";
 import {
+  getCategoriesForEnrichment,
   getTransactionsForEnrichment,
   markTransactionsAsEnriched,
   type UpdateTransactionEnrichmentParams,
@@ -10,6 +11,7 @@ import type { Job } from "bullmq";
 import type { EnrichTransactionsPayload } from "../../schemas/transactions";
 import { getDb } from "../../utils/db";
 import {
+  assignableCategories,
   generateEnrichmentPrompt,
   prepareTransactionData,
   prepareUpdateData,
@@ -64,6 +66,17 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
       transactionCount: transactionsToEnrich.length,
     });
 
+    // The team's own categories, so custom ones can be assigned and deleted
+    // ones can't.
+    const teamCategories = await getCategoriesForEnrichment(db, { teamId });
+    const categories = assignableCategories(teamCategories);
+    const categoryOptions = {
+      allowed: new Set(categories.map((category) => category.slug)),
+      hasUncategorized: teamCategories.some(
+        (category) => category.slug === "uncategorized",
+      ),
+    };
+
     let totalEnriched = 0;
 
     // Process in batches of 50
@@ -73,7 +86,11 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
       async (batch): Promise<string[]> => {
         // Prepare transactions for LLM
         const transactionData = prepareTransactionData(batch);
-        const prompt = generateEnrichmentPrompt(transactionData, batch);
+        const prompt = generateEnrichmentPrompt(
+          transactionData,
+          batch,
+          categories,
+        );
 
         // Track transactions enriched in this batch to avoid double counting
         let batchEnrichedCount = 0;
@@ -110,7 +127,11 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
               continue;
             }
 
-            const updateData = prepareUpdateData(transaction, result);
+            const updateData = prepareUpdateData(
+              transaction,
+              result,
+              categoryOptions,
+            );
 
             // Check if any updates are needed
             if (!updateData.merchantName && !updateData.categorySlug) {

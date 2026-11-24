@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CATEGORY_KINDS, type CategoryKind } from "./kinds";
 
 // Base category type
 export interface BaseCategory {
@@ -8,6 +9,7 @@ export interface BaseCategory {
   system: boolean;
   taxReportingCode?: string;
   excluded?: boolean;
+  kind?: CategoryKind;
 }
 
 // Parent category interface
@@ -39,6 +41,7 @@ export const baseCategorySchema = z.object({
   system: z.boolean(),
   taxReportingCode: z.string().optional(),
   excluded: z.boolean().optional(),
+  kind: z.enum(CATEGORY_KINDS).optional(),
 });
 
 export const childCategorySchema = baseCategorySchema.extend({

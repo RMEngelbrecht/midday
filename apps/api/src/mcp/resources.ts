@@ -1,5 +1,5 @@
-import { CATEGORIES } from "@midday/categories";
 import {
+  getCategories,
   getCustomerById,
   getCustomers,
   getInvoiceById,
@@ -77,16 +77,17 @@ export function registerResources(server: McpServer, ctx: McpContext): void {
     "midday://categories",
     {
       description:
-        "List of all transaction categories with their hierarchy, colors, and slugs",
+        "The team's transaction categories with their hierarchy, colors, slugs and kinds (expense, income, refund, cost_of_goods, transfer)",
       mimeType: "application/json",
     },
     async () => {
+      const categories = await getCategories(db, { teamId });
       return {
         contents: [
           {
             uri: "midday://categories",
             mimeType: "application/json",
-            text: JSON.stringify(CATEGORIES),
+            text: JSON.stringify(categories),
           },
         ],
       };

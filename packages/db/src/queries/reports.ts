@@ -1,10 +1,6 @@
 import { UTCDate } from "@date-fns/utc";
 import { CASH_ACCOUNT_TYPES } from "@midday/banking/account";
 import {
-  CONTRA_REVENUE_CATEGORIES,
-  REVENUE_CATEGORIES,
-} from "@midday/categories";
-import {
   addMonths,
   eachMonthOfInterval,
   endOfMonth,
@@ -46,6 +42,7 @@ import {
   transactionCategories,
   transactions,
 } from "../schema";
+import { categorySlugsOfKind } from "../utils/category-kinds";
 import { dedupeByDb } from "../utils/dedupe";
 import { getCashBalance } from "./bank-accounts";
 import { getExchangeRatesBatch } from "./exhange-rates";
@@ -64,53 +61,26 @@ const teamCurrencyCache = new Map<
 >();
 const CACHE_TTL = 5 * 60 * 1000;
 
-const cogsSlugsCache = new Map<
-  string,
-  { slugs: string[]; timestamp: number }
->();
-
+/** Cost-of-goods slugs (kind cost_of_goods, not excluded) for a team. */
 async function getCogsCategorySlugs(
   db: Database,
   teamId: string,
 ): Promise<string[]> {
-  const cached = cogsSlugsCache.get(teamId);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.slugs;
-  }
-
-  const cogsParent = await db
-    .select({ id: transactionCategories.id })
+  const rows = await db
+    .select({ slug: transactionCategories.slug })
     .from(transactionCategories)
     .where(
       and(
         eq(transactionCategories.teamId, teamId),
-        eq(transactionCategories.slug, "cost-of-goods-sold"),
-        isNull(transactionCategories.parentId),
+        eq(transactionCategories.kind, "cost_of_goods"),
+        or(
+          isNull(transactionCategories.excluded),
+          eq(transactionCategories.excluded, false),
+        )!,
       ),
-    )
-    .limit(1);
+    );
 
-  let slugs: string[] = [];
-  const parentId = cogsParent[0]?.id;
-  if (parentId) {
-    const children = await db
-      .select({ slug: transactionCategories.slug })
-      .from(transactionCategories)
-      .where(
-        and(
-          eq(transactionCategories.teamId, teamId),
-          eq(transactionCategories.parentId, parentId),
-          or(
-            isNull(transactionCategories.excluded),
-            eq(transactionCategories.excluded, false),
-          )!,
-        ),
-      );
-    slugs = children.map((c) => c.slug).filter((s): s is string => s !== null);
-  }
-
-  cogsSlugsCache.set(teamId, { slugs, timestamp: Date.now() });
-  return slugs;
+  return rows.map((row) => row.slug).filter((s): s is string => s !== null);
 }
 
 async function getTargetCurrency(
@@ -209,7 +179,7 @@ async function getProfitImpl(db: Database, params: GetReportsParams) {
 
   const monthSeries = eachMonthOfInterval({ start: fromDate, end: toDate });
 
-  // Parallel step 1: all three are independent (COGS slugs are TTL-cached)
+  // Parallel step 1: all three are independent
   const [targetCurrency, netRevenueData, cogsCategorySlugs] = await Promise.all(
     [
       getTargetCurrency(db, teamId, inputCurrency),
@@ -396,7 +366,11 @@ async function getRevenueImpl(db: Database, params: GetReportsParams) {
   const conditions = [
     eq(transactions.teamId, teamId),
     eq(transactions.internal, false),
-    inArray(transactions.categorySlug, REVENUE_CATEGORIES), // Include all revenue categories (includes "revenue" parent)
+    // Income-kind categories (refunds are their own kind and stay out)
+    inArray(
+      transactions.categorySlug,
+      categorySlugsOfKind(db, teamId, ["income"]),
+    ),
     ne(transactions.status, "excluded"),
     gte(transactions.date, format(fromDate, "yyyy-MM-dd")),
     lte(transactions.date, format(toDate, "yyyy-MM-dd")),
@@ -413,11 +387,6 @@ async function getRevenueImpl(db: Database, params: GetReportsParams) {
   } else {
     conditions.push(gt(transactions.baseAmount, 0));
   }
-
-  // Explicitly exclude contra-revenue categories
-  conditions.push(
-    not(inArray(transactions.categorySlug, CONTRA_REVENUE_CATEGORIES)),
-  );
 
   const tc = transactionCategories;
 
@@ -3481,8 +3450,7 @@ export async function getBalanceSheet(
           eq(transactions.internal, false),
           ne(transactions.status, "excluded"),
           lte(transactions.date, asOfDateStr),
-          inArray(transactions.categorySlug, REVENUE_CATEGORIES),
-          not(inArray(transactions.categorySlug, CONTRA_REVENUE_CATEGORIES)),
+          eq(transactionCategories.kind, "income"),
           targetCurrency
             ? sql`(${resolvedAmount(targetCurrency)} > 0)`
             : gt(transactions.baseAmount, 0),

@@ -1,4 +1,5 @@
 import { getCategoryColor } from "./color-system";
+import { getDefaultCategoryKind } from "./kinds";
 import type { CategoryHierarchy } from "./types";
 
 // Raw category definitions without colors
@@ -198,12 +199,14 @@ function applyColorsToCategories(
     color: getCategoryColor(parent.slug),
     system: true,
     excluded: false, // Default to not excluded
+    kind: getDefaultCategoryKind(parent.slug),
     children: parent.children.map((child) => ({
       ...child,
       parentSlug: parent.slug, // Automatically add parentSlug
       color: getCategoryColor(child.slug),
       system: true,
       excluded: "excluded" in child ? child.excluded : false, // Respect excluded flag if set
+      kind: getDefaultCategoryKind(child.slug, parent.slug),
     })),
   }));
 }

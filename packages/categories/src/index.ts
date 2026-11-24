@@ -59,19 +59,13 @@ export const TAX_TYPES = [
   "none",
 ] as const;
 
-// Revenue category constants
-export const REVENUE_CATEGORIES = [
-  "revenue",
-  "income",
-  "product-sales",
-  "service-revenue",
-  "consulting-revenue",
-  "subscription-revenue",
-  "interest-income",
-  "other-income",
-] as const;
-
-export const CONTRA_REVENUE_CATEGORIES = [
-  "customer-refunds",
-  "chargebacks-disputes",
-] as const;
+// Category kinds, protected categories and the built-in kind defaults
+export {
+  CATEGORY_KINDS,
+  type CategoryKind,
+  CONTRA_REVENUE_CATEGORIES,
+  getDefaultCategoryKind,
+  isProtectedCategory,
+  PROTECTED_CATEGORY_SLUGS,
+  REVENUE_CATEGORIES,
+} from "./kinds";

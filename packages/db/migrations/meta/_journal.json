@@ -64,6 +64,13 @@
       "when": 1795522548551,
       "tag": "0008_enablebanking_counterparty_names",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795562771331,
+      "tag": "0009_category_kinds",
+      "breakpoints": true
     }
   ]
 }
