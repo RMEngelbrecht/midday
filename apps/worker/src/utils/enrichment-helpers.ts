@@ -193,12 +193,21 @@ export function prepareUpdateData(
     /** Whether the team has the "uncategorized" fallback. */
     hasUncategorized: boolean;
   },
+  /** The category the team's own history agrees on for this vendor. */
+  historySlug?: string | null,
 ): UpdateData {
   const updateData: UpdateData = {};
 
   // Only update merchantName if confidence is high enough
   if (shouldUseMerchantResult(result)) {
     updateData.merchantName = result.merchant!;
+  }
+
+  // The team's own choices for this vendor win over the AI, in both
+  // directions: history is how incoming money gets categorised at all.
+  if (!transaction.categorySlug && historySlug) {
+    updateData.categorySlug = historySlug;
+    return updateData;
   }
 
   // Category assignment logic

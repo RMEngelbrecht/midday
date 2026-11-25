@@ -1,11 +1,13 @@
 import { getModel, isAIEnabled } from "@midday/ai";
 import {
   getCategoriesForEnrichment,
+  getCategoryHistory,
   getTransactionsForEnrichment,
   markTransactionsAsEnriched,
   type UpdateTransactionEnrichmentParams,
   updateTransactionEnrichments,
 } from "@midday/db/queries";
+import { CategoryHistory } from "@midday/db/utils/category-history";
 import { APICallError, generateObject, RetryError } from "ai";
 import type { Job } from "bullmq";
 import type { EnrichTransactionsPayload } from "../../schemas/transactions";
@@ -16,7 +18,10 @@ import {
   prepareTransactionData,
   prepareUpdateData,
 } from "../../utils/enrichment-helpers";
-import { enrichmentSchema } from "../../utils/enrichment-schema";
+import {
+  enrichmentSchema,
+  shouldUseMerchantResult,
+} from "../../utils/enrichment-schema";
 import { processBatch } from "../../utils/process-batch";
 import { BaseProcessor } from "../base";
 
@@ -77,6 +82,12 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
       ),
     };
 
+    // Vendors the team has categorised before get the same category again,
+    // so corrections stick and the AI only guesses for new vendors.
+    const history = new CategoryHistory(
+      await getCategoryHistory(db, { teamId }),
+    );
+
     let totalEnriched = 0;
 
     // Process in batches of 50
@@ -84,11 +95,28 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
       transactionsToEnrich,
       BATCH_SIZE,
       async (batch): Promise<string[]> => {
+        // First look-up with what the bank sent; transactions it settles are
+        // shown to the AI as categorised, so it only names their merchant.
+        const historySlugs = new Map<string, string>();
+        for (const transaction of batch) {
+          if (transaction.categorySlug) continue;
+          const suggestion = history.suggest(transaction);
+          if (suggestion) {
+            historySlugs.set(transaction.id, suggestion.categorySlug);
+          }
+        }
+
         // Prepare transactions for LLM
         const transactionData = prepareTransactionData(batch);
         const prompt = generateEnrichmentPrompt(
           transactionData,
-          batch,
+          batch.map((transaction) => ({
+            ...transaction,
+            categorySlug:
+              transaction.categorySlug ??
+              historySlugs.get(transaction.id) ??
+              null,
+          })),
           categories,
         );
 
@@ -108,6 +136,7 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
           const updates: UpdateTransactionEnrichmentParams[] = [];
           const noUpdateNeeded: string[] = [];
           let categoriesUpdated = 0;
+          let categoriesFromHistory = 0;
           let skippedResults = 0;
 
           // With output: "array", object is the array directly
@@ -127,11 +156,27 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
               continue;
             }
 
+            // Second look-up with the merchant the AI found, which tells
+            // apart shops paid through one counterparty such as PayPal.
+            let historySlug = historySlugs.get(transaction.id) ?? null;
+            if (!historySlug && !transaction.categorySlug) {
+              const merchantName = shouldUseMerchantResult(result)
+                ? result.merchant!
+                : transaction.merchantName;
+              historySlug =
+                history.suggest({ ...transaction, merchantName })
+                  ?.categorySlug ?? null;
+            }
+
             const updateData = prepareUpdateData(
               transaction,
               result,
               categoryOptions,
+              historySlug,
             );
+            if (historySlug && updateData.categorySlug === historySlug) {
+              categoriesFromHistory++;
+            }
 
             // Check if any updates are needed
             if (!updateData.merchantName && !updateData.categorySlug) {
@@ -186,6 +231,7 @@ export class EnrichTransactionProcessor extends BaseProcessor<EnrichTransactions
                 (update) => update.data.merchantName,
               ).length,
               categoriesUpdated,
+              categoriesFromHistory,
               skippedResults,
               teamId,
             });

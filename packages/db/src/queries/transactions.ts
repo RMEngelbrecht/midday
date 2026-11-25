@@ -1010,11 +1010,13 @@ export async function getSimilarTransactions(
 
   let sourceMerchantName: string | null = null;
   let sourceCounterpartyName: string | null = null;
+  let sourceIncoming: boolean | null = null;
   if (transactionId) {
     const source = await db
       .select({
         merchantName: transactions.merchantName,
         counterpartyName: transactions.counterpartyName,
+        amount: transactions.amount,
       })
       .from(transactions)
       .where(
@@ -1027,6 +1029,7 @@ export async function getSimilarTransactions(
 
     sourceMerchantName = source[0]?.merchantName ?? null;
     sourceCounterpartyName = source[0]?.counterpartyName ?? null;
+    sourceIncoming = source[0] ? source[0].amount > 0 : null;
   }
 
   const counterpartiesWithName = await db
@@ -1076,6 +1079,16 @@ export async function getSimilarTransactions(
 
   if (transactionId) {
     whereConditions.push(ne(transactions.id, transactionId));
+  }
+
+  // Only the same direction: a top-up from a vendor is not a purchase from
+  // it, and a refund is not the original payment.
+  if (sourceIncoming !== null) {
+    whereConditions.push(
+      sourceIncoming
+        ? sql`${transactions.amount} > 0`
+        : sql`${transactions.amount} <= 0`,
+    );
   }
 
   if (categorySlug) {

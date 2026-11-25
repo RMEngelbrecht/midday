@@ -1,6 +1,7 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import type { Database } from "../client";
 import { transactions } from "../schema";
+import type { CategoryHistoryEntry } from "../utils/category-history";
 
 export type GetTransactionsForEnrichmentParams = {
   transactionIds: string[];
@@ -207,4 +208,55 @@ export async function getTransactionsPendingEnrichment(
     .where(eq(transactions.enrichmentCompleted, false))
     .orderBy(desc(transactions.date))
     .limit(params.limit);
+}
+
+/** How far back categorisation history reaches. */
+const CATEGORY_HISTORY_MONTHS = 18;
+/** Distinct vendor/category rows loaded per team, most recent first. */
+const CATEGORY_HISTORY_LIMIT = 20_000;
+
+/**
+ * The team's categorised transactions from the last 18 months, grouped by
+ * vendor identity, category and direction (in or out). Feeds CategoryHistory,
+ * which lets enrichment repeat the team's own choices for known vendors.
+ * Uncategorized is left out: it is the fallback, not a choice.
+ */
+export async function getCategoryHistory(
+  db: Database,
+  params: { teamId: string },
+): Promise<CategoryHistoryEntry[]> {
+  const incoming = sql<boolean>`${transactions.amount} > 0`;
+
+  const rows = await db
+    .select({
+      name: transactions.name,
+      merchantName: transactions.merchantName,
+      counterpartyName: transactions.counterpartyName,
+      categorySlug: transactions.categorySlug,
+      incoming,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.teamId, params.teamId),
+        isNotNull(transactions.categorySlug),
+        ne(transactions.categorySlug, "uncategorized"),
+        gte(
+          transactions.date,
+          sql`(current_date - make_interval(months => ${CATEGORY_HISTORY_MONTHS}))::date`,
+        ),
+      ),
+    )
+    .groupBy(
+      transactions.name,
+      transactions.merchantName,
+      transactions.counterpartyName,
+      transactions.categorySlug,
+      incoming,
+    )
+    .orderBy(desc(sql`max(${transactions.date})`))
+    .limit(CATEGORY_HISTORY_LIMIT);
+
+  return rows.map((row) => ({ ...row, categorySlug: row.categorySlug! }));
 }
