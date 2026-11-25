@@ -99,7 +99,7 @@ For local testing run the `dev` profile (`docker compose --profile dev up -d`) w
 Teams can forward receipts to a per-team address, `<inboxId>@INBOX_EMAIL_DOMAIN`. Two ways to receive them:
 
 - **IMAP polling** (simplest). Point `IMAP_URL=imaps://user:pass@imap.example.com:993` at one mailbox that receives mail for the domain. The worker polls every `IMAP_POLL_INTERVAL` minutes and matches each message to a team by recipient (`To`, `Delivered-To`, `X-Original-To`). With a single shared mailbox set `INBOX_EMAIL_LOCAL_PART` to use plus-addressing (`receipts+<inboxId>@domain`). `IMAP_PROCESSED_MAILBOX` moves handled mail out of the way.
-- **Postmark inbound webhook.** Add an inbound stream in Postmark with the webhook `https://<user>:<password>@api.example.com/webhooks/inbox`, and set `INBOX_WEBHOOK_USERNAME` / `INBOX_WEBHOOK_PASSWORD` to the same credentials. Without both, the endpoint is open to Postmark's IP range only.
+- **Postmark inbound webhook.** Add an inbound stream in Postmark with the webhook `https://<user>:<password>@api.example.com/webhook/inbox`, and set `INBOX_WEBHOOK_USERNAME` / `INBOX_WEBHOOK_PASSWORD` to the same credentials. Without both, the endpoint is open to Postmark's IP range only.
 
 Set `INBOX_EMAIL_DOMAIN` either way; the forwarding address is hidden in the UI until inbound mail is configured.
 

@@ -951,6 +951,7 @@ const dbQueriesMock = new Proxy(
     updateTransactionCategory: createDefaultMock(),
     deleteTransactionCategory: createDefaultMock(),
     getCategoryUsage: createDefaultMock(),
+    applyCategoryHistory: createDefaultMock(),
     CategoryDeleteError: class CategoryDeleteError extends Error {
       constructor(message: string) {
         super(message);

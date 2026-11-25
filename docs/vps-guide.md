@@ -335,12 +335,9 @@ Create a key in Google AI Studio, enable billing, and set:
 ```
 AI_PROVIDER=google
 AI_API_KEY=<gemini key>
-AI_MODEL_CHAT=gemini-2.5-flash
-AI_MODEL_FAST=gemini-2.5-flash-lite
-AI_MODEL_VISION=gemini-2.5-flash-lite
 ```
 
-As a rough estimate, a receipt of about 5,000 tokens in and 500 out costs under $0.001 on Flash-Lite. Check that these model names are still current, then apply with `docker compose up -d --no-build`. More detail is in [ai.md](./ai.md).
+The defaults are `gemini-3.8-flash` for chat and receipts and `gemini-3.5-flash-lite` for transaction analysis. To pick others, set `AI_MODEL_CHAT`, `AI_MODEL_FAST` and `AI_MODEL_VISION`; your key's models are listed by `curl -s -H "x-goog-api-key: $KEY" "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000" | grep '"name"'`. As a rough estimate, a receipt of about 5,000 tokens in and 500 out costs under $0.001 on Flash-Lite. Apply with `docker compose up -d --no-build`. More detail is in [ai.md](./ai.md).
 
 ## 9. Email forwarding (receipts into Inbox)
 

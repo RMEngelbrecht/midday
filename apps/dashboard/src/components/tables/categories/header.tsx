@@ -3,6 +3,8 @@
 import { Button } from "@midday/ui/button";
 import { Input } from "@midday/ui/input";
 import type { Table } from "@tanstack/react-table";
+import { useState } from "react";
+import { FillCategoriesFromHistoryDialog } from "@/components/fill-categories-from-history-dialog";
 import { useCategoryParams } from "@/hooks/use-category-params";
 import type { Category } from "./columns";
 
@@ -12,6 +14,7 @@ type Props = {
 
 export function Header({ table }: Props) {
   const { setParams } = useCategoryParams();
+  const [fillOpen, setFillOpen] = useState(false);
 
   const handleCreateCategory = () => {
     setParams({ createCategory: true });
@@ -33,7 +36,17 @@ export function Header({ table }: Props) {
         className="max-w-sm"
       />
 
-      <Button onClick={handleCreateCategory}>Create</Button>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={() => setFillOpen(true)}>
+          Fill from history
+        </Button>
+        <Button onClick={handleCreateCategory}>Create</Button>
+      </div>
+
+      <FillCategoriesFromHistoryDialog
+        open={fillOpen}
+        onOpenChange={setFillOpen}
+      />
     </div>
   );
 }

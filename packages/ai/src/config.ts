@@ -50,9 +50,9 @@ export const DEFAULT_MODELS: Record<
     vision: "gpt-4.1-mini",
   },
   google: {
-    chat: "gemini-3-flash-preview",
-    fast: "gemini-2.5-flash-lite",
-    vision: "gemini-3-flash-preview",
+    chat: "gemini-3.8-flash",
+    fast: "gemini-3.5-flash-lite",
+    vision: "gemini-3.8-flash",
   },
   anthropic: {
     chat: "claude-sonnet-4-5",

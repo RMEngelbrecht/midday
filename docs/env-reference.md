@@ -308,7 +308,7 @@ Minutes between polls.
 
 ### `INBOX_WEBHOOK_USERNAME`
 
-Basic-auth credentials for the optional inbound email (Postmark) webhook at /webhooks/inbox. Both must be set to enable it.
+Basic-auth credentials for the optional inbound email (Postmark) webhook at /webhook/inbox. Both must be set to enable it.
 
 ### `INBOX_WEBHOOK_PASSWORD`
 

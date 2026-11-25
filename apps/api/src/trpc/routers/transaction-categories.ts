@@ -8,6 +8,7 @@ import {
 } from "@api/schemas/transaction-categories";
 import { createTRPCRouter, protectedProcedure } from "@api/trpc/init";
 import {
+  applyCategoryHistory,
   CategoryDeleteError,
   createTransactionCategory,
   deleteTransactionCategory,
@@ -41,6 +42,15 @@ export const transactionCategoriesRouter = createTRPCRouter({
     .query(async ({ input, ctx: { db, teamId } }) => {
       return getCategoryUsage(db, { id: input.id, teamId: teamId! });
     }),
+
+  /** How many uncategorised transactions the team's history would fill. */
+  historyPreview: protectedProcedure.query(async ({ ctx: { db, teamId } }) => {
+    return applyCategoryHistory(db, { teamId: teamId!, dryRun: true });
+  }),
+
+  applyHistory: protectedProcedure.mutation(async ({ ctx: { db, teamId } }) => {
+    return applyCategoryHistory(db, { teamId: teamId! });
+  }),
 
   create: protectedProcedure
     .input(createTransactionCategorySchema)

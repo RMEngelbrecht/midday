@@ -1,7 +1,21 @@
-import { and, desc, eq, gte, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import type { Database } from "../client";
 import { transactions } from "../schema";
-import type { CategoryHistoryEntry } from "../utils/category-history";
+import {
+  CategoryHistory,
+  type CategoryHistoryEntry,
+} from "../utils/category-history";
 
 export type GetTransactionsForEnrichmentParams = {
   transactionIds: string[];
@@ -259,4 +273,76 @@ export async function getCategoryHistory(
     .limit(CATEGORY_HISTORY_LIMIT);
 
   return rows.map((row) => ({ ...row, categorySlug: row.categorySlug! }));
+}
+
+/**
+ * Categorises the team's uncategorised transactions (no category, or
+ * Uncategorized) where its history for the same vendor agrees, as enrichment
+ * does for new ones. Never touches a transaction that has a real category.
+ * With `dryRun` it only counts, for a confirmation prompt.
+ */
+export async function applyCategoryHistory(
+  db: Database,
+  params: { teamId: string; dryRun?: boolean },
+): Promise<{ count: number }> {
+  const history = new CategoryHistory(
+    await getCategoryHistory(db, { teamId: params.teamId }),
+  );
+
+  const uncategorized = await db
+    .select({
+      id: transactions.id,
+      name: transactions.name,
+      merchantName: transactions.merchantName,
+      counterpartyName: transactions.counterpartyName,
+      amount: transactions.amount,
+    })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.teamId, params.teamId),
+        or(
+          isNull(transactions.categorySlug),
+          eq(transactions.categorySlug, "uncategorized"),
+        ),
+      ),
+    );
+
+  const idsBySlug = new Map<string, string[]>();
+  for (const transaction of uncategorized) {
+    const suggestion = history.suggest(transaction);
+    if (!suggestion) continue;
+    const ids = idsBySlug.get(suggestion.categorySlug) ?? [];
+    ids.push(transaction.id);
+    idsBySlug.set(suggestion.categorySlug, ids);
+  }
+
+  const count = [...idsBySlug.values()].reduce(
+    (sum, ids) => sum + ids.length,
+    0,
+  );
+  if (params.dryRun || count === 0) return { count };
+
+  await db.transaction(async (tx) => {
+    for (const [categorySlug, ids] of idsBySlug) {
+      for (let i = 0; i < ids.length; i += 1000) {
+        await tx
+          .update(transactions)
+          .set({ categorySlug })
+          .where(
+            and(
+              eq(transactions.teamId, params.teamId),
+              inArray(transactions.id, ids.slice(i, i + 1000)),
+              // Skip rows categorised since they were read.
+              or(
+                isNull(transactions.categorySlug),
+                eq(transactions.categorySlug, "uncategorized"),
+              ),
+            ),
+          );
+      }
+    }
+  });
+
+  return { count };
 }

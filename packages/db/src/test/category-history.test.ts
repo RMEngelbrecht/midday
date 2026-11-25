@@ -1,7 +1,11 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { format, subMonths } from "date-fns";
+import { and, eq, like } from "drizzle-orm";
 import type { Database } from "../client";
-import { getCategoryHistory } from "../queries/transaction-enrichment";
+import {
+  applyCategoryHistory,
+  getCategoryHistory,
+} from "../queries/transaction-enrichment";
 import { getSimilarTransactions } from "../queries/transactions";
 import { transactionCategories, transactions } from "../schema";
 import {
@@ -293,5 +297,110 @@ describe.skipIf(SKIP)("getCategoryHistory", () => {
       name: "Apple Pay Top Up By 5184",
     });
     expect(fromTopUp.map((row) => row.amount)).toEqual([10]);
+  });
+
+  test("fill from history categorises only uncategorised transactions of known vendors", async () => {
+    const recent = format(subMonths(new Date(), 1), "yyyy-MM-dd");
+    const base = {
+      date: recent,
+      method: "payment" as const,
+      currency: "EUR",
+      teamId: TEAM_EUR_ID,
+      status: "posted" as const,
+    };
+    await db.insert(transactions).values([
+      // History: two Backfill Cloud payments in software.
+      {
+        ...base,
+        name: "Backfill Cloud 1",
+        amount: -5,
+        internalId: "fill-1",
+        categorySlug: "software",
+      },
+      {
+        ...base,
+        name: "Backfill Cloud 2",
+        amount: -5,
+        internalId: "fill-2",
+        categorySlug: "software",
+      },
+      // Filled: no category, and Uncategorized.
+      {
+        ...base,
+        name: "Backfill Cloud 3",
+        amount: -5,
+        internalId: "fill-3",
+        categorySlug: null,
+      },
+      {
+        ...base,
+        name: "Backfill Cloud 4",
+        amount: -5,
+        internalId: "fill-4",
+        categorySlug: "uncategorized",
+      },
+      // Left alone: a real category, money in, an unknown vendor.
+      // ("Backfill Rent" is its own vendor; the same vendor in rent would
+      // split the history and nothing would be filled.)
+      {
+        ...base,
+        name: "Backfill Rent",
+        amount: -5,
+        internalId: "fill-5",
+        categorySlug: "rent",
+      },
+      {
+        ...base,
+        name: "Backfill Cloud 6",
+        amount: 5,
+        internalId: "fill-6",
+        categorySlug: null,
+      },
+      {
+        ...base,
+        name: "Backfill Unknown",
+        amount: -5,
+        internalId: "fill-7",
+        categorySlug: null,
+      },
+    ]);
+
+    // 2 here, plus the uncategorised History Test Vendor rows from the
+    // getCategoryHistory test.
+    expect(
+      await applyCategoryHistory(db, { teamId: TEAM_EUR_ID, dryRun: true }),
+    ).toEqual({ count: 4 });
+    const unchanged = await db
+      .select({ categorySlug: transactions.categorySlug })
+      .from(transactions)
+      .where(eq(transactions.internalId, "fill-3"));
+    expect(unchanged[0]?.categorySlug).toBeNull();
+
+    expect(await applyCategoryHistory(db, { teamId: TEAM_EUR_ID })).toEqual({
+      count: 4,
+    });
+
+    const rows = await db
+      .select({
+        internalId: transactions.internalId,
+        categorySlug: transactions.categorySlug,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.teamId, TEAM_EUR_ID),
+          like(transactions.internalId, "fill-%"),
+        ),
+      )
+      .orderBy(transactions.internalId);
+    expect(rows.map((row) => row.categorySlug)).toEqual([
+      "software",
+      "software",
+      "software",
+      "software",
+      "rent",
+      null,
+      null,
+    ]);
   });
 });
