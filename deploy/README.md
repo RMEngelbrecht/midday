@@ -10,7 +10,7 @@ git clone <this repo> && cd midday/deploy
 cp .env.example .env
 ./generate-secrets.sh          # fills the empty secrets, safe to re-run
 $EDITOR .env                   # set DOMAIN, APP_URL, API_URL
-docker compose up -d           # pulls images from GHCR; use `build` to build locally
+docker compose up -d           # pulls images from GHCR; never builds
 ```
 
 Open `APP_URL` and sign up. With the default `ALLOW_SIGNUP=first-user` the first
@@ -32,7 +32,8 @@ dashboard never sees the session cookie.
 
 Full guide, provider setup and backups: [`../docs/self-hosting.md`](../docs/self-hosting.md).
 
-To build the images instead of pulling: `docker compose build`.
+To build the images from this checkout instead of pulling them:
+`docker compose -f compose.yaml -f compose.build.yaml up -d --build`.
 
 ## Profiles
 

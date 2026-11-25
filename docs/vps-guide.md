@@ -37,10 +37,14 @@ Wait until `dig +short api.midday.rme.gg` returns your IP before starting the st
 
 ## 3. Prepare the server
 
-SSH in as a sudo user, then install Docker:
+SSH in as a sudo user, then install Docker, and rsync for copying the deploy folder over (step 4):
 
 ```bash
 curl -fsSL https://get.docker.com | sudo sh
+```
+
+```bash
+sudo apt-get install -y rsync
 ```
 
 ```bash
@@ -197,10 +201,10 @@ docker compose pull
 ```
 
 ```bash
-docker compose up -d --no-build
+docker compose up -d
 ```
 
-`--no-build` makes sure the server runs the images from GitHub and never tries to build. Check the services:
+The server only runs the images from GitHub; it never builds (building is in `compose.build.yaml`, for a full checkout). Check the services:
 
 ```bash
 docker compose ps
@@ -337,7 +341,7 @@ AI_PROVIDER=google
 AI_API_KEY=<gemini key>
 ```
 
-The defaults are `gemini-3.8-flash` for chat and receipts and `gemini-3.5-flash-lite` for transaction analysis. To pick others, set `AI_MODEL_CHAT`, `AI_MODEL_FAST` and `AI_MODEL_VISION`; your key's models are listed by `curl -s -H "x-goog-api-key: $KEY" "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000" | grep '"name"'`. As a rough estimate, a receipt of about 5,000 tokens in and 500 out costs under $0.001 on Flash-Lite. Apply with `docker compose up -d --no-build`. More detail is in [ai.md](./ai.md).
+The defaults are `gemini-3.8-flash` for chat and receipts and `gemini-3.5-flash-lite` for transaction analysis. To pick others, set `AI_MODEL_CHAT`, `AI_MODEL_FAST` and `AI_MODEL_VISION`; your key's models are listed by `curl -s -H "x-goog-api-key: $KEY" "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000" | grep '"name"'`. As a rough estimate, a receipt of about 5,000 tokens in and 500 out costs under $0.001 on Flash-Lite. Apply with `docker compose up -d`. More detail is in [ai.md](./ai.md).
 
 ## 9. Email forwarding (receipts into Inbox)
 
@@ -352,7 +356,7 @@ Each team gets a forwarding address, and whatever arrives there becomes an Inbox
    INBOX_EMAIL_LOCAL_PART=inbox
    ```
 
-3. Apply it with `docker compose up -d --no-build`.
+3. Apply it with `docker compose up -d`.
 4. Your forwarding address now appears in the Inbox settings, as `inbox+<team-id>@rme.gg`. The worker checks the mailbox every 5 minutes (`IMAP_POLL_INTERVAL`).
 
 Then forward a receipt with a PDF attached and watch it appear in Inbox.
@@ -386,7 +390,7 @@ This lets you message the assistant and send receipt photos from WhatsApp. It us
    WHATSAPP_VERIFY_TOKEN=<random string>
    ```
 
-5. Apply it with `docker compose up -d --no-build`.
+5. Apply it with `docker compose up -d`.
 6. In the app's WhatsApp → Configuration, set the callback URL to `https://api.midday.rme.gg/webhook/whatsapp` (singular `webhook`) with your verify token. Click **Verify and save**, then subscribe to the **messages** field.
 7. Publish the app (switch it to Live) so real messages are delivered.
 8. In Midday, open the WhatsApp connect option under **Apps** or in **Inbox**. It shows the number and a code. Send `Connect to Midday: <code>` and you're linked.
@@ -395,7 +399,7 @@ Then try "what did I spend last month?", and send a photo of a receipt.
 
 **Backup: Telegram.** Midday has the same assistant for Telegram, which is free, takes minutes, and has no such policy. It's a good way to prove the assistant works before dealing with Meta.
 
-1. Create a bot with @BotFather and set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` (without the `@`) and `TELEGRAM_WEBHOOK_SECRET_TOKEN` (a random string) in `.env`. Apply with `docker compose up -d --no-build`.
+1. Create a bot with @BotFather and set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` (without the `@`) and `TELEGRAM_WEBHOOK_SECRET_TOKEN` (a random string) in `.env`. Apply with `docker compose up -d`.
 2. Register the webhook once. Midday doesn't do this for you:
 
    ```bash
@@ -434,7 +438,7 @@ git push origin v0.1.1
 When the Actions build finishes, set `MIDDAY_VERSION=0.1.1` in the VPS `.env`, then:
 
 ```bash
-cd ~/midday && docker compose pull && docker compose up -d --no-build
+cd ~/midday && docker compose pull && docker compose up -d
 ```
 
 Database migrations run automatically on start. If `deploy/` changed, rsync it again first (the `--exclude .env` keeps your settings).

@@ -15,7 +15,7 @@ cd "$(dirname "$0")/../deploy"
 PROJECT="${E2E_PROJECT:-midday-e2e}"
 PORT="${E2E_HTTP_PORT:-8080}"
 HTTPS_PORT="${E2E_HTTPS_PORT:-8443}"
-compose() { docker compose -p "$PROJECT" "$@"; }
+compose() { docker compose -p "$PROJECT" -f compose.yaml -f compose.build.yaml "$@"; }
 
 setenv() { # key value: replace or append in .env
   if grep -q "^$1=" .env; then

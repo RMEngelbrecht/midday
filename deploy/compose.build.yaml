@@ -1,0 +1,21 @@
+# Builds the app images from this checkout instead of pulling them:
+#   docker compose -f compose.yaml -f compose.build.yaml up -d --build
+# Kept apart from compose.yaml so a server with only the deploy folder never
+# tries to build.
+services:
+  migrate:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/worker/Dockerfile
+  dashboard:
+    build:
+      context: ..
+      dockerfile: apps/dashboard/Dockerfile

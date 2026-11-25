@@ -1,6 +1,8 @@
 # Midday self-hosting stack.
 #   cp .env.example .env && ./generate-secrets.sh && docker compose up -d
 # Optional profiles: s3 (Garage object store), ai (Ollama), dev (Mailpit).
+# Images come from GHCR; `up` never builds. To build from a checkout, add
+# compose.build.yaml: docker compose -f compose.yaml -f compose.build.yaml build
 name: midday
 
 x-app: &app
@@ -51,9 +53,6 @@ services:
   migrate:
     <<: *app
     image: ghcr.io/${MIDDAY_OWNER:-midday-app}/midday-api:${MIDDAY_VERSION:-latest}
-    build:
-      context: ..
-      dockerfile: apps/api/Dockerfile
     restart: "no"
     working_dir: /app/packages/db
     command: ["bun", "/app/node_modules/varlock/bin/cli.js", "run", "--", "bun", "run", "src/scripts/migrate.ts"]
@@ -63,9 +62,6 @@ services:
   api:
     <<: *app
     image: ghcr.io/${MIDDAY_OWNER:-midday-app}/midday-api:${MIDDAY_VERSION:-latest}
-    build:
-      context: ..
-      dockerfile: apps/api/Dockerfile
     volumes:
       - storage-data:/data/storage
     depends_on:
@@ -78,9 +74,6 @@ services:
   worker:
     <<: *app
     image: ghcr.io/${MIDDAY_OWNER:-midday-app}/midday-worker:${MIDDAY_VERSION:-latest}
-    build:
-      context: ..
-      dockerfile: apps/worker/Dockerfile
     volumes:
       - storage-data:/data/storage
     depends_on:
@@ -93,9 +86,6 @@ services:
   dashboard:
     <<: *app
     image: ghcr.io/${MIDDAY_OWNER:-midday-app}/midday-dashboard:${MIDDAY_VERSION:-latest}
-    build:
-      context: ..
-      dockerfile: apps/dashboard/Dockerfile
     depends_on:
       api: { condition: service_healthy }
     healthcheck:

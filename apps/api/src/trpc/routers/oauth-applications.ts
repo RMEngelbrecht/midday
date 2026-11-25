@@ -173,41 +173,46 @@ export const oauthApplicationsRouter = createTRPCRouter({
         throw new Error("Failed to create authorization code");
       }
 
-      // Send app installation email only if this is the first time authorizing this app
-      try {
-        // Check if user has ever authorized this application for this team (including expired tokens)
-        const hasAuthorizedBefore = await hasUserEverAuthorizedApp(
+      // Send app installation email only if this is the first time
+      // authorizing this app. Checked now, before the client can exchange the
+      // code; sent in the background, because a slow or unreachable SMTP
+      // server must not hold up the redirect (the consent screen would hang
+      // on "Authorizing..." until the proxy times out).
+      const userTeam = userTeams.find((team) => team.id === teamId);
+      const email = session.user.email;
+      const firstAuthorization =
+        userTeam &&
+        email &&
+        !(await hasUserEverAuthorizedApp(
           db,
           session.user.id,
           teamId,
           application.id,
-        );
+        ));
 
-        if (!hasAuthorizedBefore) {
-          // Get team information
-          const userTeam = userTeams.find((team) => team.id === teamId);
-
-          if (userTeam && session.user.email) {
+      if (firstAuthorization) {
+        void (async () => {
+          try {
             const html = await render(
               AppInstalledEmail({
-                email: session.user.email,
+                email,
                 teamName: userTeam.name!,
                 appName: application.name,
               }),
             );
 
             await send({
-              to: session.user.email,
+              to: email,
               subject: "An app has been added to your team",
               html,
             });
+          } catch (error) {
+            // Log error but don't fail the OAuth flow
+            logger.error("Failed to send app installation email", {
+              error: error instanceof Error ? error.message : String(error),
+            });
           }
-        }
-      } catch (error) {
-        // Log error but don't fail the OAuth flow
-        logger.error("Failed to send app installation email", {
-          error: error instanceof Error ? error.message : String(error),
-        });
+        })();
       }
 
       // Build success redirect URL
