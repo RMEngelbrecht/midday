@@ -1,5 +1,5 @@
 # Base image with Bun
-FROM oven/bun:1.3.11 AS base
+FROM oven/bun:1.4.5 AS base
 
 # Install turbo CLI globally
 FROM base AS turbo-cli
@@ -42,7 +42,7 @@ COPY --from=builder /app/out/worker/full/ .
 COPY --from=build /app/packages/workbench/dist ./packages/workbench/dist
 
 # Runner stage - slim image
-FROM oven/bun:1.3.11-slim AS runner
+FROM oven/bun:1.4.5-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

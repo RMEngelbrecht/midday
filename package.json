@@ -28,7 +28,7 @@
     "env:codegen": "sh scripts/env-codegen.sh",
     "env:check": "sh -c 'for d in apps/api apps/dashboard apps/worker; do varlock load --path \"$d/\" || exit 1; done'"
   },
-  "packageManager": "bun@1.3.11",
+  "packageManager": "bun@1.4.5",
   "catalog": {
     "@ai-sdk/google": "^3.0.53",
     "@ai-sdk/openai": "3.0.48",

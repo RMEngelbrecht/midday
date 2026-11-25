@@ -1,5 +1,5 @@
 # Base image with Bun
-FROM oven/bun:1.3.11 AS base
+FROM oven/bun:1.4.5 AS base
 
 # Install turbo CLI globally using Bun
 FROM base AS turbo-cli
@@ -56,7 +56,7 @@ COPY --from=builder /app/.env.schema ./.env.schema
 RUN cd apps/dashboard && bun ../../node_modules/varlock/bin/cli.js flatten --out-dir .env-flat
 
 # Runner stage - clean bun image, no turbo
-FROM oven/bun:1.3.11 AS runner
+FROM oven/bun:1.4.5 AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
