@@ -67,7 +67,7 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "2.4.10",
-    "turbo": "2.9.3",
+    "turbo": "2.9.14",
     "typescript": "^6.0.2",
     "varlock": "catalog:"
   },
