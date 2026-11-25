@@ -57,7 +57,7 @@
     "@sindresorhus/slugify": "catalog:",
     "@types/pg": "^8.20.0",
     "camelcase-keys": "catalog:",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.4",
     "nanoid": "catalog:",
     "pg": "^8.20.0",
     "snakecase-keys": "^9.0.2",
