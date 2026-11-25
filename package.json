@@ -44,7 +44,7 @@
     "change-case": "^5.4.4",
     "date-fns": "^4.1.0",
     "heic-convert": "1.2.4",
-    "hono": "4.12.9",
+    "hono": "4.13.22",
     "jose": "^6.2.2",
     "nanoid": "^5.1.7",
     "node-xlsx": "^0.24.0",
