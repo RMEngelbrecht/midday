@@ -26,19 +26,30 @@ app.get("/oauth-protected-resource", (c) => {
   return c.json(protectedResourceMetadata);
 });
 
-app.get("/oauth-authorization-server", (c) => {
-  return c.json({
-    issuer: apiUrl,
-    authorization_endpoint: `${dashboardUrl}/oauth/authorize`,
-    token_endpoint: `${apiUrl}/oauth/token`,
-    registration_endpoint: `${apiUrl}/oauth/register`,
-    revocation_endpoint: `${apiUrl}/oauth/revoke`,
-    response_types_supported: ["code"],
-    grant_types_supported: ["authorization_code", "refresh_token"],
-    code_challenge_methods_supported: ["S256"],
-    token_endpoint_auth_methods_supported: ["none"],
-    scopes_supported: supportedScopes,
-  });
+const authorizationServerMetadata = () => ({
+  issuer: apiUrl,
+  authorization_endpoint: `${dashboardUrl}/oauth/authorize`,
+  token_endpoint: `${apiUrl}/oauth/token`,
+  registration_endpoint: `${apiUrl}/oauth/register`,
+  revocation_endpoint: `${apiUrl}/oauth/revoke`,
+  response_types_supported: ["code"],
+  grant_types_supported: ["authorization_code", "refresh_token"],
+  code_challenge_methods_supported: ["S256"],
+  token_endpoint_auth_methods_supported: ["none"],
+  scopes_supported: supportedScopes,
 });
+
+app.get("/oauth-authorization-server", (c) =>
+  c.json(authorizationServerMetadata()),
+);
+
+// RFC 8414 path-inserted form, e.g. /oauth-authorization-server/mcp.
+app.get("/oauth-authorization-server/*", (c) =>
+  c.json(authorizationServerMetadata()),
+);
+
+// Anything else (openid-configuration, ...) is a plain 404, so clients move
+// on to the next discovery URL instead of stopping at an auth error.
+app.all("*", (c) => c.json({ error: "not_found" }, 404));
 
 export { app as wellKnownRouter };

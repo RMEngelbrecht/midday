@@ -5,10 +5,12 @@ import {
   updateTransactionCategorySchema,
 } from "@api/schemas/transaction-categories";
 import {
+  applyCategoryHistory,
   createTransactionCategory,
   deleteTransactionCategory,
   getCategories,
   getCategoryById,
+  getCategoryUsage,
   updateTransactionCategory,
 } from "@midday/db/queries";
 import { z } from "zod";
@@ -38,7 +40,7 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
       {
         title: "List Transaction Categories",
         description:
-          "List all transaction categories as a tree with parent categories and their children. Includes system default categories and custom categories. Use category slugs (not IDs) when filtering or categorizing transactions.",
+          "List all transaction categories as a tree with parent categories and their children, built-in and custom. Each has a kind: expense, income, refund, cost_of_goods or transfer, which decides how reports count it (income kinds are revenue). Use category slugs (not IDs) when filtering or categorizing transactions.",
         inputSchema: {
           limit: z.coerce
             .number()
@@ -98,6 +100,37 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
           structuredContent: { data: clean },
         };
       }, "Failed to get category"),
+    );
+
+    server.registerTool(
+      "categories_usage",
+      {
+        title: "Get Transaction Category Usage",
+        description:
+          "How many transactions and subcategories a category has, and whether it is protected (Uncategorized and Internal Transfer cannot be deleted). Check this before categories_delete to choose a replacementSlug.",
+        inputSchema: {
+          id: getCategoryByIdSchema.shape.id,
+        },
+        outputSchema: {
+          data: z.record(z.string(), z.any()),
+        },
+        annotations: READ_ONLY_ANNOTATIONS,
+      },
+      withErrorHandling(async ({ id }) => {
+        const result = await getCategoryUsage(db, { id, teamId });
+
+        if (!result) {
+          return {
+            content: [{ type: "text" as const, text: "Category not found" }],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+          structuredContent: { data: result },
+        };
+      }, "Failed to get category usage"),
     );
   }
 
@@ -231,6 +264,33 @@ export const registerCategoryTools: RegisterTools = (server, ctx) => {
           };
         }
       },
+    );
+
+    server.registerTool(
+      "categories_fill_from_history",
+      {
+        title: "Fill Categories From History",
+        description:
+          "Give uncategorised transactions (no category or Uncategorized) the category the team chose before for the same vendor, where that history clearly agrees. Transactions with a category are never changed. Call with dryRun true first to see how many would change. Returns { count }.",
+        inputSchema: {
+          dryRun: z
+            .boolean()
+            .optional()
+            .describe("Only count the transactions that would be categorised"),
+        },
+        outputSchema: {
+          count: z.number(),
+        },
+        annotations: WRITE_ANNOTATIONS,
+      },
+      withErrorHandling(async ({ dryRun }) => {
+        const result = await applyCategoryHistory(db, { teamId, dryRun });
+
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result) }],
+          structuredContent: result,
+        };
+      }, "Failed to fill categories from history"),
     );
 
     server.registerTool(

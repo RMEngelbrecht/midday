@@ -65,6 +65,8 @@ describe("MCP server", () => {
     expect(names).toContain("categories_create");
     expect(names).toContain("categories_update");
     expect(names).toContain("categories_delete");
+    expect(names).toContain("categories_usage");
+    expect(names).toContain("categories_fill_from_history");
 
     expect(names).toContain("invoice_products_list");
     expect(names).toContain("invoice_products_create");
@@ -286,6 +288,7 @@ describe("MCP server", () => {
       "tracker_entries_list",
       "reports_revenue",
       "categories_list",
+      "categories_usage",
       "invoice_products_list",
       "invoice_recurring_list",
     ];
@@ -321,6 +324,7 @@ describe("MCP server", () => {
       "categories_create",
       "categories_update",
       "categories_delete",
+      "categories_fill_from_history",
       "invoice_products_create",
       "invoice_recurring_create",
     ];

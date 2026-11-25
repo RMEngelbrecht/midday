@@ -26,6 +26,7 @@ import { wellKnownRouter } from "./rest/routers/well-known";
 import type { Context } from "./rest/types";
 import { createTRPCContext } from "./trpc/init";
 import { appRouter } from "./trpc/routers/_app";
+import { isPublicCorsPath } from "./utils/cors";
 import { httpLogger } from "./utils/logger";
 import { getRequestTrace } from "./utils/request-trace";
 
@@ -38,46 +39,66 @@ app.use(
   }),
 );
 
-app.use(
-  "*",
-  cors({
-    origin: [
-      ENV.APP_URL,
-      ...(ENV.ALLOWED_API_ORIGINS?.split(",")
-        .map((origin) => origin.trim())
-        .filter(Boolean) ?? []),
-    ],
-    // better-auth session cookies (dashboard + desktop webview)
-    credentials: true,
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowHeaders: [
-      "Authorization",
-      "Content-Type",
-      "User-Agent",
-      "accept-language",
-      "cf-ray",
-      "trpc-accept",
-      "x-request-id",
-      "x-trpc-source",
-      "x-user-locale",
-      "x-user-timezone",
-      "x-user-country",
-      "x-force-primary",
-      // Slack webhook headers
-      "x-slack-signature",
-      "x-slack-request-timestamp",
-    ],
-    exposeHeaders: [
-      "Content-Length",
-      "Content-Type",
-      "Cache-Control",
-      "Cross-Origin-Resource-Policy",
-      "Server-Timing",
-      "set-auth-jwt",
-      "set-auth-token",
-    ],
-    maxAge: 86400,
-  }),
+// MCP clients run in other origins (claude.ai, MCP Inspector, ...) and call
+// these endpoints from the browser with bearer tokens, never cookies, so any
+// origin may use them without credentials. Everything else is limited to the
+// dashboard and ALLOWED_API_ORIGINS.
+const publicCors = cors({
+  origin: "*",
+  allowMethods: ["GET", "POST", "DELETE", "OPTIONS"],
+  allowHeaders: [
+    "Authorization",
+    "Content-Type",
+    "Accept",
+    "mcp-protocol-version",
+    "mcp-session-id",
+    "last-event-id",
+  ],
+  exposeHeaders: ["mcp-session-id", "mcp-protocol-version", "WWW-Authenticate"],
+  maxAge: 86400,
+});
+
+const dashboardCors = cors({
+  origin: [
+    ENV.APP_URL,
+    ...(ENV.ALLOWED_API_ORIGINS?.split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean) ?? []),
+  ],
+  // better-auth session cookies (dashboard + desktop webview)
+  credentials: true,
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowHeaders: [
+    "Authorization",
+    "Content-Type",
+    "User-Agent",
+    "accept-language",
+    "cf-ray",
+    "trpc-accept",
+    "x-request-id",
+    "x-trpc-source",
+    "x-user-locale",
+    "x-user-timezone",
+    "x-user-country",
+    "x-force-primary",
+    // Slack webhook headers
+    "x-slack-signature",
+    "x-slack-request-timestamp",
+  ],
+  exposeHeaders: [
+    "Content-Length",
+    "Content-Type",
+    "Cache-Control",
+    "Cross-Origin-Resource-Policy",
+    "Server-Timing",
+    "set-auth-jwt",
+    "set-auth-token",
+  ],
+  maxAge: 86400,
+});
+
+app.use("*", (c, next) =>
+  isPublicCorsPath(c.req.path) ? publicCors(c, next) : dashboardCors(c, next),
 );
 
 // Always emit Server-Timing so the browser Network tab shows server-side duration.
