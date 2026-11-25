@@ -48,7 +48,7 @@
     "@midday/storage": "workspace:*",
     "@midday/utils": "workspace:*",
     "@modelcontextprotocol/ext-apps": "^1.3.2",
-    "@modelcontextprotocol/sdk": "^1.28.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@scalar/hono-api-reference": "^0.10.5",
     "@sentry/bun": "catalog:",
     "@sindresorhus/slugify": "catalog:",
